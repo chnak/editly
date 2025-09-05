@@ -2,10 +2,10 @@
   "name": "editly",
   "description": "Simple, sexy, declarative video editing",
   "version": "0.15.0-rc.1",
-  "module": "./dist/index.js",
-  "types": "dist/index.d.ts",
+  "module": "./src/index.js",
+  "types": "src/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./src/index.js"
   },
   "author": "Mikael Finstad <finstaden@gmail.com>",
   "contributors": [
@@ -20,10 +20,10 @@
     "@types/gl-shader": "^4.2.5",
     "@types/lodash-es": "^4.17.12",
     "@types/ndarray": "^1.0.14",
-    "canvas": "^3.2.0",
+    "canvas": "^2.11.2",
     "compare-versions": "^6.1.0",
-    "execa": "^9.5.2",
-    "fabric": "^6.7.1",
+    "execa": "^6.1.0",
+    "fabric": "^6.5.4",
     "file-type": "^20.0.0",
     "file-url": "^4.0.0",
     "fs-extra": "^11.2.0",
@@ -39,12 +39,6 @@
     "nanoid": "^5.0.7",
     "ndarray": "^1.0.19",
     "p-map": "^7.0.2"
-  },
-  "resolutions": {
-    "canvas": "3.1.2"
-  },
-  "overrides": {
-    "canvas": "3.1.2"
   },
   "scripts": {
     "build": "pkgroll --clean-dist --sourcemap",
