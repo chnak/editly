@@ -2,7 +2,30 @@ import { createCanvas, ImageData } from "canvas";
 import * as fabric from "fabric/node";
 import { boxBlurImage } from "../BoxBlur.js";
 import { defineFrameSource } from "../api/index.js";
+import sharp from 'sharp';
+import fs from 'fs/promises';
 // Fabric is used as a fundament for compositing layers in editly
+
+export async function saveRgbaAsPngSharp(rgbaBuffer, width, height, outputPath) {
+    const expectedSize = width * height * 4;
+    if (rgbaBuffer.length !== expectedSize) {
+        throw new Error(`Invalid buffer size: expected ${expectedSize}, got ${rgbaBuffer.length}`);
+    }
+
+    const pngBuffer = await sharp(rgbaBuffer, {
+        raw: {
+            width: width,
+            height: height,
+            channels: 4
+        }
+    })
+    .png()
+    .toBuffer();
+
+    await fs.writeFile(outputPath, pngBuffer);
+    console.log(`Sharp PNG saved: ${outputPath}`);
+    return pngBuffer;
+}
 export function canvasToRgba(ctx) {
     // We cannot use toBuffer('raw') because it returns pre-multiplied alpha data (a different format)
     // https://gamedev.stackexchange.com/questions/138813/whats-the-difference-between-alpha-and-premulalpha
