@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import meow from 'meow';
-import { readFileSync } from 'fs';
-import { fileTypeFromFile } from 'file-type';
-import pMap from 'p-map';
-import JSON5 from 'json5';
-import assert from 'assert';
-import Editly from './index.js';
+import assert from "assert";
+import { fileTypeFromFile } from "file-type";
+import { readFileSync } from "fs";
+import JSON5 from "json5";
+import meow from "meow";
+import pMap from "p-map";
+import Editly from "./index.js";
 // See also readme
 const cli = meow(`
   Usage
@@ -47,22 +47,22 @@ const cli = meow(`
 `, {
     importMeta: import.meta,
     flags: {
-        verbose: { type: 'boolean', alias: 'v' },
-        keepSourceAudio: { type: 'boolean' },
-        allowRemoteRequests: { type: 'boolean' },
-        fast: { type: 'boolean', alias: 'f' },
-        transitionName: { type: 'string' },
-        transitionDuration: { type: 'number' },
-        clipDuration: { type: 'number' },
-        width: { type: 'number' },
-        height: { type: 'number' },
-        fps: { type: 'number' },
-        fontPath: { type: 'string' },
-        loopAudio: { type: 'boolean' },
-        outputVolume: { type: 'string' },
-        json: { type: 'string' },
-        out: { type: 'string' },
-        audioFilePath: { type: 'string' },
+        verbose: { type: "boolean", alias: "v" },
+        keepSourceAudio: { type: "boolean" },
+        allowRemoteRequests: { type: "boolean" },
+        fast: { type: "boolean", alias: "f" },
+        transitionName: { type: "string" },
+        transitionDuration: { type: "number" },
+        clipDuration: { type: "number" },
+        width: { type: "number" },
+        height: { type: "number" },
+        fps: { type: "number" },
+        fontPath: { type: "string" },
+        loopAudio: { type: "boolean" },
+        outputVolume: { type: "string" },
+        json: { type: "string" },
+        out: { type: "string" },
+        audioFilePath: { type: "string" },
     },
 });
 (async () => {
@@ -73,7 +73,7 @@ const cli = meow(`
         defaults: {},
     };
     if (json) {
-        params = JSON5.parse(readFileSync(json, 'utf-8'));
+        params = JSON5.parse(readFileSync(json, "utf-8"));
     }
     else {
         const clipsIn = cli.input;
@@ -82,26 +82,26 @@ const cli = meow(`
         const clips = await pMap(clipsIn, async (clip) => {
             let match = clip.match(/^title:(.+)$/);
             if (match)
-                return { type: 'title-background', text: match[1] };
+                return { type: "title-background", text: match[1] };
             match = clip.match(/^https?:\/\/.*\.(jpg|jpeg|png|webp|gif|svg)$/); // todo improve
             if (match)
-                return { type: 'image', path: clip };
+                return { type: "image", path: clip };
             const fileType = await fileTypeFromFile(clip);
             if (!fileType) {
-                console.error('Invalid file for clip', clip);
+                console.error("Invalid file for clip", clip);
                 cli.showHelp();
             }
             const mime = fileType.mime;
-            if (mime.startsWith('video'))
-                return { type: 'video', path: clip };
-            if (mime.startsWith('image'))
-                return { type: 'image', path: clip };
+            if (mime.startsWith("video"))
+                return { type: "video", path: clip };
+            if (mime.startsWith("image"))
+                return { type: "image", path: clip };
             throw new Error(`Unrecognized clip or file type "${clip}"`);
         }, { concurrency: 1 });
-        assert(clips.length > 0, 'No clips specified');
+        assert(clips.length > 0, "No clips specified");
         params.clips = clips.map((clip) => ({ layers: [clip] }));
     }
-    const { verbose, transitionName, transitionDuration, clipDuration, width, height, fps, audioFilePath, fontPath, fast, out: outPath, keepSourceAudio, loopAudio, outputVolume, allowRemoteRequests } = cli.flags;
+    const { verbose, transitionName, transitionDuration, clipDuration, width, height, fps, audioFilePath, fontPath, fast, out: outPath, keepSourceAudio, loopAudio, outputVolume, allowRemoteRequests, } = cli.flags;
     if (transitionName || transitionDuration != null) {
         params.defaults.transition = {};
         if (transitionName)
@@ -141,9 +141,9 @@ const cli = meow(`
     if (params.verbose)
         console.log(JSON5.stringify(params, null, 2));
     if (!params.outPath)
-        params.outPath = './editly-out.mp4';
+        params.outPath = "./editly-out.mp4";
     await Editly(params);
 })().catch((err) => {
-    console.error('Caught error', err);
+    console.error("Caught error", err);
     process.exitCode = 1;
 });

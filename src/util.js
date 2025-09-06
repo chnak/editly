@@ -1,54 +1,8 @@
-import { execa } from 'execa';
-import assert from 'assert';
-import { sortBy } from 'lodash-es';
-import { pathExists } from 'fs-extra';
-export function parseFps(fps) {
-    const match = typeof fps === 'string' && fps.match(/^([0-9]+)\/([0-9]+)$/);
-    if (match) {
-        const num = parseInt(match[1], 10);
-        const den = parseInt(match[2], 10);
-        if (den > 0)
-            return num / den;
-    }
-    return undefined;
-}
-export async function readDuration(ffprobePath, p) {
-    const { stdout } = await execa(ffprobePath, ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', p]);
-    const parsed = parseFloat(stdout);
-    assert(!Number.isNaN(parsed));
-    return parsed;
-}
-export async function readFileStreams(ffprobePath, p) {
-    const { stdout } = await execa(ffprobePath, [
-        '-show_entries', 'stream', '-of', 'json', p,
-    ]);
-    return JSON.parse(stdout).streams;
-}
-export async function readVideoFileInfo(ffprobePath, p) {
-    const streams = await readFileStreams(ffprobePath, p);
-    const stream = streams.find((s) => s.codec_type === 'video'); // TODO
-    if (!stream) {
-        throw new Error(`Could not find a video stream in ${p}`);
-    }
-    const duration = await readDuration(ffprobePath, p);
-    let rotation = parseInt(stream.tags?.rotate ?? '', 10);
-    // If we can't find rotation, try side_data_list
-    if (Number.isNaN(rotation) && stream.side_data_list?.[0]?.rotation) {
-        rotation = parseInt(stream.side_data_list[0].rotation, 10);
-    }
-    return {
-        // numFrames: parseInt(stream.nb_frames, 10),
-        duration,
-        width: stream.width, // TODO coded_width?
-        height: stream.height,
-        framerateStr: stream.r_frame_rate,
-        rotation: !Number.isNaN(rotation) ? rotation : undefined,
-    };
-}
-export async function readAudioFileInfo(ffprobePath, p) {
-    const duration = await readDuration(ffprobePath, p);
-    return { duration };
-}
+import assert from "assert";
+import * as fabric from "fabric/node";
+import fileUrl from "file-url";
+import { pathExists } from "fs-extra";
+import { sortBy } from "lodash-es";
 export function toArrayInteger(buffer) {
     if (buffer.length > 0) {
         const data = new Uint8ClampedArray(buffer.length);
@@ -61,69 +15,69 @@ export function toArrayInteger(buffer) {
 }
 // x264 requires multiple of 2
 export const multipleOf2 = (x) => Math.round(x / 2) * 2;
-export function getPositionProps({ position, width, height }) {
-    let originY = 'center';
-    let originX = 'center';
+export function getPositionProps({ position, width, height, }) {
+    let originY = "center";
+    let originX = "center";
     let top = height / 2;
     let left = width / 2;
     const margin = 0.05;
-    if (typeof position === 'string') {
-        if (position === 'top') {
-            originY = 'top';
+    if (typeof position === "string") {
+        if (position === "top") {
+            originY = "top";
             top = height * margin;
         }
-        else if (position === 'bottom') {
-            originY = 'bottom';
+        else if (position === "bottom") {
+            originY = "bottom";
             top = height * (1 - margin);
         }
-        else if (position === 'center') {
-            originY = 'center';
+        else if (position === "center") {
+            originY = "center";
             top = height / 2;
         }
-        else if (position === 'top-left') {
-            originX = 'left';
-            originY = 'top';
+        else if (position === "top-left") {
+            originX = "left";
+            originY = "top";
             left = width * margin;
             top = height * margin;
         }
-        else if (position === 'top-right') {
-            originX = 'right';
-            originY = 'top';
+        else if (position === "top-right") {
+            originX = "right";
+            originY = "top";
             left = width * (1 - margin);
             top = height * margin;
         }
-        else if (position === 'center-left') {
-            originX = 'left';
-            originY = 'center';
+        else if (position === "center-left") {
+            originX = "left";
+            originY = "center";
             left = width * margin;
             top = height / 2;
         }
-        else if (position === 'center-right') {
-            originX = 'right';
-            originY = 'center';
+        else if (position === "center-right") {
+            originX = "right";
+            originY = "center";
             left = width * (1 - margin);
             top = height / 2;
         }
-        else if (position === 'bottom-left') {
-            originX = 'left';
-            originY = 'bottom';
+        else if (position === "bottom-left") {
+            originX = "left";
+            originY = "bottom";
             left = width * margin;
             top = height * (1 - margin);
         }
-        else if (position === 'bottom-right') {
-            originX = 'right';
-            originY = 'bottom';
+        else if (position === "bottom-right") {
+            originX = "right";
+            originY = "bottom";
             left = width * (1 - margin);
             top = height * (1 - margin);
         }
     }
     else {
         if (position?.x != null) {
-            originX = position.originX || 'left';
+            originX = position.originX || "left";
             left = width * position.x;
         }
         if (position?.y != null) {
-            originY = position.originY || 'top';
+            originY = position.originY || "top";
             top = height * position.y;
         }
     }
@@ -131,8 +85,8 @@ export function getPositionProps({ position, width, height }) {
 }
 export function getFrameByKeyFrames(keyframes, progress) {
     if (keyframes.length < 2)
-        throw new Error('Keyframes must be at least 2');
-    const sortedKeyframes = sortBy(keyframes, 't');
+        throw new Error("Keyframes must be at least 2");
+    const sortedKeyframes = sortBy(keyframes, "t");
     // TODO check that max is 1
     // TODO check that all keyframes have all props
     // TODO make smarter so user doesn't need to replicate non-changing props
@@ -142,7 +96,7 @@ export function getFrameByKeyFrames(keyframes, progress) {
         return k.t === sortedKeyframes[i - 1].t;
     });
     if (invalidKeyframe)
-        throw new Error('Invalid keyframe');
+        throw new Error("Invalid keyframe");
     let prevKeyframe = [...sortedKeyframes].reverse().find((k) => k.t < progress);
     if (!prevKeyframe)
         prevKeyframe = sortedKeyframes[0];
@@ -152,17 +106,48 @@ export function getFrameByKeyFrames(keyframes, progress) {
     if (nextKeyframe.t === prevKeyframe.t)
         return prevKeyframe.props;
     const interProgress = (progress - prevKeyframe.t) / (nextKeyframe.t - prevKeyframe.t);
-    return Object.fromEntries(Object.entries(prevKeyframe.props).map(([propName, prevVal]) => ([propName, prevVal + ((nextKeyframe.props[propName] - prevVal) * interProgress)])));
+    return Object.fromEntries(Object.entries(prevKeyframe.props).map(([propName, prevVal]) => [
+        propName,
+        prevVal + (nextKeyframe.props[propName] - prevVal) * interProgress,
+    ]));
 }
 export const isUrl = (path) => /^https?:\/\//.test(path);
 export const assertFileValid = async (path, allowRemoteRequests) => {
     if (isUrl(path)) {
-        assert(allowRemoteRequests, 'Remote requests are not allowed');
+        assert(allowRemoteRequests, "Remote requests are not allowed");
         return;
     }
     assert(await pathExists(path), `File does not exist ${path}`);
 };
-// See #16
-export function checkTransition(transition) {
-    assert(transition == null || typeof transition === 'object', 'Transition must be an object');
+export const loadImage = (pathOrUrl) => fabric.util.loadImage(isUrl(pathOrUrl) ? pathOrUrl : fileUrl(pathOrUrl));
+export const defaultFontFamily = "sans-serif";
+export function getZoomParams({ progress, zoomDirection, zoomAmount = 0.1, }) {
+    let scaleFactor = 1;
+    if (zoomDirection === "left" || zoomDirection === "right")
+        return 1.3 + zoomAmount;
+    if (zoomDirection === "in")
+        scaleFactor = 1 + zoomAmount * progress;
+    else if (zoomDirection === "out")
+        scaleFactor = 1 + zoomAmount * (1 - progress);
+    return scaleFactor;
+}
+export function getTranslationParams({ progress, zoomDirection, zoomAmount = 0.1, }) {
+    let translation = 0;
+    const range = zoomAmount * 1000;
+    if (zoomDirection === "right")
+        translation = progress * range - range / 2;
+    else if (zoomDirection === "left")
+        translation = -(progress * range - range / 2);
+    return translation;
+}
+export function getRekt(width, height) {
+    // width and height with room to rotate
+    return new fabric.Rect({
+        originX: "center",
+        originY: "center",
+        left: width / 2,
+        top: height / 2,
+        width: width * 2,
+        height: height * 2,
+    });
 }

@@ -1,8 +1,9 @@
-import GL from 'gl';
-import createShader from 'gl-shader';
-import { readFile } from 'node:fs/promises';
+import GL from "gl";
+import createShader from "gl-shader";
+import { readFile } from "node:fs/promises";
+import { defineFrameSource } from "../api/index.js";
 // I have no idea what I'm doing but it works ¯\_(ツ)_/¯
-export default async function createGlFrameSource({ width, height, channels, params }) {
+export default defineFrameSource("gl", async ({ width, height, channels, params }) => {
     const gl = GL(width, height);
     const defaultVertexSrc = `
     attribute vec2 position;
@@ -10,7 +11,7 @@ export default async function createGlFrameSource({ width, height, channels, par
       gl_Position = vec4(position, 0.0, 1.0 );
     }
   `;
-    const { vertexPath, fragmentPath, vertexSrc: vertexSrcIn, fragmentSrc: fragmentSrcIn, speed = 1 } = params;
+    const { vertexPath, fragmentPath, vertexSrc: vertexSrcIn, fragmentSrc: fragmentSrcIn, speed = 1, } = params;
     let fragmentSrc = fragmentSrcIn;
     let vertexSrc = vertexSrcIn;
     if (fragmentPath)
@@ -19,7 +20,7 @@ export default async function createGlFrameSource({ width, height, channels, par
         vertexSrc = (await readFile(vertexPath)).toString();
     if (!vertexSrc)
         vertexSrc = defaultVertexSrc;
-    const shader = createShader(gl, vertexSrc, fragmentSrc ?? '');
+    const shader = createShader(gl, vertexSrc, fragmentSrc ?? "");
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     // https://blog.mayflower.de/4584-Playing-around-with-pixel-shaders-in-WebGL.html
@@ -44,6 +45,5 @@ export default async function createGlFrameSource({ width, height, channels, par
     }
     return {
         readNextFrame,
-        close: () => { },
     };
-}
+});
