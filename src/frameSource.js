@@ -1,9 +1,9 @@
 import pMap from "p-map";
-import { createFabricCanvas, renderFabricCanvas, rgbaToFabricImage } from "./sources/fabric.js";
-import { createLayerSource } from "./sources/index.js";
+import { createFabricCanvas, renderFabricCanvas, rgbaToFabricImage,saveRgbaAsPngSharp } from "./sources/fabric.js";
+import { createLayerSource,expandLayerAliases } from "./sources/index.js";
 export async function createFrameSource({ clip, clipIndex, width, height, channels, verbose, logTimes, framerateStr, }) {
     const { layers, duration } = clip;
-    const visualLayers = layers.filter((layer) => layer.type !== "audio");
+    const visualLayers = layers.map(expandLayerAliases).flat().filter((layer) => layer.type !== "audio");
     const layerFrameSources = await pMap(visualLayers, async (layer, layerIndex) => {
         if (verbose)
             console.log("createFrameSource", layer.type, "clip", clipIndex, "layer", layerIndex);
@@ -17,11 +17,14 @@ export async function createFrameSource({ clip, clipIndex, width, height, channe
             framerateStr,
             params: layer,
         };
+        
         return createLayerSource(options);
     }, { concurrency: 1 });
+
     async function readNextFrame({ time }) {
         const canvas = createFabricCanvas({ width, height });
         for (const frameSource of layerFrameSources) {
+            //console.log(frameSource )
             if (logTimes)
                 console.time("frameSource.readNextFrame");
             const rgba = await frameSource.readNextFrame(time, canvas);
@@ -50,6 +53,7 @@ export async function createFrameSource({ clip, clipIndex, width, height, channe
         const rgba = await renderFabricCanvas(canvas);
         if (logTimes)
             console.timeEnd("renderFabricCanvas");
+        //await saveRgbaAsPngSharp(rgba,width,height,`temp/${time}.png`)
         return rgba;
     }
     async function close() {

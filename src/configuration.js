@@ -42,12 +42,13 @@ export class Configuration {
     ffprobePath;
     constructor(input) {
         assert(input.outPath, "Please provide an output path");
-        assert(Array.isArray(input.clips) && input.clips.length > 0, "Please provide at least 1 clip");
+        //assert(Array.isArray(input.clips) && input.clips.length > 0, "Please provide at least 1 clip");
         assert(!input.customOutputArgs || Array.isArray(input.customOutputArgs), "customOutputArgs must be an array of arguments");
         this.outPath = input.outPath;
         this.width = input.width;
         this.height = input.height;
         this.fps = input.fps;
+        this.tracks=input.tracks||[]
         this.audioFilePath = input.audioFilePath;
         this.backgroundAudioVolume = input.backgroundAudioVolume;
         this.loopAudio = input.loopAudio;
@@ -59,6 +60,7 @@ export class Configuration {
         this.outputVolume = input.outputVolume;
         this.customOutputArgs = input.customOutputArgs;
         this.defaults = merge({}, globalDefaults, input.defaults);
+        input.clips=input.clips||[]
         this.clips = input.clips.map((clip) => {
             let { layers } = clip;
             if (layers && !Array.isArray(layers))
