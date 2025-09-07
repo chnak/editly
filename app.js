@@ -11,6 +11,11 @@ const data={
             startTime: 0,
             duration: 10,
             layer:{ type: "title-background", text: "Transitions",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf" }
+          },
+          {
+            startTime: 3,
+            duration: 5,
+            layer:{ type: "title-background",position: { x: 0.2, y: 0.2}, text: "211212",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf" }
           }
         ]
       },
@@ -20,7 +25,7 @@ const data={
           {
             startTime: 2,
             duration: 5, 
-            layer:{ type: "title-background", text: "Bounce",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  }
+            layer:{ type: "title-background",position: { y: 0.6}, text: "Bounce",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  }
           },
           {
             startTime: 8,
@@ -34,13 +39,8 @@ const data={
         elements: [
           {
             startTime: 1,
-            duration: 3,
-            layer: { type: "fill-color" }
-          },
-          {
-            startTime: 1,
             duration: 6,
-            layer: { type: "subtitle", text: "Multi-track editing", textColor: "#cccccc" ,fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf" }
+            layer: { type: "subtitle", text: "Multi-track editing",position: { y: 0.8}, textColor: "#cccccc" ,fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf" }
           }
         ]
       }
