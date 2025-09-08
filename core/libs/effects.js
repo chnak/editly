@@ -1,14 +1,14 @@
 import * as fabric from "fabric/node";
 
-const TARGET = { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, alpha: 1 };
-const TARGET_LEFT = { x: -100, y: 0 };
-const TARGET_RIGHT = { x: 100, y: 0 };
-const TARGET_UP = { x: 0, y: -100 };
-const TARGET_DOWN = { x: 0, y: 100 };
-const TARGET_LEFT_BIG = { x: -200, y: 0 };
-const TARGET_RIGHT_BIG = { x: 200, y: 0 };
-const TARGET_UP_BIG = { x: 0, y: -200 };
-const TARGET_DOWN_BIG = { x: 0, y: 200 };
+const TARGET = { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, opacity: 1 };
+const TARGET_LEFT = { x: -0.1, y: 0};
+const TARGET_RIGHT = { x: 0.1, y: 0 };
+const TARGET_UP = { x: 0, y: -0.1 };
+const TARGET_DOWN = { x: 0, y: 0.1 };
+const TARGET_LEFT_BIG = { x: -0.2, y: 0 };
+const TARGET_RIGHT_BIG = { x: 0.2, y: 0 };
+const TARGET_UP_BIG = { x: 0, y: -0.2 };
+const TARGET_DOWN_BIG = { x: 0, y: 0.2 };
 
 // 缓动函数映射
 const EASING_FUNCTIONS = {
@@ -20,13 +20,13 @@ const Effects = {
   effects: {
     // 基础淡入淡出
     fadeIn: { 
-      from: { alpha: 0 }, 
+      from: { opacity: 0 }, 
       to: TARGET, 
       ease: 'easeOutQuad' 
     },
     fadeOut: { 
       from: TARGET, 
-      to: { alpha: 0 }, 
+      to: { opacity: 0 }, 
       ease: 'easeInQuad' 
     },
     
@@ -48,31 +48,31 @@ const Effects = {
     
     // 缩放效果
     zoomIn: { 
-      from: { scaleX: 0, scaleY: 0, alpha: 0 }, 
+      from: { scaleX: 0, scaleY: 0, opacity: 0 }, 
       to: TARGET, 
       ease: 'easeOutBack' 
     },
     zoomOut: { 
       from: TARGET, 
-      to: { scaleX: 0, scaleY: 0, alpha: 0 }, 
+      to: { scaleX: 0, scaleY: 0, opacity: 0 }, 
       ease: 'easeInBack' 
     },
     
     // 旋转效果
     rotateIn: { 
-      from: { rotation: -180, alpha: 0 }, 
+      from: { rotation: -180, opacity: 0 }, 
       to: TARGET, 
       ease: 'easeOutCubic' 
     },
     rotateOut: { 
       from: TARGET, 
-      to: { rotation: 180, alpha: 0 }, 
+      to: { rotation: 180, opacity: 0 }, 
       ease: 'easeInCubic' 
     },
     
     // 弹跳效果
     bounceIn: { 
-      from: { scaleX: 0.3, scaleY: 0.3, alpha: 0 }, 
+      from: { scaleX: 0.3, scaleY: 0.3, opacity: 0 }, 
       to: TARGET, 
       ease: 'easeOutBounce' 
     },
