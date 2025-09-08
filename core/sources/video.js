@@ -3,16 +3,13 @@ import { defineFrameSource } from "../api/index.js";
 import { ffmpeg, readFileStreams } from "../ffmpeg.js";
 import { rawVideoToFrames } from "../transforms/rawVideoToFrames.js";
 import { blurImage, rgbaToFabricImage } from "./fabric.js";
+import { getPositionProps, getTranslationParams, getZoomParams, loadImage } from "../utils/util.js";
 export default defineFrameSource("video", async (options) => {
     const { width: canvasWidth, height: canvasHeight, channels, framerateStr, verbose, logTimes, params, } = options;
     
-    const { path, cutFrom, cutTo, resizeMode = "contain-blur", speedFactor, inputWidth, inputHeight, width: requestedWidthRel, height: requestedHeightRel, left: leftRel = 0, top: topRel = 0, originX = "left", originY = "top", fabricImagePostProcessing = null, } = params;
-    const requestedWidth = requestedWidthRel
-        ? Math.round(requestedWidthRel * canvasWidth)
-        : canvasWidth;
-    const requestedHeight = requestedHeightRel
-        ? Math.round(requestedHeightRel * canvasHeight)
-        : canvasHeight;
+    let { path, cutFrom, cutTo, resizeMode = "contain-blur", speedFactor, inputWidth, inputHeight, width: requestedWidthRel, height: requestedHeightRel, left: leftRel = 0, top: topRel = 0, originX = "left", originY = "top", fabricImagePostProcessing = null, } = params;
+    const requestedWidth = requestedWidthRel || canvasWidth;
+    const requestedHeight = requestedHeightRel|| canvasHeight;
     const left = leftRel * canvasWidth;
     const top = topRel * canvasHeight;
     const ratioW = requestedWidth / inputWidth;
@@ -134,24 +131,34 @@ export default defineFrameSource("video", async (options) => {
             height: targetHeight,
             rgba: Buffer.from(rgba),
         });
-        if (logTimes)
+        if (logTimes){
             console.timeEnd("rgbaToFabricImage");
-        img.set({
-            originX,
-            originY,
-        });
+        }
+      
+        
         let centerOffsetX = 0;
         let centerOffsetY = 0;
+        let originX1=originX
+        let originY1=originY
         if (resizeMode === "contain" || resizeMode === "contain-blur") {
             const dirX = originX === "left" ? 1 : -1;
-            const dirY = originY === "top" ? 1 : -1;
+            const dirY = originY === "top" ? 1 : 0;
+            // originX1='left'
+            // originY1='top'
             centerOffsetX = (dirX * (requestedWidth - targetWidth)) / 2;
             centerOffsetY = (dirY * (requestedHeight - targetHeight)) / 2;
         }
+
+        img.set({
+            originX:originX1,
+            originY:originY1,
+        });
+
         img.set({
             left: left + centerOffsetX,
             top: top + centerOffsetY,
         });
+        
         if (resizeMode === "contain-blur") {
             const mutableImg = img.cloneAsImage({});
             const blurredImg = await blurImage({
@@ -167,6 +174,7 @@ export default defineFrameSource("video", async (options) => {
             });
             canvas.add(blurredImg);
         }
+        
         if (fabricImagePostProcessing) {
             fabricImagePostProcessing({ image: img, progress, fabric, canvas, time });
         }

@@ -13,7 +13,6 @@ export default defineFrameSource("video", async (options) => {
     const requestedHeight = requestedHeightRel
         ? Math.round(requestedHeightRel * canvasHeight)
         : canvasHeight;
-    console.log(requestedWidth)
     const left = leftRel * canvasWidth;
     const top = topRel * canvasHeight;
     const ratioW = requestedWidth / inputWidth;

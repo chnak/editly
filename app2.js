@@ -8,22 +8,54 @@ const data={
       "1": { // 背景轨道（最低层）
         type: "scene",
         elements: [
-          {
+          { 
             startTime: 0,
-            duration: 5,
-            loop:true,
+            duration: 10,
             layer:{
-              inputWidth:500,
-              inputHeight:500,
-              type: "video",
-              path: "./assets/palawan.mp4"
+              type: "radial-gradient" 
+            }
+          },
+          {
+            startTime:0,
+            duration:10,
+            layer:{
+              type: "subtitle",
+              fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf",
+              text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.",
             }
           },
           {
             startTime: 0,
             duration: 5,
-            layer:{ type: "title", text: "BREAKING NEWS",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  },
-          }
+            loop:true,
+            layer:{
+              width:500,
+              height:500,
+              left:0.5,
+              top:0.5,
+              originX:"center",
+              originY:"center",
+              type: "video",
+              path: "./assets/palawan.mp4"
+            },
+          },
+          {
+            startTime: 2,
+            duration: 3,
+            layer:{ type: "title", text: "新闻啊1",fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf"  },
+          },
+          {
+              startTime:6,
+              duration:4,
+              layer:{
+                type: "slide-in-text",
+                text: "Text that slides in1",
+                textColor: "#fff",
+                position: { x: 0.04, y: 0.93, originY: "bottom", originX: "left" },
+                fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf",
+                fontSize: 0.05
+              }
+            }
           // {
           //   startTime: 0,
           //   duration: 10,
@@ -43,12 +75,12 @@ const data={
           {
             startTime: 2,
             duration: 5, 
-            layer:{ type: "title",position: { y: 0.6}, text: "Bounce",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  }
+            layer:{ type: "title",position: { y: 0.6}, text: "测试2",fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf"  }
           },
           {
-            startTime: 8,
+            startTime: 5,
             duration: 4,
-            layer:{ type: "news-title", text: "BREAKING NEWS",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  },
+            layer:{ type: "news-title", text: "新闻啊2",fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf"  },
           }
         ]
       },
@@ -58,7 +90,7 @@ const data={
           {
             startTime: 1,
             duration: 6,
-            layer: { type: "subtitle", text: "Multi-track editing",position: { y: 0.8}, textColor: "#cccccc" ,fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf" }
+            layer: { type: "subtitle", text: "Multi-track editing2",position: { y: 0.8}, textColor: "#cccccc" ,fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf" }
           }
         ]
       }
