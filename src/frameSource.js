@@ -3,7 +3,7 @@ import { createFabricCanvas, renderFabricCanvas, rgbaToFabricImage,saveRgbaAsPng
 import { createLayerSource,expandLayerAliases } from "./sources/index.js";
 export async function createFrameSource({ clip, clipIndex, width, height, channels, verbose, logTimes, framerateStr, }) {
     const { layers, duration } = clip;
-    const visualLayers = layers.map(expandLayerAliases).flat().filter((layer) => layer.type !== "audio");
+    const visualLayers = layers.filter((layer) => layer.type !== "audio");
     const layerFrameSources = await pMap(visualLayers, async (layer, layerIndex) => {
         if (verbose)
             console.log("createFrameSource", layer.type, "clip", clipIndex, "layer", layerIndex);

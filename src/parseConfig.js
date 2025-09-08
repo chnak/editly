@@ -103,11 +103,13 @@ export default async function parseConfig({ clips, arbitraryAudio: arbitraryAudi
             const video = layersOut.find((layer) => layer.type === "video");
             clipDuration = video?.layerDuration ?? defaults.duration;
         }
+       
         assert(clipDuration, `Duration parameter is required for videoless clip ${clipIndex}`);
         // We need to map again, because for audio, we need to know the correct clipDuration
         layersOut = (await pMap(layersOut, async (layerIn) => {
             if (!layerIn.start)
                 layerIn.start = 0;
+             
             // This feature allows the user to show another layer overlayed (or replacing) parts of the lower layers (start - stop)
             const layerDuration = (layerIn.stop || clipDuration) - layerIn.start;
             assert(layerDuration > 0 && layerDuration <= clipDuration, `Invalid start ${layerIn.start} or stop ${layerIn.stop} (${clipDuration})`);

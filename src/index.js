@@ -7,6 +7,7 @@ import { Configuration } from "./configuration.js";
 import { configureFf, ffmpeg, parseFps } from "./ffmpeg.js";
 import { createFrameSource } from "./frameSource.js";
 import parseConfig from "./parseConfig.js";
+import { expandLayerAliases } from "./sources/index.js";
 import { createFabricCanvas,renderFabricCanvas, rgbaToFabricImage } from "./sources/fabric.js";
 import { assertFileValid, multipleOf2 } from "./util.js";
 
@@ -15,8 +16,9 @@ const channels = 4;
  * 轨道类 - 管理单个轨道上的所有元素
  */
 class Track {
-  constructor(type = "scene") {
+  constructor(type = "scene",config={}) {
     this.type = type;
+    this.config=config;
     this.elements = []; // { startTime, duration, layer, frameSource }
     this.volume = 1.0;
   }
@@ -52,14 +54,19 @@ class Track {
     const clipIndex = num+this.elements.indexOf(activeElement);
     const clip = {
         duration: activeElement.duration,
-        layers:this.elements.map(a=>a.layer),
+        layers:this.elements.map(a=>a.layer).map(expandLayerAliases).flat(),
         transition: activeElement.transition || null,
         clipIndex:`${clipIndex}`
     };
-
+    const { clips } = await parseConfig({
+        clips: [clip],
+        arbitraryAudio: [],
+        allowRemoteRequests:this.config.allowRemoteRequests,
+        defaults:this.config.defaults,
+    });
     if (!activeElement.frameSource) {
         activeElement.frameSource = await createFrameSource({
-        clip,
+        clip:clips[0],
         clipIndex:`${clipIndex}`,
         width,
         height,
@@ -150,7 +157,7 @@ async function Editly(input) {
   const config = new Configuration(input);
   const { 
     verbose = false, logTimes = false, keepTmp = false, fast = false, 
-    outPath, tracks: tracksConfig, globalLayers = [], 
+    outPath, tracks: tracksConfig, globalLayers = [], defaults,
     width: requestedWidth, height: requestedHeight, fps: requestedFps, 
     audioFilePath: backgroundAudioPath, allowRemoteRequests, 
     audioNorm, outputVolume, customOutputArgs, isGif, tmpDir 
@@ -164,7 +171,7 @@ async function Editly(input) {
 
   // 解析和配置轨道
   for (const [trackId, trackConfig] of Object.entries(tracksConfig || {})) {
-    const track = new Track(trackConfig.type);
+    const track = new Track(trackConfig.type,config);
     
     for (const elementConfig of trackConfig.elements || []) {
       track.addElement({

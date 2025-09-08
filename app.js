@@ -2,21 +2,32 @@ import editly from "./src/index.js";
 import { createFrameSource } from "./src/frameSource.js";
 const data={
     outPath: "output.mp4",
+	width: 1920,
+    height: 1080,
     fps: 30,
     tracks: {
       "1": { // 背景轨道（最低层）
         type: "scene",
         elements: [
+          // {
+          //   startTime: 0,
+          //   duration: 10,
+          //   layer:{
+          //     type: "title-background",
+          //     text: "Editly can handle all formats and sizes with different fits",
+          //     background: { type: "radial-gradient" },
+          //   }
+          // },
           {
             startTime: 0,
-            duration: 10,
-            layer:{ type: "title-background", text: "Transitions",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf" }
+            duration: 2,
+            layer:{
+              type: "video",
+              path: "./assets/palawan.mp4",
+              resizeMode: "contain"
+            }
           },
-          {
-            startTime: 3,
-            duration: 5,
-            layer:{ type: "title-background",position: { x: 0.2, y: 0.2}, text: "211212",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf" }
-          }
+          
         ]
       },
       "2": { // 内容轨道
