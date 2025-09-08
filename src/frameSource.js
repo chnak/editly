@@ -1,9 +1,11 @@
 import pMap from "p-map";
 import { createFabricCanvas, renderFabricCanvas, rgbaToFabricImage,saveRgbaAsPngSharp } from "./sources/fabric.js";
 import { createLayerSource,expandLayerAliases } from "./sources/index.js";
-export async function createFrameSource({ clip, clipIndex, width, height, channels, verbose, logTimes, framerateStr, }) {
+export async function createFrameSource(config) {
+    const { clip, clipIndex, width, height, channels, verbose, logTimes, framerateStr} = config;
     const { layers, duration } = clip;
     const visualLayers = layers.filter((layer) => layer.type !== "audio");
+    console.log(config)
     const layerFrameSources = await pMap(visualLayers, async (layer, layerIndex) => {
         if (verbose)
             console.log("createFrameSource", layer.type, "clip", clipIndex, "layer", layerIndex);

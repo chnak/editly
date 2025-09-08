@@ -112,7 +112,7 @@ export default async function parseConfig({ clips, arbitraryAudio: arbitraryAudi
              
             // This feature allows the user to show another layer overlayed (or replacing) parts of the lower layers (start - stop)
             const layerDuration = (layerIn.stop || clipDuration) - layerIn.start;
-            assert(layerDuration > 0 && layerDuration <= clipDuration, `Invalid start ${layerIn.start} or stop ${layerIn.stop} (${clipDuration})`);
+            //assert(layerDuration > 0 && layerDuration <= clipDuration, `Invalid start ${layerIn.start} or stop ${layerIn.stop} (${clipDuration})`);
             // TODO Also need to handle video layers (speedFactor etc)
             // TODO handle audio in case of start/stop
             const layer = { ...layerIn, layerDuration };

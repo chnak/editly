@@ -9,6 +9,22 @@ const data={
       "1": { // 背景轨道（最低层）
         type: "scene",
         elements: [
+          {
+            startTime: 0,
+            duration: 5,
+            loop:true,
+            layer:{
+              inputWidth:500,
+              inputHeight:500,
+              type: "video",
+              path: "./assets/palawan.mp4"
+            }
+          },
+          {
+            startTime: 0,
+            duration: 5,
+            layer:{ type: "title", text: "BREAKING NEWS",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  },
+          }
           // {
           //   startTime: 0,
           //   duration: 10,
@@ -18,15 +34,7 @@ const data={
           //     background: { type: "radial-gradient" },
           //   }
           // },
-          {
-            startTime: 0,
-            duration: 2,
-            layer:{
-              type: "video",
-              path: "./assets/palawan.mp4",
-              resizeMode: "contain"
-            }
-          },
+          
           
         ]
       },
@@ -36,7 +44,7 @@ const data={
           {
             startTime: 2,
             duration: 5, 
-            layer:{ type: "title-background",position: { y: 0.6}, text: "Bounce",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  }
+            layer:{ type: "title",position: { y: 0.6}, text: "Bounce",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  }
           },
           {
             startTime: 8,
