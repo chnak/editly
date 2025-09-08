@@ -37,7 +37,7 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
                 { t: 0.9, props: { effect:'fadeOutRight' } },
             ], progress);
             currentEffect=effect
-            
+            console.log( _effectProgress)
             // 应用当前特效
             Effects.applyEffectToObject(textImage, currentEffect, _effectProgress,{
                 // 可以在这里覆盖默认配置

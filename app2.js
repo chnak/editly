@@ -44,18 +44,18 @@ const data={
             duration: 3,
             layer:{ type: "title", text: "新闻啊1",fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf"  },
           },
-          // {
-          //     startTime:6,
-          //     duration:4,
-          //     layer:{
-          //       type: "slide-in-text",
-          //       text: "Text that slides in1",
-          //       textColor: "#fff",
-          //       position: { x: 0.04, y: 0.93, originY: "bottom", originX: "left" },
-          //       fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf",
-          //       fontSize: 0.05
-          //     }
-          //   }
+          {
+              startTime:6,
+              duration:4,
+              layer:{
+                type: "slide-in-text",
+                text: "Text that slides in1",
+                textColor: "#fff",
+                position: { x: 0.04, y: 0.93, originY: "bottom", originX: "left" },
+                fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf",
+                fontSize: 0.05
+              }
+            },
           // {
           //   startTime: 0,
           //   duration: 10,
