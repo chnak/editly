@@ -31,7 +31,7 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
                 scaleY: scaleFactor,
             });
             const {effect,_effectProgress} = getFrameByKeyFrames([
-                { t: 0.1, props: { effect:'fadeInLeft' } },
+                { t: 0, props: { effect:'fadeIn' } },
                 { t: 0.3, props: { effect:'zoomIn' } },
                 { t: 0.8, props: { effect:'rotateIn' } },
                 { t: 0.9, props: { effect:'fadeOutRight' } },
