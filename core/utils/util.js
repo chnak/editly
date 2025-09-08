@@ -86,30 +86,67 @@ export function getPositionProps({ position, width, height, }) {
 export function getFrameByKeyFrames(keyframes, progress) {
     if (keyframes.length < 2)
         throw new Error("Keyframes must be at least 2");
+    
     const sortedKeyframes = sortBy(keyframes, "t");
-    // TODO check that max is 1
-    // TODO check that all keyframes have all props
-    // TODO make smarter so user doesn't need to replicate non-changing props
+    
+    // 检查关键帧时间是否有效
     const invalidKeyframe = sortedKeyframes.find((k, i) => {
-        if (i === 0)
-            return false;
+        if (i === 0) return false;
         return k.t === sortedKeyframes[i - 1].t;
     });
     if (invalidKeyframe)
-        throw new Error("Invalid keyframe");
-    let prevKeyframe = [...sortedKeyframes].reverse().find((k) => k.t < progress);
-    if (!prevKeyframe)
-        prevKeyframe = sortedKeyframes[0];
-    let nextKeyframe = sortedKeyframes.find((k) => k.t >= progress);
-    if (!nextKeyframe)
-        nextKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
-    if (nextKeyframe.t === prevKeyframe.t)
-        return prevKeyframe.props;
-    const interProgress = (progress - prevKeyframe.t) / (nextKeyframe.t - prevKeyframe.t);
-    return Object.fromEntries(Object.entries(prevKeyframe.props).map(([propName, prevVal]) => [
-        propName,
-        prevVal + (nextKeyframe.props[propName] - prevVal) * interProgress,
-    ]));
+        throw new Error("Invalid keyframe: duplicate time values");
+    
+    // 确保进度在有效范围内
+    const clampedProgress = Math.max(0, Math.min(1, progress));
+    
+    // 找到当前进度所在的关键帧区间
+    let prevKeyframe = sortedKeyframes[0];
+    let nextKeyframe = sortedKeyframes[sortedKeyframes.length - 1];
+    
+    for (let i = 0; i < sortedKeyframes.length - 1; i++) {
+        if (clampedProgress >= sortedKeyframes[i].t && clampedProgress <= sortedKeyframes[i + 1].t) {
+            prevKeyframe = sortedKeyframes[i];
+            nextKeyframe = sortedKeyframes[i + 1];
+            break;
+        }
+    }
+    
+    // 计算当前区间的effectProgress (0-1)
+    let effectProgress = 0;
+    const timeDiff = nextKeyframe.t - prevKeyframe.t;
+    
+    if (timeDiff > 0) {
+        effectProgress = (clampedProgress - prevKeyframe.t) / timeDiff;
+        effectProgress = Math.max(0, Math.min(1, effectProgress)); // 确保在0-1之间
+    } else if (clampedProgress >= prevKeyframe.t) {
+        effectProgress = 1; // 如果时间相同，且进度>=关键帧时间，设为1
+    }
+    
+    // 插值计算属性值
+    const data = Object.fromEntries(Object.entries(prevKeyframe.props).map(([propName, prevVal]) => {
+        const nextVal = nextKeyframe.props[propName];
+        
+        // 确保值是数字才进行插值
+        if (typeof prevVal === 'number' && typeof nextVal === 'number') {
+            return [propName, prevVal + (nextVal - prevVal) * effectProgress];
+        } else {
+            // 非数字值直接使用下一个关键帧的值
+            return [propName, nextVal];
+        }
+    }));
+    
+    // 返回属性数据和effectProgress
+    return {
+        ...data,
+        _effectProgress: effectProgress,
+        _currentSegment: { 
+            start: prevKeyframe.t, 
+            end: nextKeyframe.t,
+            prevKeyframe: prevKeyframe.props,
+            nextKeyframe: nextKeyframe.props
+        }
+    };
 }
 export const isUrl = (path) => /^https?:\/\//.test(path);
 export const assertFileValid = async (path, allowRemoteRequests) => {
