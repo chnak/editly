@@ -20,7 +20,7 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
             const translationParams = getTranslationParams({ progress, zoomDirection, zoomAmount });
             // We need the text as an image in order to scale it
            
-            const textImage = textBox.cloneAsImage({});
+            const textImage = textBox
             const { left, top, originX, originY } = getPositionProps({ position, width, height });
             textImage.set({
                 originX,
@@ -37,7 +37,7 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
                 { t: 0.9, props: { effect:'fadeOutRight' } },
             ], progress);
             currentEffect=effect
-            console.log( _effectProgress)
+
             // 应用当前特效
             Effects.applyEffectToObject(textImage, currentEffect, _effectProgress,{
                 // 可以在这里覆盖默认配置

@@ -119,34 +119,34 @@ class Editly extends EventEmitter {
             });
             // 逐帧渲染时间线
             for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-            const currentTime = frameIndex / fps;
+                const currentTime = frameIndex / fps;
             
-            if (verbose) {
-                console.log(`Rendering frame ${frameIndex}/${totalFrames} (${currentTime.toFixed(2)}s)`);
-            }
+                if (verbose) {
+                    console.log(`Rendering frame ${frameIndex}/${totalFrames} (${currentTime.toFixed(2)}s)`);
+                }
             
-            // 获取合成帧
-            const frameData = await timeline.getCompositeFrameAtTime(
-                currentTime, width, height, channels, verbose,fps
-            );
-            if (!frameData) {
-                console.warn(`No frame data at time ${currentTime}s`);
-                continue;
-            }
+                // 获取合成帧
+                const frameData = await timeline.getCompositeFrameAtTime(
+                    currentTime, width, height, channels, verbose,fps
+                );
+                if (!frameData) {
+                    console.warn(`No frame data at time ${currentTime}s`);
+                    continue;
+                }
 
-            // 写入FFmpeg
-            await new Promise((resolve) => {
-                outProcess?.stdin?.write(frameData, resolve);
-            });
+                // 写入FFmpeg
+                await new Promise((resolve) => {
+                    outProcess?.stdin?.write(frameData, resolve);
+                });
 
-            totalFramesWritten++;
+                totalFramesWritten++;
             
-            // 进度显示
-            if (!verbose && totalFramesWritten % 10 === 0) {
-                const percent = Math.floor((totalFramesWritten / totalFrames) * 100);
-                process.stdout.write(`\rRendering: ${percent}%`);
-                this.emit('progress',percent)
-            }
+                // 进度显示
+                if (!verbose && totalFramesWritten % 10 === 0) {
+                    const percent = Math.floor((totalFramesWritten / totalFrames) * 100);
+                    process.stdout.write(`\rRendering: ${percent}%`);
+                    this.emit('progress',percent)
+                }
             }
 
             outProcess.stdin?.end();
