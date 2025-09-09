@@ -93,27 +93,27 @@ const effects={
         duration: 0.3
     },
     slideInLeft: {
-        from: { opacity: 0, left: '-{width}/2' },
-        to: { opacity: 1, left: '{width}/2' },
+        from: { opacity: 0, left: -200 },
+        to: { opacity: 1, left: 0 },
         ease: 'easeOutBack',
         duration: 0.5
     },
     slideInRight: {
-        from: { opacity: 0, left: '{width}*1.5' },
-        to: { opacity: 1, left: '{width}/2' },
+        from: { opacity: 0, left: 200 },
+        to: { opacity: 1, left: 0 },
         ease: 'easeOutBack',
         duration: 0.5
     },
     slideOutLeft: {
-        from: { opacity: 1, left: '{width}/2' },
-        to: { opacity: 0, left: '-{width}*1.5' },
+        from: { opacity: 1, left: 0 },
+        to: { opacity: 0, left: -200 },
         ease: 'easeInBack',
         duration: 0.5
     },
     slideOutRight: {
-        from: { opacity: 1, left: '{width}/2' },
-        to: { opacity: 0, left: '-{width}*1.5' },
-        ease: 'easeInBack',
+        from: { opacity: 1, left: 0 },
+        to: { opacity: 0, left: 200 },
+        ease: 'easeOutQuart',
         duration: 0.5
     },
     zoomIn: {
@@ -258,7 +258,7 @@ class AnimationController {
             return baseValue * percentage;
         }
         // 绝对值
-        return Number(value);
+        return baseValue+Number(value);
     }
     
     // 更新动画状态
