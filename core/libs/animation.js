@@ -125,7 +125,7 @@ const effects={
     zoomOut: {
         from: { opacity: 1, scaleX: 1, scaleY: 1 },
         to: { opacity: 0, scaleX: 1.5, scaleY: 1.5 },
-        ease: 'easeInBack',
+        ease: 'easeOutQuart',
         duration: 0.5
     },
     bounce: {
@@ -201,31 +201,72 @@ class AnimationController {
     
 
     processKeyframes() {
-        return this.keyframes.map(keyframe => ({
+        // 首先处理宏
+        const macroProcessed = this.keyframes.map(keyframe => ({
             ...keyframe,
             from: this.macroProcessor.processObject(keyframe.from || {}),
             to: this.macroProcessor.processObject(keyframe.to || {})
         }));
+        
+        // 然后处理特殊时间标识符
+        return macroProcessed.map(keyframe => {
+            const processed = { ...keyframe };
+            
+            // 处理特殊时间标识符
+            if (processed.t === 'in') {
+                // 进入动画：从0开始
+                processed.actualStartTime = 0;
+                processed.actualEndTime = processed.duration || 0.3;
+                processed.isSpecial = true;
+            } else if (processed.t === 'out') {
+                // 退出动画：从1-duration开始
+                const duration = processed.duration || 0.3;
+                processed.actualStartTime = 1 - duration;
+                processed.actualEndTime = 1;
+                processed.isSpecial = true;
+            } else {
+                // 普通时间点动画
+                processed.actualStartTime = processed.t;
+                processed.actualEndTime = processed.t + (processed.duration || 0.1);
+                processed.isSpecial = false;
+            }
+            
+            return processed;
+        });
     }
+    
     // 添加关键帧
     addKeyframe(keyframe) {
         this.keyframes.push(keyframe);
-        this.keyframes.sort((a, b) => a.t - b.t);
+        this.processedKeyframes = this.processKeyframes();
         return this;
     }
     
     // 移除关键帧
     removeKeyframe(time) {
         this.keyframes = this.keyframes.filter(kf => kf.t !== time);
+        this.processedKeyframes = this.processKeyframes();
         return this;
     }
     
-    // 计算动画进度
+    // 计算动画进度（修改后支持特殊时间标识符）
     calculateAnimationProgress(progress, keyframe) {
-        if (progress < keyframe.t) return 0;
-        if (progress > keyframe.t + (keyframe.duration || 0.1)) return 1;
+        let startTime, endTime;
         
-        return (progress - keyframe.t) / (keyframe.duration || 0.1);
+        if (keyframe.isSpecial) {
+            // 特殊动画使用预处理的时间
+            startTime = keyframe.actualStartTime;
+            endTime = keyframe.actualEndTime;
+        } else {
+            // 普通动画使用原始时间
+            startTime = keyframe.t;
+            endTime = keyframe.t + (keyframe.duration || 0.1);
+        }
+        
+        if (progress < startTime) return 0;
+        if (progress > endTime) return 1;
+        
+        return (progress - startTime) / (endTime - startTime);
     }
     
     // 插值计算

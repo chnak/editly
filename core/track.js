@@ -19,6 +19,7 @@ export default class Track {
      this.elements=this.elements.map(a=>{
         a.layer.start=a.startTime||0
         a.layer.layerDuration=a.duration
+        //a.layer.stop=a.layer.start+a.duration
         return a
     })
     const activeElement = this.elements.find(element => 

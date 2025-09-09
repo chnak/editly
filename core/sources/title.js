@@ -4,7 +4,7 @@ import Effects from "../libs/effects.js";
 import AnimationController from "../libs/animation.js";
 import { defaultFontFamily, getPositionProps, getTranslationParams, getZoomParams,getFrameByKeyFrames } from "../utils/util.js";
 export default defineFrameSource("title", async ({ width, height, params }) => {
-    const { text, textColor = "#ffffff", fontFamily = defaultFontFamily, position = "center", zoomDirection = "in", zoomAmount = 0.2, } = params;
+    const { text, textColor = "#ffffff", fontFamily = defaultFontFamily, position = "center", zoomDirection = "in", zoomAmount = 0.2, layerDuration} = params;
     const fontSize = Math.round(Math.min(width, height) * 0.1);
     const textBox = new Textbox(text, {
         fill: textColor,
@@ -13,6 +13,7 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
         textAlign: "center",
         width: width * 0.8,
     });
+
     // 定义关键帧动画
     const keyframes = [
         { 
@@ -40,7 +41,7 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
     // console.log(keyframes)
     const animationController = new AnimationController([
         { 
-            t: 0, 
+            t: 'in', 
             ...AnimationController.createPresetAnimation('slideInLeft', { duration: 0.3 })
         },
         { 
@@ -48,8 +49,8 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
             ...AnimationController.createPresetAnimation('bounce', { duration: 0.4 })
         },
         { 
-            t: 0.8, 
-            ...AnimationController.createPresetAnimation('slideOutRight', { duration: 0.3 })
+            t: 'out', 
+            ...AnimationController.createPresetAnimation('zoomOut', { duration: 0.3 })
         }
     ],{width,height});
     

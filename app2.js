@@ -10,7 +10,7 @@ const data={
         elements: [
           { 
             startTime: 0,
-            duration: 10,
+            duration: 15,
             layer:{
               type: "radial-gradient" 
             }
@@ -41,7 +41,7 @@ const data={
           // },
           {
             startTime: 2,
-            duration: 3,
+            duration: 5,
             layer:{ type: "title", text: "新闻啊1",fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf"  },
           },
           {
@@ -74,7 +74,7 @@ const data={
         elements: [
           {
             startTime: 2,
-            duration: 5, 
+            duration: 10, 
             layer:{ type: "title",position: { y: 0.6}, text: "测试2",fontPath: "./assets/Patua_One/MicrosoftYaHei-Bold-01.ttf"  }
           },
           {
