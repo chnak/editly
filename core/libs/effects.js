@@ -108,7 +108,7 @@ const Effects = {
   },
 
   // 根据progress计算动画状态
-  calculateAnimationState(effectName, progress, customConfig = {}) {
+  calculateAnimationState(object,effectName, progress, customConfig = {}) {
     const config = this.parseEffect(effectName);
     const mergedConfig = { ...config, ...customConfig };
     
@@ -123,10 +123,20 @@ const Effects = {
     const currentState = {};
     
     // 遍历所有属性，进行插值计算
-    for (const key in mergedConfig.to) {
-      const startValue = mergedConfig.from[key] !== undefined ? mergedConfig.from[key] : TARGET[key];
-      const endValue = mergedConfig.to[key];
-      
+    for (let key in mergedConfig.to) {
+      let startValue = mergedConfig.from[key] !== undefined ? mergedConfig.from[key] : TARGET[key];
+      let endValue = mergedConfig.to[key];
+      if(key === 'x'){
+          key = 'left';
+          startValue = object.left + (object.width * object.scaleX) * startValue;
+          endValue = object.left + (object.width * object.scaleX) * endValue;
+      }
+      // 修复y(top)计算
+      if(key === 'y'){
+          key = 'top';
+          startValue = object.top + (object.height * object.scaleY) * startValue;
+          endValue = object.top + (object.height * object.scaleY) * endValue;
+      }
       if (typeof startValue === 'number' && typeof endValue === 'number') {
         currentState[key] = startValue + (endValue - startValue) * easedProgress;
       } else {
@@ -139,7 +149,7 @@ const Effects = {
 
   // 应用特效到对象
   applyEffectToObject(object, effectName, progress, customConfig = {}) {
-    const animationState = this.calculateAnimationState(effectName, progress, customConfig);
+    const animationState = this.calculateAnimationState(object,effectName, progress, customConfig);
     object.set(animationState);
     return animationState;
   }
