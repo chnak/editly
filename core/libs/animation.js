@@ -194,11 +194,13 @@ class AnimationController {
     constructor(keyframes = [],context={},targetObject) {
         this.keyframes = keyframes.sort((a, b) => a.t - b.t);
         this.currentAnimations = new Map();
+        this.isFirst=false
         this.macroProcessor = new MacroProcessor(context);
         this.processedKeyframes = this.processKeyframes();
         //console.log( this.processedKeyframes)
-        if(targetObject){
-            this.update(0,targetObject)
+        if(targetObject&&this.keyframes.length){
+            targetObject.set({opacity:0})
+            this.isFirst=true
         }
     }
     
@@ -311,7 +313,10 @@ class AnimationController {
     // 更新动画状态
     update(progress, targetObject, baseValues = {}) {
         const activeAnimations = [];
-        
+        if(this.isFirst&&progress>0.0001){
+            targetObject.set({opacity:1});
+            this.isFirst=false
+        }   
         for (const keyframe of this.processedKeyframes) {
             const animationProgress = this.calculateAnimationProgress(progress, keyframe);
             
@@ -331,13 +336,13 @@ class AnimationController {
                     easedProgress,
                     properties: animatedProps
                 });
-                
                 // 应用到目标对象
                 if (targetObject) {
                     targetObject.set(animatedProps);
                 }
             }
         }
+       
         
         return activeAnimations;
     }
