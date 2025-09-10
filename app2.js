@@ -11,9 +11,17 @@ const data={
           { 
             startTime: 0,
             duration: 15,
-            layer:{
-              type: "radial-gradient" 
-            }
+            layer:{ type: "image",
+               width: 500,      // 绝对宽度
+              height: 500,     // 绝对高度
+              left: '50%',       // 绝对左边距
+              top: '50%',         // 绝对上边距
+              originX: "center",
+              originY: "center",
+              path: "./assets/pano.jpg",animate:[ { 
+                  time: 'in', 
+                  effect:'slideInLeft'
+              }]  }
           },
           // {
           //   startTime:0,
@@ -24,38 +32,43 @@ const data={
           //     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.",
           //   }
           // },
-          {
-            startTime: 0,
-            duration: 5,
-            loop:true,
-            layer:{
-              width:500,
-              height:500,
-              left:0.5,
-              top:0.5,
-              originX:"center",
-              originY:"center",
-              type: "video",
-              path: "./assets/palawan.mp4"
-            },
-          },
+          // {
+          //   startTime: 0,
+          //   duration: 5,
+          //   loop:true,
+          //   layer:{
+          //     width:500,
+          //     height:500,
+          //     left:0.5,
+          //     top:0.5,
+          //     originX:"center",
+          //     originY:"center",
+          //     type: "video",
+          //     path: "./assets/palawan.mp4"
+          //   },
+          // },
           {
             startTime: 2,
             duration: 5,
-            layer:{ type: "title", text: "新闻啊1",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  },
+            layer:{ type: "title", text: "新闻啊1",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf",
+              animate:[ { 
+                  time: 'in', 
+                  effect:'slideInLeft'
+              }] 
+             },
           },
-          {
-              startTime:6,
-              duration:4,
-              layer:{
-                type: "slide-in-text",
-                text: "Text that slides in1",
-                textColor: "#fff",
-                position: { x: 0.04, y: 0.93, originY: "bottom", originX: "left" },
-                fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf",
-                fontSize: 0.05
-              }
-            },
+          // {
+          //     startTime:6,
+          //     duration:4,
+          //     layer:{
+          //       type: "slide-in-text",
+          //       text: "Text that slides in1",
+          //       textColor: "#fff",
+          //       position: { x: 0.04, y: 0.93, originY: "bottom", originX: "left" },
+          //       fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf",
+          //       fontSize: 0.05
+          //     }
+          //   },
           // {
           //   startTime: 0,
           //   duration: 10,

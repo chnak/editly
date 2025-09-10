@@ -11,9 +11,6 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
         position = "center", 
         zoomDirection = "in", 
         zoomAmount = 0.2, 
-        layerDuration, 
-        effectIn,
-        effectOut,
         animate=[]
     } = params;
     const fontSize = Math.round(Math.min(width, height) * 0.1);
@@ -45,7 +42,7 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
     ];
    
     // console.log(keyframes)
-    const animates=keyframes.map(item=>{
+    const animates=animate.map(item=>{
         if(item.effect){
             return { 
                 t: item.time, 
