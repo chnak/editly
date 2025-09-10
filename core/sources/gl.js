@@ -1,7 +1,7 @@
 import GL from "gl";
 import createShader from "gl-shader";
 import { readFile } from "node:fs/promises";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 // I have no idea what I'm doing but it works ¯\_(ツ)_/¯
 export default defineFrameSource("gl", async ({ width, height, channels, params }) => {
     const gl = GL(width, height);

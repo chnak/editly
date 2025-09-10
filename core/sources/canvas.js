@@ -1,5 +1,5 @@
 import { createCanvas } from "canvas";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import { canvasToRgba } from "./fabric.js";
 export default defineFrameSource("canvas", async ({ width, height, params }) => {
     const canvas = createCanvas(width, height);

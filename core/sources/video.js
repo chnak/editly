@@ -1,5 +1,5 @@
 import * as fabric from "fabric/node";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import { ffmpeg, readFileStreams } from "../ffmpeg.js";
 import { rawVideoToFrames } from "../transforms/rawVideoToFrames.js";
 import { blurImage, rgbaToFabricImage } from "./fabric.js";

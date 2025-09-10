@@ -1,7 +1,7 @@
 import { createCanvas, ImageData } from "canvas";
 import * as fabric from "fabric/node";
 import { boxBlurImage } from "../BoxBlur.js";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import sharp from 'sharp';
 import fs from 'fs/promises';
 // Fabric is used as a fundament for compositing layers in editly

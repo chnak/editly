@@ -1,5 +1,5 @@
 import { FabricImage } from "fabric/node";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import { getTranslationParams, getZoomParams, loadImage } from "../utils/util.js";
 import { blurImage } from "./fabric.js";
 export default defineFrameSource("image", async ({ verbose, params, width, height }) => {

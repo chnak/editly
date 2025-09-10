@@ -1,5 +1,5 @@
 import * as fabric from "fabric/node";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import { easeInOutCubic } from "../easings.js";
 import { defaultFontFamily, getFrameByKeyFrames, getPositionProps } from "../utils/util.js";
 export default defineFrameSource("slide-in-text", async ({ width, height, params }) => {

@@ -1,5 +1,5 @@
 import { FabricText, Rect } from "fabric/node";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import { easeOutExpo } from "../easings.js";
 import { defaultFontFamily } from "../utils/util.js";
 export default defineFrameSource("news-title", async ({ width, height, params }) => {

@@ -1,5 +1,5 @@
 import * as fabric from "fabric/node";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import { getRandomGradient } from "../colors.js";
 import { getRekt } from "../utils/util.js";
 export default defineFrameSource("radial-gradient", async ({ width, height, params }) => {

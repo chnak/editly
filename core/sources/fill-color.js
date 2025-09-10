@@ -1,5 +1,5 @@
 import { Rect } from "fabric/node";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import { getRandomColors } from "../colors.js";
 export default defineFrameSource("fill-color", async ({ params, width, height }) => {
     const { color } = params;

@@ -1,5 +1,5 @@
 import * as fabric from "fabric/node";
-import { defineFrameSource } from "../api/index.js";
+import { defineFrameSource } from "../libs/index.js";
 import { getPositionProps, getTranslationParams, getZoomParams, loadImage } from "../utils/util.js";
 export default defineFrameSource("image-overlay", async ({ params, width, height }) => {
     const { path, position, width: relWidth, height: relHeight, zoomDirection, zoomAmount = 0.1, } = params;
