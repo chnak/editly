@@ -63,14 +63,22 @@ class Editly extends EventEmitter {
 
                 // 仅支持 elements：每个轨道通过 elements 列表定义场景元素
                 {
-                    // 旧结构：直接使用 elements
+                    // 扁平化结构：直接将layer属性提升到element级别
                     for (const elementConfig of trackConfig.elements || []) {
                         const startTimeSafe = (typeof elementConfig.startTime === "number") ? elementConfig.startTime : 0;
-                        track.addElement({
+                        // 扁平化结构：检查是否还有layer属性（向后兼容）或直接使用扁平化结构
+                        const flatElement = elementConfig.layer ? {
                             startTime: startTimeSafe,
                             duration: elementConfig.duration,
-                            layer: elementConfig.layer
-                        });
+                            ...elementConfig.layer, // 将layer的所有属性直接展开
+                            transition: elementConfig.transition // 保留transition属性
+                        } : {
+                            startTime: startTimeSafe,
+                            duration: elementConfig.duration,
+                            ...elementConfig, // 直接使用扁平化的element
+                            transition: elementConfig.transition // 保留transition属性
+                        };
+                        track.addElement(flatElement);
                         
                         // 更新总时长（startTime 缺省按 0 处理）
                         timeline.duration = Math.max(

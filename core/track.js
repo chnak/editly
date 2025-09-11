@@ -21,10 +21,10 @@ export default class Track {
   }
 
   async _renderAtTimeInternal(time, width, height, channels, fps, trackId) {
-     this.elements=this.elements.map(a=>{
-        a.layer.start=a.startTime||0
-        a.layer.layerDuration=a.duration
-        //a.layer.stop=a.layer.start+a.duration
+    // 为扁平化结构设置时间属性
+    this.elements=this.elements.map(a=>{
+        a.start = a.startTime || 0
+        a.layerDuration = a.duration
         return a
     })
     const activeElement = this.elements.find(element => 
@@ -58,7 +58,13 @@ export default class Track {
         const relativeStart = Math.max(0, e.startTime - aStart);
         const overlapEnd = Math.min(e.startTime + e.duration, aStart + activeElement.duration);
         const relativeDuration = Math.max(0, overlapEnd - (aStart + relativeStart));
-        const layer = { ...e.layer };
+        // 直接使用扁平化的element属性，不再需要layer包装
+        const layer = { ...e };
+        // 移除不需要的属性，但保留type属性
+        delete layer.startTime;
+        delete layer.duration;
+        delete layer.clipIndex;
+        delete layer.frameSource;
         layer.start = relativeStart;
         layer.layerDuration = relativeDuration;
         return layer;
