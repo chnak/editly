@@ -2,7 +2,7 @@ import { createFrameSource } from "./frameSource.js";
 import parseConfig from "./parseConfig.js";
 import { expandLayerAliases } from "./sources/index.js";
 export default class Track {
-  constructor(type = "scene",config={}) {
+  constructor(type = "track",config={}) {
     this.type = type;
     this.config=config;
     this.elements = []; // { startTime, duration, layer, frameSource }

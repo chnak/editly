@@ -13,7 +13,7 @@ const data = {
   tracks: {
     // 底层：背景轨
     "1": {
-        type: "scene",
+        type: "track",
         elements: [
           {
             startTime:0,

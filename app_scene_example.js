@@ -7,7 +7,7 @@ const data = {
   fps: 30,
   tracks: {
     "1": {
-      type: "scene",
+      type: "track",
       elements: [
         {
           // 背景图：整个时段都显示

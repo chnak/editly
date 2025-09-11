@@ -6,7 +6,7 @@ const data={
     fps: 30,
     tracks: {
       "1": { // 背景轨道（最低层）
-        type: "scene",
+        type: "track",
         elements: [
           { 
             startTime: 0,
