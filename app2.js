@@ -50,11 +50,65 @@ const data={
           {
             startTime: 2,
             duration: 5,
-            layer:{ type: "title", text: "新闻啊1",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf",
-              animate:[ { 
+            layer:{ type: "title", position: {y: 0.9}, text: "fadeIn",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf",
+              animate:[
+                { 
+                  time: 'in', 
+                  effect:'fadeIn'
+                },
+                { 
+                  time: 'out', 
+                  effect:'fadeOut'
+                }
+              ] 
+             },
+          },
+          {
+            startTime: 2,
+            duration: 5,
+            layer:{ type: "title", position: {y: 0.7},  text: "新闻啊1slideInLeft",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf",
+              animate:[
+                { 
                   time: 'in', 
                   effect:'slideInLeft'
-              }] 
+                },
+                { 
+                  time: 'out', 
+                  effect:'slideOutLeft'
+                }
+              ] 
+             },
+          },
+          {
+            startTime: 2,
+            duration: 5,
+            layer:{ type: "title",  position: {y: 0.5},  text: "新闻啊1slideInRight",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf",
+              animate:[
+                { 
+                  time: 'in', 
+                  effect:'slideInRight'
+                },
+                { 
+                  time: 'out', 
+                  effect:'slideOutRight'
+                }
+              ] 
+             },
+          },
+          {
+            startTime: 2,
+            duration: 5,
+            layer:{ type: "title",  position: {y: 0.3},  text: "新闻啊zoom",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf",
+              animate:[
+                { 
+                  time: 'in', 
+                  effect:'zoomIn'
+                },
+                { 
+                  time: 'out', 
+                  effect:'zoomOut'
+                }
+              ] 
              },
           },
           // {
@@ -88,7 +142,14 @@ const data={
           {
             startTime: 2,
             duration: 10, 
-            layer:{ type: "title",position: { y: 0.6}, text: "测试2",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  }
+            layer:{ type: "title",position: { y: 0.6},
+            animate:[
+                { 
+                  time: 'in', 
+                  effect:'bounce'
+                }
+              ] ,
+            text: "测试2bounce",fontPath: "./assets/Patua_One/PatuaOne-Regular.ttf"  }
           },
           {
             startTime: 5,

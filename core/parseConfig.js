@@ -6,202 +6,305 @@ import { basename } from "path";
 import { readDuration, readVideoFileInfo } from "./ffmpeg.js";
 import { Transition } from "./transition.js";
 import { assertFileValid } from "./utils/util.js";
-// Cache
+
+// Cache for loaded fonts
 const loadedFonts = [];
+
+/**
+ * Validates arbitrary audio configuration
+ */
 async function validateArbitraryAudio(audio, allowRemoteRequests) {
     assert(audio === undefined || Array.isArray(audio));
-    if (audio) {
-        for (const { path, cutFrom, cutTo, start } of audio) {
-            await assertFileValid(path, allowRemoteRequests);
-            if (cutFrom != null && cutTo != null)
-                assert(cutTo > cutFrom);
-            if (cutFrom != null)
-                assert(cutFrom >= 0);
-            if (cutTo != null)
-                assert(cutTo >= 0);
-            assert(start == null || start >= 0, `Invalid "start" ${start}`);
+    
+    if (!audio) return;
+
+    for (const { path, cutFrom, cutTo, start } of audio) {
+        await assertFileValid(path, allowRemoteRequests);
+        
+        if (cutFrom != null && cutTo != null) {
+            assert(cutTo > cutFrom, "cutTo must be greater than cutFrom");
         }
+        
+        if (cutFrom != null) {
+            assert(cutFrom >= 0, "cutFrom must be non-negative");
+        }
+        
+        if (cutTo != null) {
+            assert(cutTo >= 0, "cutTo must be non-negative");
+        }
+        
+        assert(
+            start == null || start >= 0, 
+            `Invalid "start" value: ${start}. Must be non-negative`
+        );
     }
 }
-export default async function parseConfig({ clips, arbitraryAudio: arbitraryAudioIn, backgroundAudioPath, backgroundAudioVolume, loopAudio, allowRemoteRequests, defaults, }) {
-    async function handleLayer(layer) {
-        // https://github.com/mifi/editly/issues/39
-        if (layer.type === "image" || layer.type === "image-overlay") {
-            await assertFileValid(layer.path, allowRemoteRequests);
-        }
-        else if (layer.type === "gl") {
-            await assertFileValid(layer.fragmentPath, allowRemoteRequests);
-        }
-        if (["fabric", "canvas"].includes(layer.type)) {
-            assert(typeof layer.func === "function", '"func" must be a function');
-        }
-        if ([
-            "image",
-            "image-overlay",
-            "fabric",
-            "canvas",
-            "gl",
-            "radial-gradient",
-            "linear-gradient",
-            "fill-color",
-        ].includes(layer.type)) {
-            return layer;
-        }
-        if (["title", "subtitle", "news-title", "slide-in-text"].includes(layer.type)) {
-            const { fontPath, ...rest } = layer;
-            assert(rest.text, "Please specify a text");
-            let { fontFamily } = rest;
-            if (fontPath) {
-                fontFamily = Buffer.from(basename(fontPath)).toString("base64");
-                if (!loadedFonts.includes(fontFamily)) {
-                    registerFont(fontPath, { family: fontFamily, weight: "regular", style: "normal" });
-                    loadedFonts.push(fontFamily);
-                }
-            }
-            return { ...rest, fontFamily };
-        }
-        throw new Error(`Invalid layer type ${layer.type}`);
+
+/**
+ * Handles different layer types and processes them accordingly
+ */
+async function processLayer(layer, allowRemoteRequests) {
+    // Validate file-based layers
+    if (["image", "image-overlay"].includes(layer.type)) {
+        await assertFileValid(layer.path, allowRemoteRequests);
+        return layer;
     }
-    const detachedAudioByClip = {};
-    let clipsOut = await pMap(clips, async (clip, clipIndex) => {
-        const { layers } = clip;
-        const transition = new Transition(clip.transition, clipIndex === clips.length - 1);
-        let layersOut = flatMap(await pMap(layers, async (layer) => {
-            if (layer.type === "video") {
-                const { duration: fileDuration, width: widthIn, height: heightIn, framerateStr, rotation, } = await readVideoFileInfo(layer.path);
-                let { cutFrom, cutTo } = layer;
-                if (!cutFrom)
-                    cutFrom = 0;
-                cutFrom = Math.max(cutFrom, 0);
-                cutFrom = Math.min(cutFrom, fileDuration);
-                if (!cutTo)
-                    cutTo = fileDuration;
-                cutTo = Math.max(cutTo, cutFrom);
-                cutTo = Math.min(cutTo, fileDuration);
-                assert(cutFrom < cutTo, "cutFrom must be lower than cutTo");
-                const layerDuration = cutTo - cutFrom;
-                const isRotated = rotation && [-90, 90, 270, -270].includes(rotation);
-                const inputWidth = isRotated ? heightIn : widthIn;
-                const inputHeight = isRotated ? widthIn : heightIn;
-                return {
-                    ...layer,
-                    cutFrom,
-                    cutTo,
-                    layerDuration,
-                    framerateStr,
-                    inputWidth,
-                    inputHeight,
-                };
+    
+    if (layer.type === "gl") {
+        await assertFileValid(layer.fragmentPath, allowRemoteRequests);
+        return layer;
+    }
+    
+    if (["fabric", "canvas"].includes(layer.type)) {
+        assert(typeof layer.func === "function", '"func" must be a function');
+        return layer;
+    }
+    
+    if ([
+        "radial-gradient", 
+        "linear-gradient", 
+        "fill-color"
+    ].includes(layer.type)) {
+        return layer;
+    }
+    
+    // Handle text-based layers
+    if (["title", "subtitle", "news-title", "slide-in-text"].includes(layer.type)) {
+        const { fontPath, ...rest } = layer;
+        assert(rest.text, "Text property is required for text layers");
+        
+        let fontFamily = rest.fontFamily;
+        
+        if (fontPath) {
+            fontFamily = Buffer.from(basename(fontPath)).toString("base64");
+            
+            if (!loadedFonts.includes(fontFamily)) {
+                registerFont(fontPath, { 
+                    family: fontFamily, 
+                    weight: "regular", 
+                    style: "normal" 
+                });
+                loadedFonts.push(fontFamily);
             }
-            // Audio is handled later
-            if (["audio", "detached-audio"].includes(layer.type))
-                return layer;
-            return handleLayer(layer);
-        }, { concurrency: 1 }));
-        let clipDuration = clip.duration;
-        if (!clipDuration) {
-            const video = layersOut.find((layer) => layer.type === "video");
-            clipDuration = video?.layerDuration ?? defaults.duration;
         }
-       
-        assert(clipDuration, `Duration parameter is required for videoless clip ${clipIndex}`);
-        // We need to map again, because for audio, we need to know the correct clipDuration
-        layersOut = (await pMap(layersOut, async (layerIn) => {
-            if (!layerIn.start)
-                layerIn.start = 0;
-             
-            // This feature allows the user to show another layer overlayed (or replacing) parts of the lower layers (start - stop)
-            const layerDuration = (layerIn.stop || clipDuration) - layerIn.start;
-            //assert(layerDuration > 0 && layerDuration <= clipDuration, `Invalid start ${layerIn.start} or stop ${layerIn.stop} (${clipDuration})`);
-            // TODO Also need to handle video layers (speedFactor etc)
-            // TODO handle audio in case of start/stop
-            const layer = { ...layerIn, layerDuration };
-            if (layer.type === "audio") {
-                const fileDuration = await readDuration(layer.path);
-                let { cutFrom, cutTo } = layer;
-                // console.log({ cutFrom, cutTo, fileDuration, clipDuration });
-                if (!cutFrom)
-                    cutFrom = 0;
-                cutFrom = Math.max(cutFrom, 0);
-                cutFrom = Math.min(cutFrom, fileDuration);
-                if (!cutTo)
-                    cutTo = cutFrom + clipDuration;
-                cutTo = Math.max(cutTo, cutFrom);
-                cutTo = Math.min(cutTo, fileDuration);
-                assert(cutFrom < cutTo, "cutFrom must be lower than cutTo");
-                const layerDuration = cutTo - cutFrom;
-                const speedFactor = clipDuration / layerDuration;
-                return { ...layer, cutFrom, cutTo, speedFactor };
-            }
-            if (layer.type === "video") {
-                let speedFactor;
-                // If user explicitly specified duration for clip, it means that should be the output duration of the video
-                if (clipDuration) {
-                    // Later we will speed up or slow down video using this factor
-                    speedFactor = clipDuration / layerDuration;
-                }
-                else {
-                    speedFactor = 1;
-                }
-                return { ...layer, speedFactor };
-            }
-            // These audio tracks are detached from the clips (can run over multiple clips)
-            // This is useful so we can have audio start relative to their parent clip's start time
-            if (layer.type === "detached-audio") {
-                if (!detachedAudioByClip[clipIndex])
-                    detachedAudioByClip[clipIndex] = [];
-                detachedAudioByClip[clipIndex].push(layer);
-                return undefined; // Will be filtered out
-            }
-            return layer;
-        })).filter((l) => l !== undefined);
-        // Filter out deleted layers
-        layersOut = layersOut.filter((l) => l);
-        return {
-            transition,
-            duration: clipDuration,
-            layers: layersOut,
-        };
+        
+        return { ...rest, fontFamily };
+    }
+    
+    // Handle video and audio layers (processed later)
+    if (["video", "audio", "detached-audio"].includes(layer.type)) {
+        return layer;
+    }
+    
+    throw new Error(`Invalid layer type: ${layer.type}`);
+}
+
+/**
+ * Processes video layer to extract metadata and calculate timing
+ */
+async function processVideoLayer(layer) {
+    const { 
+        duration: fileDuration, 
+        width: widthIn, 
+        height: heightIn, 
+        framerateStr, 
+        rotation 
+    } = await readVideoFileInfo(layer.path);
+    
+    let { cutFrom = 0, cutTo = fileDuration } = layer;
+    
+    // Validate and adjust cut points
+    cutFrom = Math.max(0, Math.min(cutFrom, fileDuration));
+    cutTo = Math.max(cutFrom, Math.min(cutTo, fileDuration));
+    
+    assert(cutFrom < cutTo, "cutFrom must be lower than cutTo");
+    
+    const layerDuration = cutTo - cutFrom;
+    const isRotated = rotation && [-90, 90, 270, -270].includes(rotation);
+    const inputWidth = isRotated ? heightIn : widthIn;
+    const inputHeight = isRotated ? widthIn : heightIn;
+    
+    return {
+        ...layer,
+        cutFrom,
+        cutTo,
+        layerDuration,
+        framerateStr,
+        inputWidth,
+        inputHeight
+    };
+}
+
+/**
+ * Processes audio layer to calculate timing and speed factors
+ */
+async function processAudioLayer(layer, clipDuration) {
+    const fileDuration = await readDuration(layer.path);
+    
+    let { cutFrom = 0, cutTo = cutFrom + clipDuration } = layer;
+    
+    // Validate and adjust cut points
+    cutFrom = Math.max(0, Math.min(cutFrom, fileDuration));
+    cutTo = Math.max(cutFrom, Math.min(cutTo, fileDuration));
+    
+    assert(cutFrom < cutTo, "cutFrom must be lower than cutTo");
+    
+    const layerDuration = cutTo - cutFrom;
+    const speedFactor = clipDuration / layerDuration;
+    
+    return {
+        ...layer,
+        cutFrom,
+        cutTo,
+        speedFactor
+    };
+}
+
+/**
+ * Processes a single clip and its layers
+ */
+async function processClip(clip, clipIndex, totalClips, defaults, allowRemoteRequests) {
+    const { layers, duration: clipDuration, transition: transitionConfig } = clip;
+    const transition = new Transition(transitionConfig, clipIndex === totalClips - 1);
+
+    // Process all layers
+    const processedLayers = await pMap(layers, async (layer) => {
+        return processLayer(layer, allowRemoteRequests);
     }, { concurrency: 1 });
+    
+    // Calculate clip duration if not provided
+    const resolvedClipDuration = clipDuration || 
+        processedLayers.find(layer => layer.type === "video")?.layerDuration || 
+        defaults.duration;
+    
+    assert(resolvedClipDuration, `Duration parameter is required for videoless clip ${clipIndex}`);
+
+    // Process layers with timing information
+    const layersWithTiming = await pMap(processedLayers, async (layer) => {
+        if (!layer) return null;
+        
+        const startTime = layer.start || 0;
+        const endTime = layer.stop || (startTime+layer.layerDuration) //resolvedClipDuration;
+        const layerDuration = endTime - startTime;
+
+        // Validate layer timing
+        assert(
+            layerDuration > 0 && layerDuration <= resolvedClipDuration, 
+            `Invalid start ${startTime} or stop ${endTime} for clip duration ${resolvedClipDuration}`
+        );
+        
+        const layerWithTiming = { ...layer, start: startTime, layerDuration };
+        
+        // Process specific layer types
+        if (layerWithTiming.type === "video") {
+            const processedVideoLayer = await processVideoLayer(layerWithTiming);
+            const speedFactor = resolvedClipDuration / processedVideoLayer.layerDuration;
+            return { ...processedVideoLayer, speedFactor };
+        }
+        
+        if (layerWithTiming.type === "audio") {
+            return processAudioLayer(layerWithTiming, resolvedClipDuration);
+        }
+        
+        return layerWithTiming;
+    });
+    
+    // Filter out null layers and detached audio
+    const filteredLayers = layersWithTiming.filter(layer => 
+        layer && layer.type !== "detached-audio"
+    );
+    
+    // Collect detached audio
+    const detachedAudio = processedLayers
+        .filter(layer => layer && layer.type === "detached-audio")
+        .map(({ start = 0, ...rest }) => ({ ...rest, clipIndex, start }));
+    
+    return {
+        transition,
+        duration: resolvedClipDuration,
+        layers: filteredLayers,
+        detachedAudio
+    };
+}
+
+/**
+ * Main function to parse configuration
+ */
+export default async function parseConfig({
+    clips,
+    arbitraryAudio: arbitraryAudioIn,
+    backgroundAudioPath,
+    backgroundAudioVolume,
+    loopAudio,
+    allowRemoteRequests,
+    defaults,
+}) {
+    // Process all clips
+    const processedClips = await pMap(
+        clips, 
+        (clip, index) => processClip(clip, index, clips.length, defaults, allowRemoteRequests),
+        { concurrency: 1 }
+    );
+    
+    // Calculate safe transition durations and collect detached audio
     let totalClipDuration = 0;
-    const clipDetachedAudio = [];
-    // Need to map again because now we know all clip durations, and we can adjust transitions so they are safe
-    clipsOut = await pMap(clipsOut, async (clip, i) => {
-        const nextClip = clipsOut[i + 1];
-        // We clamp all transitions to half the length of every clip. If not, we risk that clips that are too short,
-        // will be eaten by transitions and could cause de-sync issues with audio/video
-        // NOTE: similar logic is duplicated in index.js
+    const allDetachedAudio = [];
+    const finalClips = [];
+    
+    for (let i = 0; i < processedClips.length; i++) {
+        const clip = processedClips[i];
+        const nextClip = processedClips[i + 1];
+        
+        // Calculate safe transition duration
         let safeTransitionDuration = 0;
         if (nextClip) {
-            // Each clip can have two transitions, make sure we leave enough room:
-            safeTransitionDuration = Math.min(clip.duration / 2, nextClip.duration / 2, clip.transition.duration);
+            safeTransitionDuration = Math.min(
+                clip.duration / 2,
+                nextClip.duration / 2,
+                clip.transition.duration
+            );
         }
-        // We now know all clip durations so we can calculate the offset for detached audio tracks
-        for (const { start, ...rest } of detachedAudioByClip[i] || []) {
-            clipDetachedAudio.push({ ...rest, start: totalClipDuration + (start || 0) });
+        
+        // Add detached audio with global timing
+        for (const audio of clip.detachedAudio) {
+            allDetachedAudio.push({
+                ...audio,
+                start: totalClipDuration + audio.start
+            });
         }
+        
+        // Update total duration and transition
         totalClipDuration += clip.duration - safeTransitionDuration;
-        clip.transition.duration = safeTransitionDuration;
-        return clip;
-    });
-    // Audio can either come from `audioFilePath`, `audio` or from "detached" audio layers from clips
+        finalClips.push({
+            ...clip,
+            transition: {
+                ...clip.transition,
+                duration: safeTransitionDuration
+            }
+        });
+    }
+    
+    // Prepare arbitrary audio
     const arbitraryAudio = [
-        // Background audio is treated just like arbitrary audio
-        ...(backgroundAudioPath
-            ? [
-                {
-                    path: backgroundAudioPath,
-                    mixVolume: backgroundAudioVolume != null ? backgroundAudioVolume : 1,
-                    loop: loopAudio ? -1 : 0,
-                },
-            ]
-            : []),
-        ...arbitraryAudioIn,
-        ...clipDetachedAudio,
+        // Background audio
+        ...(backgroundAudioPath ? [{
+            path: backgroundAudioPath,
+            mixVolume: backgroundAudioVolume ?? 1,
+            loop: loopAudio ? -1 : 0,
+        }] : []),
+        
+        // User-provided audio
+        ...(arbitraryAudioIn || []),
+        
+        // Detached audio from clips
+        ...allDetachedAudio
     ];
+    
+    // Validate audio
     await validateArbitraryAudio(arbitraryAudio, allowRemoteRequests);
+    
     return {
-        clips: clipsOut,
-        arbitraryAudio,
+        clips: finalClips,
+        arbitraryAudio
     };
 }

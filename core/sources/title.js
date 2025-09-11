@@ -21,7 +21,7 @@ export default defineFrameSource("title", async ({ width, height, params }) => {
         textAlign: "center",
         width: width * 0.8
     });
-
+    // console.log(params)
     // 定义关键帧动画
     const keyframes = [
         { 
