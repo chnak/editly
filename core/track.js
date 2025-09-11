@@ -16,6 +16,11 @@ export default class Track {
   }
 
   async getFrameAtTime(time, width, height, channels,fps, canvas,trackId) {
+    // 仅渲染该时间点对应的帧
+    return await this._renderAtTimeInternal(time, width, height, channels, fps, trackId);
+  }
+
+  async _renderAtTimeInternal(time, width, height, channels, fps, trackId) {
      this.elements=this.elements.map(a=>{
         a.layer.start=a.startTime||0
         a.layer.layerDuration=a.duration
@@ -39,9 +44,29 @@ export default class Track {
     //console.log(`Element frame: ${elementFrameAt}/${elementNumFrames}, Time: ${frameSourceTime.toFixed(3)}s`);
     const num=Number(String(trackId).padEnd(5,'0'))
     const clipIndex = num+this.elements.indexOf(activeElement);
+    // 组装与当前活动元素时间窗重叠的所有图层，重映射为相对活动元素起点的局部时间
+    const overlappingLayers = this.elements
+      .filter(e => {
+        const eStart = e.startTime;
+        const eEnd = e.startTime + e.duration;
+        const aStart = activeElement.startTime;
+        const aEnd = activeElement.startTime + activeElement.duration;
+        return eEnd > aStart && eStart < aEnd; // 有交集
+      })
+      .map(e => {
+        const aStart = activeElement.startTime;
+        const relativeStart = Math.max(0, e.startTime - aStart);
+        const overlapEnd = Math.min(e.startTime + e.duration, aStart + activeElement.duration);
+        const relativeDuration = Math.max(0, overlapEnd - (aStart + relativeStart));
+        const layer = { ...e.layer };
+        layer.start = relativeStart;
+        layer.layerDuration = relativeDuration;
+        return layer;
+      });
+
     const clip = {
         duration: activeElement.duration,
-        layers:this.elements.map(a=>a.layer).map(expandLayerAliases).flat(),
+        layers: overlappingLayers.map(expandLayerAliases).flat(),
         transition: activeElement.transition || null,
         clipIndex:`${clipIndex}`
     };

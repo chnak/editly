@@ -14,6 +14,7 @@ import slideInText from "./slide-in-text.js";
 import subtitle from "./subtitle.js";
 import title from "./title.js";
 import video from "./video.js";
+import scene from "./scene.js";
 const dirname = fileURLToPath(new URL("..", import.meta.url));
 const sources = [
     canvas,
@@ -29,6 +30,7 @@ const sources = [
     subtitle,
     title,
     video,
+    scene,
 ];
 export async function createLayerSource(options) {
     const layer = options.params;

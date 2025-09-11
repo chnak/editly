@@ -60,19 +60,24 @@ class Editly extends EventEmitter {
         try{
             for (const [trackId, trackConfig] of Object.entries(this.tracks)) {
                 const track = new Track(trackConfig.type,this.options);
-                
-                for (const elementConfig of trackConfig.elements || []) {
-                track.addElement({
-                    startTime: elementConfig.startTime,
-                    duration: elementConfig.duration,
-                    layer: elementConfig.layer
-                });
-                
-                // 更新总时长
-                timeline.duration = Math.max(
-                    timeline.duration, 
-                    elementConfig.startTime + elementConfig.duration
-                );
+
+                // 仅支持 elements：每个轨道通过 elements 列表定义场景元素
+                {
+                    // 旧结构：直接使用 elements
+                    for (const elementConfig of trackConfig.elements || []) {
+                        const startTimeSafe = (typeof elementConfig.startTime === "number") ? elementConfig.startTime : 0;
+                        track.addElement({
+                            startTime: startTimeSafe,
+                            duration: elementConfig.duration,
+                            layer: elementConfig.layer
+                        });
+                        
+                        // 更新总时长（startTime 缺省按 0 处理）
+                        timeline.duration = Math.max(
+                            timeline.duration, 
+                            startTimeSafe + elementConfig.duration
+                        );
+                    }
                 }
                 
                 timeline.addTrack(trackId, track);
