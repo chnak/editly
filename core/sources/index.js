@@ -15,6 +15,8 @@ import subtitle from "./subtitle.js";
 import title from "./title.js";
 import video from "./video.js";
 import scene from "./scene.js";
+import charByCharText from "./char-by-char-text.js";
+import lineByLineText from "./line-by-line-text.js";
 const dirname = fileURLToPath(new URL("..", import.meta.url));
 const sources = [
     canvas,
@@ -31,6 +33,8 @@ const sources = [
     title,
     video,
     scene,
+    charByCharText,
+    lineByLineText,
 ];
 export async function createLayerSource(options) {
     const layer = options.params;

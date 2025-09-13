@@ -2,11 +2,10 @@
   "name": "editly",
   "description": "Simple, sexy, declarative video editing",
   "version": "0.15.0-rc.1",
-  "main": "./src/index.js",
-  "module": "./src/index.js",
-  "types": "src/index.d.ts",
+  "main": "./core/index.js",
+  "module": "./core/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./core/index.js"
   },
   "author": "Mikael Finstad <finstaden@gmail.com>",
   "contributors": [
