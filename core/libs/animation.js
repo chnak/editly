@@ -133,6 +133,83 @@ const effects={
         to: { scaleX: 1.2, scaleY: 1.2 },
         ease: 'easeOutBounce',
         duration: 0.4
+    },
+    // 新增的方向淡入效果
+    fadeInUp: {
+        from: { opacity: 0, top: -100 },
+        to: { opacity: 1, top: 0 },
+        ease: 'easeOutQuad',
+        duration: 0.5
+    },
+    fadeInDown: {
+        from: { opacity: 0, top: 100 },
+        to: { opacity: 1, top: 0 },
+        ease: 'easeOutQuad',
+        duration: 0.5
+    },
+    fadeInLeft: {
+        from: { opacity: 0, left: -100 },
+        to: { opacity: 1, left: 0 },
+        ease: 'easeOutQuad',
+        duration: 0.5
+    },
+    fadeInRight: {
+        from: { opacity: 0, left: 100 },
+        to: { opacity: 1, left: 0 },
+        ease: 'easeOutQuad',
+        duration: 0.5
+    },
+    // 新增的旋转效果 - 使用Fabric.js的angle属性
+    rotateIn: {
+        from: { opacity: 0, angle: -180 },
+        to: { opacity: 1, angle: 0 },
+        ease: 'easeOutCubic',
+        duration: 0.6
+    },
+    rotateOut: {
+        from: { opacity: 1, angle: 0 },
+        to: { opacity: 0, angle: 180 },
+        ease: 'easeInCubic',
+        duration: 0.6
+    },
+    // 新增的弹跳效果
+    bounceIn: {
+        from: { opacity: 0, scaleX: 0.3, scaleY: 0.3 },
+        to: { opacity: 1, scaleX: 1, scaleY: 1 },
+        ease: 'easeOutBounce',
+        duration: 0.8
+    },
+    bounceOut: {
+        from: { opacity: 1, scaleX: 1, scaleY: 1 },
+        to: { opacity: 0, scaleX: 0.3, scaleY: 0.3 },
+        ease: 'easeInBounce',
+        duration: 0.8
+    },
+    // 新增的翻转效果
+    flipInX: {
+        from: { opacity: 0, scaleX: -1, scaleY: 1 },
+        to: { opacity: 1, scaleX: 1, scaleY: 1 },
+        ease: 'easeOutBack',
+        duration: 0.6
+    },
+    flipInY: {
+        from: { opacity: 0, scaleX: 1, scaleY: -1 },
+        to: { opacity: 1, scaleX: 1, scaleY: 1 },
+        ease: 'easeOutBack',
+        duration: 0.6
+    },
+    // 新增的弹性效果
+    elasticIn: {
+        from: { opacity: 0, scaleX: 0, scaleY: 0 },
+        to: { opacity: 1, scaleX: 1, scaleY: 1 },
+        ease: 'easeOutElastic',
+        duration: 1.0
+    },
+    elasticOut: {
+        from: { opacity: 1, scaleX: 1, scaleY: 1 },
+        to: { opacity: 0, scaleX: 0, scaleY: 0 },
+        ease: 'easeInElastic',
+        duration: 1.0
     }
 };
 

@@ -1,6 +1,6 @@
 import * as fabric from "fabric/node";
 
-const TARGET = { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0, opacity: 1 };
+const TARGET = { x: 0, y: 0, scaleX: 1, scaleY: 1, angle: 0, opacity: 1 };
 const TARGET_LEFT = { x: -0.1, y: 0};
 const TARGET_RIGHT = { x: 0.1, y: 0 };
 const TARGET_UP = { x: 0, y: -0.1 };
@@ -60,13 +60,13 @@ const Effects = {
     
     // 旋转效果
     rotateIn: { 
-      from: { rotation: -180, opacity: 0 }, 
+      from: { angle: -180, opacity: 0 }, 
       to: TARGET, 
       ease: 'easeOutCubic' 
     },
     rotateOut: { 
       from: TARGET, 
-      to: { rotation: 180, opacity: 0 }, 
+      to: { angle: 180, opacity: 0 }, 
       ease: 'easeInCubic' 
     },
     
