@@ -21,6 +21,13 @@ export default defineFrameSource("image", async ({ verbose, params, width, heigh
         if (verbose)
             console.log("Blurring background");
         blurredImg = await blurImage({ mutableImg, width, height });
+        // 设置 blurredImg 的位置属性，与主图片保持一致
+        blurredImg.set({
+            originX: "center",
+            originY: "center",
+            left: width / 2,
+            top: height / 2
+        });
     }
     return {
         async readNextFrame(progress, canvas) {
@@ -33,9 +40,15 @@ export default defineFrameSource("image", async ({ verbose, params, width, heigh
             if (["contain", "contain-blur"].includes(resizeMode)) {
                 if (ratioW > ratioH) {
                     img.scaleToHeight(height * scaleFactor);
+                    if (blurredImg) {
+                        blurredImg.scaleToHeight(height * scaleFactor);
+                    }
                 }
                 else {
                     img.scaleToWidth(width * scaleFactor);
+                    if (blurredImg) {
+                        blurredImg.scaleToWidth(width * scaleFactor);
+                    }
                 }
             }
             else if (resizeMode === "cover") {
@@ -52,8 +65,12 @@ export default defineFrameSource("image", async ({ verbose, params, width, heigh
                     scaleY: (height / img.height) * scaleFactor,
                 });
             }
-            if (blurredImg)
+            
+            // 更新 blurredImg 的位置
+            if (blurredImg) {
+                blurredImg.left = width / 2 + translationParams;
                 canvas.add(blurredImg);
+            }
             canvas.add(img);
         },
         close() {

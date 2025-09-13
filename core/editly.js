@@ -81,9 +81,16 @@ class Editly extends EventEmitter {
                         track.addElement(flatElement);
                         
                         // 更新总时长（startTime 缺省按 0 处理）
+                        let elementDuration = elementConfig.duration;
+                        // 如果是scene类型，需要计算其内部elements的最大时长
+                        if (flatElement.type === "scene" && flatElement.elements) {
+                            const sceneElements = flatElement.elements;
+                            const maxSceneDuration = Math.max(...sceneElements.map(el => (el.startTime || 0) + (el.duration || 0)), 0);
+                            elementDuration = elementDuration || maxSceneDuration;
+                        }
                         timeline.duration = Math.max(
                             timeline.duration, 
-                            startTimeSafe + elementConfig.duration
+                            startTimeSafe + elementDuration
                         );
                     }
                 }

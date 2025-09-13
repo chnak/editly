@@ -25,6 +25,9 @@ export default defineFrameSource("scene", async (options) => {
     if (typeof elDuration !== "number") continue;
     maxEndRel = Math.max(maxEndRel, elStart + elDuration);
 
+    // 支持扁平化结构：直接使用element作为layer参数，而不是element.layer
+    const layerParams = element.layer || element;
+    
     const child = await createLayerSource({
       width,
       height,
@@ -32,7 +35,7 @@ export default defineFrameSource("scene", async (options) => {
       framerateStr,
       verbose,
       logTimes,
-      params: element.layer,
+      params: layerParams,
     });
     childSources.push({ start: elStart, duration: elDuration, source: child });
   }
