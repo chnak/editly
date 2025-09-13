@@ -7,9 +7,13 @@ import Audio from "./audio.js";
 import EventEmitter from "events";
 import Track from "./track.js";
 import MultiTrackTimeline from "./timeline.js";
+import ProcessRenderer from "./processRenderer.js";
+import HybridRenderer from "./hybridRenderer.js";
+import AutoOptimizer from "./autoOptimizer.js";
 import { dirname, join } from "path";
 import { configureFf, ffmpeg, parseFps } from "./ffmpeg.js";
 import { assertFileValid, multipleOf2 } from "./utils/util.js";
+import os from "os";
 
 const globalDefaults = {
     duration: 4,
@@ -42,7 +46,14 @@ class Editly extends EventEmitter {
         isGif:config.isGif||false,
         ffmpegPath:config.ffmpegPath??"ffmpeg",
         ffprobePath:config.ffprobePath?? "ffprobe",
-        channels:4
+        channels:4,
+        parallel:config.parallel||false,
+        maxWorkers:config.maxWorkers||Math.max(1, Math.floor(os.cpus().length * 0.8)),
+        chunkDuration:config.chunkDuration||2.0,
+        keepTmp:config.keepTmp||false,
+        useThreads:config.useThreads||false,
+        useHybrid:config.useHybrid||false,
+        autoOptimize:config.autoOptimize||false
     }
     this.options.outDir=dirname(this.options.outPath)
     this.options.tmpDir=join(this.options.outDir, `editly-tmp-${nanoid()}`)
@@ -124,56 +135,161 @@ class Editly extends EventEmitter {
 
             console.log(`Multi-track timeline: ${width}x${height} ${fps}fps, duration: ${timeline.duration}s`);
 
-            let outProcess;
-            let totalFramesWritten = 0;
-            const totalFrames = Math.ceil(timeline.duration * fps);
-            outProcess = this.startFfmpegWriterProcess({width,height,framerateStr,audioFilePath,isGif,fps,fast,outPath});
-            this.emit('start')
-            outProcess.on("exit", (code) => {
-                if (verbose)
-                    console.log("Output ffmpeg exited", code);
-            });
+            this.emit('start');
 
-            outProcess.catch((err) => {
-                this.emit('error',err)
-            });
-            // 逐帧渲染时间线
-            for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
-                const currentTime = frameIndex / fps;
-            
-                if (verbose) {
-                    console.log(`Rendering frame ${frameIndex}/${totalFrames} (${currentTime.toFixed(2)}s)`);
-                }
-            
-                // 获取合成帧
-                const frameData = await timeline.getCompositeFrameAtTime(
-                    currentTime, width, height, channels, verbose,fps
-                );
-                if (!frameData) {
-                    console.warn(`No frame data at time ${currentTime}s`);
-                    continue;
-                }
-
-                // 写入FFmpeg
-                await new Promise((resolve) => {
-                    outProcess?.stdin?.write(frameData, resolve);
-                });
-
-                totalFramesWritten++;
-            
-                // 进度显示
-                if (!verbose && totalFramesWritten % 10 === 0) {
-                    const percent = Math.floor((totalFramesWritten / totalFrames) * 100);
-                    process.stdout.write(`\rRendering: ${percent}%`);
-                    this.emit('progress',percent)
-                }
+            // 检查是否启用自动优化
+            if (this.options.autoOptimize) {
+                console.log("🤖 启用自动优化模式");
+                const optimizer = new AutoOptimizer();
+                const videoConfig = {
+                    width,
+                    height,
+                    fps,
+                    duration: timeline.duration
+                };
+                
+                const optimizedConfig = optimizer.calculateOptimalConfig(videoConfig, this.tracks);
+                
+                // 更新配置
+                this.options.maxWorkers = optimizedConfig.maxWorkers;
+                this.options.chunkDuration = optimizedConfig.chunkDuration;
+                this.options.parallel = true;
+                
+                console.log(`🎯 自动优化结果: ${optimizedConfig.maxWorkers}个进程, ${optimizedConfig.chunkDuration}秒分块`);
+                console.log(`📊 配置置信度: ${optimizedConfig.confidence.toFixed(1)}%`);
+                
+                this.emit('optimization-complete', optimizedConfig);
             }
 
-            outProcess.stdin?.end();
-            await outProcess;
-            console.log(`\nDone. Output file: ${outPath}`);
-            this.emit('complete',outPath)
-            resolve(outPath)
+            // 检查是否启用并行渲染
+            if (this.options.parallel) {
+                let parallelRenderer;
+                
+                if (this.options.useHybrid) {
+                    // 使用混合渲染器
+                    console.log(`启用混合并行渲染: ${this.options.maxWorkers}个进程/线程, 每块${this.options.chunkDuration}秒`);
+                    parallelRenderer = new HybridRenderer({
+                        maxWorkers: this.options.maxWorkers,
+                        chunkDuration: this.options.chunkDuration,
+                        verbose: verbose,
+                        keepTmp: this.options.keepTmp,
+                        onChunkProgress: (chunkIndex, progress) => {
+                            if (verbose) {
+                                console.log(`块 ${chunkIndex} 进度: ${progress}%`);
+                            }
+                        }
+                    });
+                    
+                    // 发送策略检测事件
+                    const strategyInfo = parallelRenderer.getStrategyInfo(timeline);
+                    this.emit('strategy-detected', strategyInfo);
+                } else {
+                    // 使用传统渲染器
+                    const rendererType = this.options.useThreads ? "工作线程" : "工作进程";
+                    console.log(`启用并行渲染: ${this.options.maxWorkers}个${rendererType}, 每块${this.options.chunkDuration}秒`);
+                    
+                    parallelRenderer = this.options.useThreads ? 
+                        new (await import('./parallelRenderer.js')).default({
+                            maxWorkers: this.options.maxWorkers,
+                            chunkDuration: this.options.chunkDuration,
+                            verbose: verbose,
+                            keepTmp: this.options.keepTmp,
+                            onChunkProgress: (chunkIndex, progress) => {
+                                if (verbose) {
+                                    console.log(`块 ${chunkIndex} 进度: ${progress}%`);
+                                }
+                            }
+                        }) :
+                        new ProcessRenderer({
+                            maxWorkers: this.options.maxWorkers,
+                            chunkDuration: this.options.chunkDuration,
+                            verbose: verbose,
+                            keepTmp: this.options.keepTmp,
+                            onChunkProgress: (chunkIndex, progress) => {
+                                if (verbose) {
+                                    console.log(`块 ${chunkIndex} 进度: ${progress}%`);
+                                }
+                            }
+                        });
+                }
+
+                try {
+                    await parallelRenderer.renderParallel(
+                        timeline, 
+                        timeline.duration, 
+                        fps, 
+                        width, 
+                        height, 
+                        channels, 
+                        outPath, 
+                        audioFilePath, 
+                        isGif, 
+                        fast
+                    );
+                    
+                    console.log(`\n并行渲染完成. 输出文件: ${outPath}`);
+                    this.emit('complete', outPath);
+                    resolve(outPath);
+                } catch (error) {
+                    this.emit('error', error);
+                    reject(error);
+                } finally {
+                    await parallelRenderer.close();
+                }
+            } else {
+                // 原有的串行渲染逻辑
+                let outProcess;
+                let totalFramesWritten = 0;
+                const totalFrames = Math.ceil(timeline.duration * fps);
+                outProcess = this.startFfmpegWriterProcess({width,height,framerateStr,audioFilePath,isGif,fps,fast,outPath});
+                
+                outProcess.on("exit", (code) => {
+                    if (verbose)
+                        console.log("Output ffmpeg exited", code);
+                });
+
+                outProcess.catch((err) => {
+                    this.emit('error',err)
+                });
+                
+                // 逐帧渲染时间线
+                for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
+                    const currentTime = frameIndex / fps;
+                
+                    if (verbose) {
+                        console.log(`Rendering frame ${frameIndex}/${totalFrames} (${currentTime.toFixed(2)}s)`);
+                    }
+                
+                    // 获取合成帧
+                    const frameData = await timeline.getCompositeFrameAtTime(
+                        currentTime, width, height, channels, verbose,fps
+                    );
+                    if (!frameData) {
+                        console.warn(`No frame data at time ${currentTime}s`);
+                        continue;
+                    }
+
+                    // 写入FFmpeg
+                    await new Promise((resolve) => {
+                        outProcess?.stdin?.write(frameData, resolve);
+                    });
+
+                    totalFramesWritten++;
+                
+                    // 进度显示
+                    if (!verbose && totalFramesWritten % 10 === 0) {
+                        const percent = Math.floor((totalFramesWritten / totalFrames) * 100);
+                        process.stdout.write(`\rRendering: ${percent}%`);
+                        this.emit('progress',percent)
+                    }
+                }
+
+                outProcess.stdin?.end();
+                await outProcess;
+                console.log(`\nDone. Output file: ${outPath}`);
+                this.emit('complete',outPath)
+                resolve(outPath)
+            }
         }catch(err){
             console.log(err)
             this.emit('error',err)

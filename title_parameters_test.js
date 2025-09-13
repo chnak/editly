@@ -5,7 +5,11 @@ const data = {
   width: 1920,
   height: 1080,
   fps: 30,
-  fast: true, // 启用快速模式 - 降低分辨率和帧率
+  verbose: true, // 启用详细日志
+  parallel: true,
+  useHybrid: true,  // 启用混合渲染
+  maxWorkers: 4,
+  chunkDuration: 3,
   tracks: {
     "1": {
       type: "track",
@@ -718,6 +722,7 @@ const data = {
 async function main() {
   const editly = new Editly(data);
   editly.start();
+  const startTime = Date.now();
   editly.on("start", () => {
     console.log("[event] 开始生成视频");
   });
@@ -726,6 +731,9 @@ async function main() {
   });
   editly.on("complete", (value) => {
     console.log(`[event] 完成: ${value}`);
+    const endTime = Date.now();
+    const duration = (endTime - startTime) / 1000;
+    console.log(`⏱️  耗时: ${duration.toFixed(2)}秒`);
   });
   editly.on("error", (error) => {
     console.error(`[event] 错误: ${error}`);
