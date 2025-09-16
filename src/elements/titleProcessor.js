@@ -191,14 +191,16 @@ export async function createTitleElement(config) {
             case 'slideSplit':
               // 分割效果 - 需要特殊处理
               if (effectResult.segments) {
-                // 分割效果需要返回特殊的数据结构
-                return {
-                  type: 'split',
-                  segments: effectResult.segments,
-                  splitType: effectResult.splitType,
-                  progress: effectResult.progress,
-                  isComplete: effectResult.isComplete
-                };
+                // 分割效果需要特殊渲染，直接处理
+                return renderSplitTextEffect(canvas, effectResult, {
+                  x: x || 0,
+                  y: y || 0,
+                  fontSize,
+                  color: textColor,
+                  fontFamily: finalFontFamily,
+                  width,
+                  height
+                });
               }
               break;
             case 'glitch':
@@ -423,5 +425,61 @@ export async function createTitleElement(config) {
     async close() {
       // 清理资源
     }
+  };
+}
+
+/**
+ * 渲染分割文本效果
+ */
+function renderSplitTextEffect(canvas, splitData, options) {
+  const { segments, splitType } = splitData;
+  const { x, y, fontSize, color, fontFamily, width, height } = options;
+  
+  if (!segments || segments.length === 0) {
+    return null;
+  }
+  
+  let currentX = x;
+  let currentY = y;
+  const lineHeight = fontSize * 1.2;
+  const charSpacing = fontSize * 0.1;
+  
+  segments.forEach((segment, index) => {
+    if (segment.opacity > 0) {
+      const segmentText = new fabric.Text(segment.text, {
+        fontFamily: fontFamily,
+        fontSize: fontSize,
+        fill: color,
+        originX: "center",
+        originY: "center",
+        left: currentX + (segment.x || 0),
+        top: currentY + (segment.y || 0),
+        scaleX: segment.scaleX || 1,
+        scaleY: segment.scaleY || 1,
+        angle: segment.rotation || 0,
+        opacity: segment.opacity
+      });
+      
+      canvas.add(segmentText);
+      
+      // 计算下一个元素的位置
+      if (splitType === 'word' || splitType === 'char' || splitType === 'space') {
+        currentX += segmentText.width + charSpacing;
+      } else if (splitType === 'line') {
+        currentY += lineHeight;
+        currentX = x; // 重置X位置
+      }
+    }
+  });
+  
+  // 渲染画布并返回帧数据
+  canvas.renderAll();
+  const canvasElement = canvas.getElement();
+  const imageData = canvasElement.getContext('2d').getImageData(0, 0, width, height);
+  
+  return {
+    data: Buffer.from(imageData.data),
+    width: width,
+    height: height
   };
 }

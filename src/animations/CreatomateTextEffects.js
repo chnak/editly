@@ -307,8 +307,8 @@ export class CreatomateTextEffects {
    * 处理分割效果
    */
   processSplit(config) {
-    const { text, progress, splitType = 'word', segmentDelay = 0.1, segmentDuration = 0.3 } = config;
-    const segments = this.splitText(text, splitType);
+    const { text, progress, split = 'word', segmentDelay = 0.1, segmentDuration = 0.3 } = config;
+    const segments = this.splitText(text, split);
     
     const animatedSegments = segments.map((segment, index) => {
       const segmentStartTime = index * segmentDelay;
@@ -329,7 +329,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (segments.length - 1) * segmentDelay + segmentDuration,
-      splitType
+      splitType: split
     };
   }
 
@@ -498,8 +498,8 @@ export class CreatomateTextEffects {
    * 处理逐词分割动画
    */
   processSplitWords(config) {
-    const { text, progress, segmentDelay = 0.15, segmentDuration = 0.4 } = config;
-    const words = this.splitText(text, 'word');
+    const { text, progress, split = 'word', segmentDelay = 0.15, segmentDuration = 0.4 } = config;
+    const words = this.splitText(text, split);
     
     const animatedSegments = words.map((word, index) => {
       const segmentStartTime = index * segmentDelay;
@@ -520,7 +520,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (words.length - 1) * segmentDelay + segmentDuration,
-      splitType: 'word'
+      splitType: split
     };
   }
 
@@ -550,7 +550,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (lines.length - 1) * segmentDelay + segmentDuration,
-      splitType: 'line'
+      splitType: split
     };
   }
 
@@ -580,7 +580,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (chars.length - 1) * segmentDelay + segmentDuration,
-      splitType: 'char'
+      splitType: split
     };
   }
 
@@ -588,8 +588,8 @@ export class CreatomateTextEffects {
    * 处理波浪分割动画
    */
   processWaveSplit(config) {
-    const { text, progress, splitType = 'word', segmentDelay = 0.1, segmentDuration = 0.3 } = config;
-    const segments = this.splitText(text, splitType);
+    const { text, progress, split = 'word', segmentDelay = 0.1, segmentDuration = 0.3 } = config;
+    const segments = this.splitText(text, split);
     
     const animatedSegments = segments.map((segment, index) => {
       const segmentStartTime = index * segmentDelay;
@@ -611,7 +611,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (segments.length - 1) * segmentDelay + segmentDuration,
-      splitType
+      splitType: split
     };
   }
 
@@ -641,7 +641,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (segments.length - 1) * segmentDelay + segmentDuration,
-      splitType
+      splitType: split
     };
   }
 
@@ -671,7 +671,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (segments.length - 1) * segmentDelay + segmentDuration,
-      splitType
+      splitType: split
     };
   }
 
@@ -701,7 +701,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (segments.length - 1) * segmentDelay + segmentDuration,
-      splitType
+      splitType: split
     };
   }
 
@@ -747,7 +747,7 @@ export class CreatomateTextEffects {
       segments: animatedSegments,
       progress: Math.min(progress, 1),
       isComplete: progress >= (segments.length - 1) * segmentDelay + segmentDuration,
-      splitType
+      splitType: split
     };
   }
 
@@ -775,7 +775,7 @@ export class CreatomateTextEffects {
         
       case 'char':
         // 按字符分割
-        return text.split('').filter(char => char.trim());
+        return text.split('').filter(char => char !== ' ' && char !== '\n' && char !== '\t');
         
       case 'sentence':
         // 按句子分割（句号、问号、感叹号）
