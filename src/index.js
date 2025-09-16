@@ -97,10 +97,10 @@ export { Transition } from "./transitions/transition.js";
 // 导出动画系统
 export { 
   AnimationManager, 
-  Animation, 
   KeyframeAnimation,
   animationManager 
 } from "./animations/AnimationManager.js";
+export { Animation } from "./animations/animation.js";
 
 export { 
   AnimationBuilder, 

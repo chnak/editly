@@ -1,8 +1,11 @@
-import { Textbox, FabricText } from "fabric/node";
+import * as fabric from "fabric/node";
 import { registerFont, createCanvas } from "canvas";
 import { basename, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { getPositionProps } from "../utils/positionUtils.js";
+import { animationManager } from "../animations/AnimationManager.js";
+import { textAnimationProcessor } from "../animations/TextAnimationProcessor.js";
+import { creatomateTextEffects } from "../animations/CreatomateTextEffects.js";
 
 // 缓存已加载的字体
 const loadedFonts = [];
@@ -22,7 +25,7 @@ export async function createTitleElement(config) {
     y, // 自定义 Y 坐标
     zoomDirection = "in", 
     zoomAmount = 0.2, 
-    animate = [],
+    animations = [], // 添加 animations 参数
     split = null, // 分割参数：'word' 或 'line'
     splitDelay = 0.1, // 分割动画延迟
     splitDuration = 0.3, // 分割动画持续时间
@@ -98,7 +101,7 @@ export async function createTitleElement(config) {
   }
   
   // 创建文本对象
-  const textBox = new Textbox(text, {
+    const textBox = new fabric.Textbox(text, {
     fill: textColor,
     fontFamily: finalFontFamily,
     fontSize: fontSize,
@@ -111,7 +114,7 @@ export async function createTitleElement(config) {
   if (split) {
     const segments = splitText(text, split);
     textSegments = segments.map((segment, index) => {
-      const segmentText = new FabricText(segment, {
+      const segmentText = new fabric.Text(segment, {
         fill: textColor,
         fontFamily: finalFontFamily,
         fontSize: fontSize,
@@ -126,22 +129,8 @@ export async function createTitleElement(config) {
     });
   }
   
-  // 简化的动画控制器（暂时不实现复杂的动画系统）
-  function getZoomParams({ progress, zoomDirection, zoomAmount }) {
-    if (zoomDirection === "in") {
-      return 1 + (progress * zoomAmount);
-    } else {
-      return 1 + ((1 - progress) * zoomAmount);
-    }
-  }
-  
-  function getTranslationParams({ progress, zoomDirection, zoomAmount }) {
-    if (zoomDirection === "in") {
-      return progress * zoomAmount * 50;
-    } else {
-      return (1 - progress) * zoomAmount * 50;
-    }
-  }
+  // 设置文本动画处理器
+  textAnimationProcessor.setAnimationManager(animationManager);
   
   
   return {
@@ -151,12 +140,201 @@ export async function createTitleElement(config) {
         return null;
       }
       
-      const scaleFactor = getZoomParams({ progress, zoomDirection, zoomAmount });
-      const translationParams = getTranslationParams({ progress, zoomDirection, zoomAmount });
+      // 优先使用 animations 参数，如果没有则使用 zoomDirection 和 zoomAmount
+      let zoomAnimation, translateAnimation;
+      
+      if (animations && animations.length > 0) {
+        // 使用 animations 参数
+        zoomAnimation = { scaleX: 1, scaleY: 1 };
+        translateAnimation = { translateX: 0, translateY: 0 };
+        
+        // 检查是否有 Creatomate 风格的文本特效
+        const textEffect = animations.find(anim => anim.type && creatomateTextEffects.getAvailableEffects().includes(anim.type));
+        
+        if (textEffect) {
+          // 处理 Creatomate 风格的文本特效
+          const effectResult = creatomateTextEffects.processTextEffect(textEffect.type, {
+            text,
+            progress,
+            split: textEffect.split || 'default', // 添加 split 参数支持
+            ...textEffect
+          });
+          
+          // 根据特效类型应用不同的变换
+          switch (textEffect.type) {
+            case 'typewriter':
+              // 打字机效果 - 只显示部分文本
+              if (effectResult.visibleText) {
+                text = effectResult.visibleText;
+              }
+              break;
+            case 'reveal':
+              // 逐字显示效果
+              if (effectResult.visibleChars) {
+                text = effectResult.visibleChars.map(char => char.char).join('');
+              }
+              break;
+            case 'wipe':
+              // 擦除效果
+              if (effectResult.clipWidth !== undefined) {
+                // 这里需要特殊的裁剪处理
+              }
+              break;
+            case 'split':
+            case 'splitWords':
+            case 'splitLines':
+            case 'splitChars':
+            case 'waveSplit':
+            case 'rotateSplit':
+            case 'scaleSplit':
+            case 'fadeSplit':
+            case 'slideSplit':
+              // 分割效果 - 需要特殊处理
+              if (effectResult.segments) {
+                // 分割效果需要返回特殊的数据结构
+                return {
+                  type: 'split',
+                  segments: effectResult.segments,
+                  splitType: effectResult.splitType,
+                  progress: effectResult.progress,
+                  isComplete: effectResult.isComplete
+                };
+              }
+              break;
+            case 'glitch':
+              // 故障效果
+              if (effectResult.x !== undefined) {
+                translateAnimation.translateX += effectResult.x;
+                translateAnimation.translateY += effectResult.y || 0;
+                zoomAnimation.rotation = effectResult.rotation || 0;
+              }
+              break;
+            case 'shake':
+              // 震动效果
+              if (effectResult.x !== undefined) {
+                translateAnimation.translateX += effectResult.x;
+                translateAnimation.translateY += effectResult.y || 0;
+                zoomAnimation.rotation = effectResult.rotation || 0;
+              }
+              break;
+            case 'pulse':
+              // 脉冲效果
+              if (effectResult.scaleX !== undefined) {
+                zoomAnimation.scaleX *= effectResult.scaleX;
+                zoomAnimation.scaleY *= effectResult.scaleY || effectResult.scaleX;
+              }
+              break;
+            case 'wave':
+              // 波浪效果
+              if (effectResult.y !== undefined) {
+                translateAnimation.translateY += effectResult.y;
+                zoomAnimation.rotation = effectResult.rotation || 0;
+                zoomAnimation.scaleX *= effectResult.scaleX || 1;
+              }
+              break;
+            case 'spring':
+              // 弹簧效果
+              if (effectResult.scaleX !== undefined) {
+                zoomAnimation.scaleX *= effectResult.scaleX;
+                zoomAnimation.scaleY *= effectResult.scaleY || effectResult.scaleX;
+                zoomAnimation.rotation = effectResult.rotation || 0;
+              }
+              break;
+            case 'flip3D':
+              // 3D翻转效果
+              if (effectResult.rotationX !== undefined) {
+                zoomAnimation.rotationX = effectResult.rotationX;
+                zoomAnimation.rotationY = effectResult.rotationY || 0;
+                zoomAnimation.scaleX *= effectResult.scaleX || 1;
+                zoomAnimation.scaleY *= effectResult.scaleY || 1;
+              }
+              break;
+            case 'explode':
+              // 爆炸效果
+              if (effectResult.scaleX !== undefined) {
+                zoomAnimation.scaleX *= effectResult.scaleX;
+                zoomAnimation.scaleY *= effectResult.scaleY || effectResult.scaleX;
+                zoomAnimation.rotation = effectResult.rotation || 0;
+              }
+              break;
+            case 'dissolve':
+              // 溶解效果
+              if (effectResult.scaleX !== undefined) {
+                zoomAnimation.scaleX *= effectResult.scaleX;
+                zoomAnimation.scaleY *= effectResult.scaleY || effectResult.scaleX;
+                zoomAnimation.rotation = effectResult.rotation || 0;
+              }
+              break;
+            case 'spiral':
+              // 螺旋效果
+              if (effectResult.rotation !== undefined) {
+                zoomAnimation.rotation = effectResult.rotation;
+                zoomAnimation.scaleX *= effectResult.scaleX || 1;
+                zoomAnimation.scaleY *= effectResult.scaleY || 1;
+                translateAnimation.translateX += effectResult.x || 0;
+                translateAnimation.translateY += effectResult.y || 0;
+              }
+              break;
+            case 'wobble':
+              // 摇摆效果
+              if (effectResult.rotation !== undefined) {
+                zoomAnimation.rotation = effectResult.rotation;
+                zoomAnimation.scaleX *= effectResult.scaleX || 1;
+                zoomAnimation.scaleY *= effectResult.scaleY || 1;
+              }
+              break;
+          }
+        } else {
+          // 处理普通的 animations 参数
+          for (const anim of animations) {
+            const animValue = anim.getValueAtTime ? anim.getValueAtTime(progress * 2) : null; // 假设持续时间为2秒
+            if (animValue !== null) {
+              switch (anim.property) {
+                case 'scaleX':
+                  zoomAnimation.scaleX = animValue;
+                  break;
+                case 'scaleY':
+                  zoomAnimation.scaleY = animValue;
+                  break;
+                case 'x':
+                  translateAnimation.translateX = animValue - (x || 0);
+                  break;
+                case 'y':
+                  translateAnimation.translateY = animValue - (y || 0);
+                  break;
+              }
+            }
+          }
+        }
+      } else {
+        // 使用传统的 zoomDirection 和 zoomAmount
+        zoomAnimation = textAnimationProcessor.createZoomAnimation({ 
+          progress, 
+          zoomDirection, 
+          zoomAmount 
+        });
+        translateAnimation = textAnimationProcessor.createTranslateAnimation({ 
+          progress, 
+          zoomDirection, 
+          zoomAmount 
+        });
+      }
+      
       const { left, top, originX, originY } = getPositionProps({ position, width, height, x, y });
       
       if (split && textSegments.length > 0) {
-        // 处理分割动画
+        // 使用动画库处理分割动画
+        const splitAnimation = textAnimationProcessor.createSplitAnimation({
+          text,
+          splitType: split,
+          splitDelay,
+          splitDuration,
+          progress,
+          fontSize,
+          textColor,
+          fontFamily
+        });
+        
         let totalWidth = 0;
         if (split === 'word') {
           totalWidth = textSegments.reduce((sum, segment) => {
@@ -167,7 +345,8 @@ export async function createTitleElement(config) {
         let currentX = left - totalWidth / 2;
         let currentY = top;
         
-        for (const segment of textSegments) {
+        for (let i = 0; i < textSegments.length; i++) {
+          const segment = textSegments[i];
           const segmentProgress = Math.max(0, Math.min(1, (progress - segment.startTime) / (segment.endTime - segment.startTime)));
           
           if (segmentProgress > 0) {
@@ -181,33 +360,52 @@ export async function createTitleElement(config) {
               segmentTop = currentY + segment.index * (fontSize * 1.5);
             }
             
+            // 使用动画库计算动画属性
             const animatedProps = {
               originX: "center",
               originY: "center",
-              left: segmentLeft + translationParams,
-              top: segmentTop,
-              scaleX: scaleFactor,
-              scaleY: scaleFactor,
+              left: segmentLeft + translateAnimation.translateX,
+              top: segmentTop + translateAnimation.translateY,
+              scaleX: zoomAnimation.scaleX,
+              scaleY: zoomAnimation.scaleY,
               opacity: segmentProgress
             };
             
-            segment.text.set(animatedProps);
-            canvas.add(segment.text);
+            // 创建新的文本段对象避免画布冲突
+            const newSegmentText = new fabric.Text(segment.text.text, {
+              fontFamily: finalFontFamily,
+              fontSize: fontSize,
+              fill: textColor,
+              originX: "center",
+              originY: "center"
+            });
+            
+            newSegmentText.set(animatedProps);
+            canvas.add(newSegmentText);
           }
         }
       } else {
-        // 处理普通文本动画
+        // 处理普通文本动画 - 使用动画库
+        const newTextBox = new fabric.Text(text, {
+          fontFamily: finalFontFamily,
+          fontSize: fontSize,
+          fill: textColor,
+          originX: "center",
+          originY: "center"
+        });
+        
+        // 使用动画库计算文本属性
         const textProps = {
           originX,
           originY,
-          left: left + translationParams,
-          top,
-          scaleX: scaleFactor,
-          scaleY: scaleFactor
+          left: left + translateAnimation.translateX,
+          top: top + translateAnimation.translateY,
+          scaleX: zoomAnimation.scaleX,
+          scaleY: zoomAnimation.scaleY
         };
         
-        textBox.set(textProps);
-        canvas.add(textBox);
+        newTextBox.set(textProps);
+        canvas.add(newTextBox);
       }
       
       // 渲染画布并返回帧数据

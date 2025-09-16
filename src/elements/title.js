@@ -25,26 +25,26 @@ export class TitleElement extends BaseElement {
   async initialize() {
     await super.initialize();
     
-    
-    this.titleElement = await createTitleElement({
-      text: this.text,
-      font: this.font,
-      fontPath: this.fontPath,
-      fontFamily: this.fontFamily,
-      textColor: this.textColor,
-      position: this.position,
-      x: this.x,
-      y: this.y,
-      zoomDirection: this.zoomDirection,
-      zoomAmount: this.zoomAmount,
-      animate: this.animate,
-      split: this.split,
-      splitDelay: this.splitDelay,
-      splitDuration: this.splitDuration,
-      width: this.width,
-      height: this.height
-    });
-    
+    if (!this.titleElement) {
+      this.titleElement = await createTitleElement({
+        text: this.text,
+        font: this.font,
+        fontPath: this.fontPath,
+        fontFamily: this.fontFamily,
+        textColor: this.textColor,
+        position: this.position,
+        x: this.x,
+        y: this.y,
+        zoomDirection: this.zoomDirection,
+        zoomAmount: this.zoomAmount,
+        animations: this.animations, // 传递 animations 参数
+        split: this.split,
+        splitDelay: this.splitDelay,
+        splitDuration: this.splitDuration,
+        width: this.width,
+        height: this.height
+      });
+    }
   }
 
   async readNextFrame(time, canvas) {
@@ -65,6 +65,7 @@ export class TitleElement extends BaseElement {
       this.width = frameData.width;
       this.height = frameData.height;
       
+      // 应用动画变换 - 返回变换后的数据
       return {
         data: frameData.data,
         width: frameData.width,
@@ -74,10 +75,26 @@ export class TitleElement extends BaseElement {
         scaleX: transform.scaleX,
         scaleY: transform.scaleY,
         rotation: transform.rotation,
-        opacity: transform.opacity
+        opacity: transform.opacity,
+        rotationX: transform.rotationX,
+        rotationY: transform.rotationY,
+        translateZ: transform.translateZ
       };
     } else if (frameData && typeof frameData === 'object' && frameData.constructor && frameData.constructor.name) {
-      // Fabric 对象 - 直接返回，让 Timeline 处理
+      // Fabric 对象 - 应用动画变换
+      if (frameData.set) {
+        frameData.set({
+          left: transform.x,
+          top: transform.y,
+          scaleX: transform.scaleX,
+          scaleY: transform.scaleY,
+          angle: transform.rotation,
+          opacity: transform.opacity,
+          rotationX: transform.rotationX,
+          rotationY: transform.rotationY,
+          translateZ: transform.translateZ
+        });
+      }
       return frameData;
     }
     

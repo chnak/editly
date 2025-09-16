@@ -44,6 +44,26 @@ export class Animation {
         return this.bounceEase(t);
       case 'elastic':
         return this.elasticEase(t);
+      case 'spring':
+        return this.springEase(t);
+      case 'swing':
+        return this.swingEase(t);
+      case 'back':
+        return this.backEase(t);
+      case 'circ':
+        return this.circEase(t);
+      case 'expo':
+        return this.expoEase(t);
+      case 'quad':
+        return this.quadEase(t);
+      case 'cubic':
+        return this.cubicEase(t);
+      case 'quart':
+        return this.quartEase(t);
+      case 'quint':
+        return this.quintEase(t);
+      case 'sine':
+        return this.sineEase(t);
       case 'linear':
       default:
         return t;
@@ -71,5 +91,77 @@ export class Animation {
   elasticEase(t) {
     if (t === 0 || t === 1) return t;
     return Math.pow(2, -10 * t) * Math.sin((t - 0.1) * 5 * Math.PI) + 1;
+  }
+
+  /**
+   * 弹簧缓动
+   */
+  springEase(t) {
+    return 1 - Math.cos(t * Math.PI * 2.5) * Math.exp(-t * 6);
+  }
+
+  /**
+   * 摇摆缓动
+   */
+  swingEase(t) {
+    return 0.5 * (1 - Math.cos(t * Math.PI));
+  }
+
+  /**
+   * 回弹缓动
+   */
+  backEase(t) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return c3 * t * t * t - c1 * t * t;
+  }
+
+  /**
+   * 圆形缓动
+   */
+  circEase(t) {
+    return 1 - Math.sqrt(1 - Math.pow(t, 2));
+  }
+
+  /**
+   * 指数缓动
+   */
+  expoEase(t) {
+    return t === 0 ? 0 : Math.pow(2, 10 * (t - 1));
+  }
+
+  /**
+   * 二次缓动
+   */
+  quadEase(t) {
+    return t * t;
+  }
+
+  /**
+   * 三次缓动
+   */
+  cubicEase(t) {
+    return t * t * t;
+  }
+
+  /**
+   * 四次缓动
+   */
+  quartEase(t) {
+    return t * t * t * t;
+  }
+
+  /**
+   * 五次缓动
+   */
+  quintEase(t) {
+    return t * t * t * t * t;
+  }
+
+  /**
+   * 正弦缓动
+   */
+  sineEase(t) {
+    return 1 - Math.cos((t * Math.PI) / 2);
   }
 }
