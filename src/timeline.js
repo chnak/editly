@@ -79,7 +79,6 @@ export class Timeline {
       
       canvas.add(fabricImage);
     } else if (frameData && typeof frameData === 'object' && frameData.data && frameData.width && frameData.height) {
-      // console.log("📦 处理 RGBA 对象数据");
       // 新的数据格式 - 包含变换信息（RGBA 数据）
       const fabricImage = await rgbaToFabricImage({ 
         width: frameData.width, 
