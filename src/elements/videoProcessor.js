@@ -18,7 +18,9 @@ export async function createVideoElement(config) {
     left = 0,
     top = 0,
     originX = 'left',
-    originY = 'top'
+    originY = 'top',
+    loop = false,
+    elementDuration = 0
   } = config;
   
   // 获取视频流信息
@@ -86,13 +88,60 @@ export async function createVideoElement(config) {
   // 转换为迭代器
   const iterator = ps.iterable();
   
+  // 循环相关状态
+  let frameBuffer = [];
+  let currentFrameIndex = 0;
+  let isBuffering = true;
+  let videoDuration = 0;
+  
+  // 如果启用循环，先缓冲所有帧
+  if (loop && elementDuration > 0) {
+    try {
+      // 计算视频实际时长
+      if (cutFrom !== undefined && cutTo !== undefined) {
+        videoDuration = (cutTo - cutFrom) / speedFactor;
+      } else if (cutFrom !== undefined) {
+        videoDuration = (firstVideoStream.duration - cutFrom) / speedFactor;
+      } else if (cutTo !== undefined) {
+        videoDuration = cutTo / speedFactor;
+      } else {
+        videoDuration = firstVideoStream.duration / speedFactor;
+      }
+      
+      // 缓冲视频帧
+      let frameCount = 0;
+      while (true) {
+        const { value: rgba, done } = await iterator.next();
+        if (done) break;
+        if (rgba) {
+          frameBuffer.push(Buffer.from(rgba));
+          frameCount++;
+        }
+      }
+      
+      isBuffering = false;
+    } catch (error) {
+      console.error("视频缓冲错误:", error);
+      isBuffering = false;
+    }
+  }
+  
   return {
     async readNextFrame(progress, canvas) {
       try {
-        const { value: rgba, done } = await iterator.next();
+        let rgba;
         
-        if (done) {
-          return null;
+        if (loop && !isBuffering && frameBuffer.length > 0) {
+          // 循环模式：从缓冲的帧中获取
+          const frameIndex = Math.floor(progress * frameBuffer.length) % frameBuffer.length;
+          rgba = frameBuffer[frameIndex];
+        } else {
+          // 正常模式：从迭代器获取
+          const { value, done } = await iterator.next();
+          if (done) {
+            return null;
+          }
+          rgba = value;
         }
         
         if (!rgba) {
@@ -146,6 +195,8 @@ export async function createVideoElement(config) {
       if (!ps.exitCode) {
         controller.abort();
       }
+      // 清理缓冲
+      frameBuffer = [];
     }
   };
 }

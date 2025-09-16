@@ -16,6 +16,14 @@ export class VideoElement extends BaseElement {
     this.videoWidth = config.videoWidth || config.width;
     this.videoHeight = config.videoHeight || config.height;
     this.fit = config.fit || 'cover'; // 'cover', 'contain', 'fill', 'scale-down'
+    
+    // 视频截取属性
+    this.cutFrom = config.cutFrom; // 开始时间（秒）
+    this.cutTo = config.cutTo; // 结束时间（秒）
+    this.speedFactor = config.speedFactor || 1; // 播放速度倍数
+    
+    // 视频循环属性
+    this.loop = config.loop || false; // 是否循环播放
   }
 
   async initialize() {
@@ -34,7 +42,12 @@ export class VideoElement extends BaseElement {
         left: positionProps.left,
         top: positionProps.top,
         originX: positionProps.originX,
-        originY: positionProps.originY
+        originY: positionProps.originY,
+        cutFrom: this.cutFrom,
+        cutTo: this.cutTo,
+        speedFactor: this.speedFactor,
+        loop: this.loop,
+        elementDuration: this.duration
       });
     }
   }
