@@ -1,4 +1,5 @@
 import { animationManager } from '../animations/AnimationManager.js';
+import { getPositionProps, parsePositionValue } from '../utils/positionUtils.js';
 
 /**
  * 元素基类 - 所有视频元素的基类
@@ -21,6 +22,11 @@ export class BaseElement {
     this.rotation = config.rotation || 0;
     this.opacity = config.opacity || 1;
     this.zIndex = config.zIndex || 0;
+    
+    // 位置属性
+    this.position = config.position || 'center';
+    this.originX = config.originX || 'center';
+    this.originY = config.originY || 'center';
     
     // 3D变换属性
     this.rotationX = config.rotationX || 0;
@@ -214,5 +220,41 @@ export class BaseElement {
       default:
         return t;
     }
+  }
+
+  /**
+   * 获取解析后的位置属性
+   * @param {Object} options - 位置选项
+   * @returns {Object} 位置属性 { left, top, originX, originY }
+   */
+  getPositionProps(options = {}) {
+    const {
+      position = this.position,
+      x = this.x,
+      y = this.y,
+      originX = this.originX,
+      originY = this.originY
+    } = options;
+
+    return getPositionProps({
+      position,
+      x,
+      y,
+      width: this.width,
+      height: this.height,
+      originX,
+      originY
+    });
+  }
+
+  /**
+   * 解析位置值，支持多种单位
+   * @param {string|number} value - 位置值
+   * @param {string} dimension - 维度 ('width' 或 'height')
+   * @returns {number} 解析后的像素值
+   */
+  parsePositionValue(value, dimension = 'width') {
+    const containerSize = dimension === 'width' ? this.width : this.height;
+    return parsePositionValue(value, containerSize);
   }
 }

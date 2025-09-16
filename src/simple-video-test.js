@@ -1,62 +1,55 @@
+import { VideoMaker } from "./index.js";
+
 /**
- * 简单视频测试 - 逐步调试
+ * 简单视频元素测试
  */
-
-console.log("🎬 简单视频测试开始...");
-
-async function simpleVideoTest() {
+async function testSimpleVideo() {
+  console.log("开始简单视频元素测试...");
+  
   try {
-    console.log("1. 导入模块...");
-    const { VideoMaker } = await import("./index.js");
-    console.log("✓ 模块导入成功");
-
-    console.log("2. 创建 VideoMaker 实例...");
     const videoMaker = new VideoMaker({
-      outPath: "output/simple-test.mp4",
-      width: 320,
-      height: 240,
-      fps: 10,
+      outPath: "output/simple-video-test.mp4",
+      width: 1280,
+      height: 720,
+      fps: 30,
       elements: [
+        // 背景
         {
-          type: "text",
-          text: "Hello!",
-          font: "24px Arial",
-          fillColor: "#ffffff",
-          duration: 2,
-          x: 160,
-          y: 120,
-          textAlign: "center"
+          type: "image",
+          source: "./assets/img1.jpg",
+          duration: 3,
+          x: "0%",
+          y: "0%",
+          imageWidth: 1280,
+          imageHeight: 720,
+          fit: "cover"
+        },
+        
+        // 测试一个视频元素
+        {
+          type: "video",
+          source: "./assets/changi.mp4",
+          duration: 3,
+          x: "50%",
+          y: "50%",
+          videoWidth: 400,
+          videoHeight: 300,
+          fit: "contain"
         }
       ]
     });
-    console.log("✓ VideoMaker 实例创建成功");
 
-    console.log("3. 设置事件监听...");
-    videoMaker.on("start", () => {
-      console.log("🚀 开始渲染...");
-    });
+    await videoMaker.start();
+    console.log("✅ 简单视频测试完成: output/simple-video-test.mp4");
     
-    videoMaker.on("progress", (progress) => {
-      console.log(`📊 进度: ${progress}%`);
-    });
-    
-    videoMaker.on("complete", (outputPath) => {
-      console.log(`🎉 完成: ${outputPath}`);
-    });
-    
-    videoMaker.on("error", (error) => {
-      console.error(`❌ 错误: ${error.message}`);
-    });
-    console.log("✓ 事件监听设置成功");
-
-    console.log("4. 开始渲染...");
-    const result = await videoMaker.start();
-    console.log(`✓ 渲染完成: ${result}`);
-
   } catch (error) {
-    console.error("❌ 测试失败:", error.message);
-    console.error("错误堆栈:", error.stack);
+    console.error("❌ 简单视频测试失败:", error);
   }
 }
 
-simpleVideoTest();
+// 运行测试
+if (import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'))) {
+  testSimpleVideo();
+}
+
+export { testSimpleVideo };

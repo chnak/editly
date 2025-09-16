@@ -33,6 +33,8 @@ export class TitleElement extends BaseElement {
       fontFamily: this.fontFamily,
       textColor: this.textColor,
       position: this.position,
+      x: this.x,
+      y: this.y,
       zoomDirection: this.zoomDirection,
       zoomAmount: this.zoomAmount,
       animate: this.animate,

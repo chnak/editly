@@ -2,6 +2,7 @@ import { Textbox, FabricText } from "fabric/node";
 import { registerFont, createCanvas } from "canvas";
 import { basename, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { getPositionProps } from "../utils/positionUtils.js";
 
 // 缓存已加载的字体
 const loadedFonts = [];
@@ -17,6 +18,8 @@ export async function createTitleElement(config) {
     fontFamily,
     textColor = "#ffffff", 
     position = "center", 
+    x, // 自定义 X 坐标
+    y, // 自定义 Y 坐标
     zoomDirection = "in", 
     zoomAmount = 0.2, 
     animate = [],
@@ -140,20 +143,6 @@ export async function createTitleElement(config) {
     }
   }
   
-  function getPositionProps({ position, width, height }) {
-    switch (position) {
-      case "top":
-        return { left: width / 2, top: height * 0.2, originX: "center", originY: "center" };
-      case "bottom":
-        return { left: width / 2, top: height * 0.8, originX: "center", originY: "center" };
-      case "left":
-        return { left: width * 0.2, top: height / 2, originX: "center", originY: "center" };
-      case "right":
-        return { left: width * 0.8, top: height / 2, originX: "center", originY: "center" };
-      default: // center
-        return { left: width / 2, top: height / 2, originX: "center", originY: "center" };
-    }
-  }
   
   return {
     text: text, // 保存 text 变量到返回对象中
@@ -164,7 +153,7 @@ export async function createTitleElement(config) {
       
       const scaleFactor = getZoomParams({ progress, zoomDirection, zoomAmount });
       const translationParams = getTranslationParams({ progress, zoomDirection, zoomAmount });
-      const { left, top, originX, originY } = getPositionProps({ position, width, height });
+      const { left, top, originX, originY } = getPositionProps({ position, width, height, x, y });
       
       if (split && textSegments.length > 0) {
         // 处理分割动画

@@ -9,6 +9,11 @@ export class ImageElement extends BaseElement {
     super(config);
     this.source = config.source;
     this.imageElement = null;
+    
+    // 图片特有属性
+    this.imageWidth = config.imageWidth || config.width;
+    this.imageHeight = config.imageHeight || config.height;
+    this.fit = config.fit || 'cover'; // 'cover', 'contain', 'fill', 'scale-down'
   }
 
   async initialize() {
@@ -17,8 +22,9 @@ export class ImageElement extends BaseElement {
     if (this.source) {
       this.imageElement = await createImageElement({
         source: this.source,
-        width: this.width,
-        height: this.height
+        width: this.imageWidth,
+        height: this.imageHeight,
+        fit: this.fit
       });
     }
   }
@@ -45,9 +51,21 @@ export class ImageElement extends BaseElement {
   }
 
   applyTransform(frameData, transform) {
-    // 这里应该实现图像帧的变换
-    // 简化实现，直接返回原始帧数据
-    return frameData;
+    // 获取位置属性
+    const positionProps = this.getPositionProps();
+    
+    // 应用变换
+    return {
+      ...frameData,
+      x: positionProps.left,
+      y: positionProps.top,
+      scaleX: transform.scaleX,
+      scaleY: transform.scaleY,
+      rotation: transform.rotation,
+      opacity: transform.opacity,
+      originX: positionProps.originX,
+      originY: positionProps.originY
+    };
   }
 
   async close() {

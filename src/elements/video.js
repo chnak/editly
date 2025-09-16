@@ -11,23 +11,38 @@ export class VideoElement extends BaseElement {
     this.track = config.track || 1;
     this.transition = config.transition;
     this.videoElement = null;
+    
+    // 视频特有属性
+    this.videoWidth = config.videoWidth || config.width;
+    this.videoHeight = config.videoHeight || config.height;
+    this.fit = config.fit || 'cover'; // 'cover', 'contain', 'fill', 'scale-down'
   }
 
   async initialize() {
     await super.initialize();
     
     if (this.source) {
+      // 获取位置属性
+      const positionProps = this.getPositionProps();
+      
       this.videoElement = await createVideoElement({
         source: this.source,
-        width: this.width,
-        height: this.height,
-        fps: this.fps
+        width: this.videoWidth,
+        height: this.videoHeight,
+        fps: this.fps,
+        fit: this.fit,
+        left: positionProps.left,
+        top: positionProps.top,
+        originX: positionProps.originX,
+        originY: positionProps.originY
       });
     }
   }
 
   async readNextFrame(time, canvas) {
-    await this.initialize();
+    if (!this.videoElement) {
+      await this.initialize();
+    }
     
     if (!this.videoElement) {
       return null;
@@ -37,7 +52,7 @@ export class VideoElement extends BaseElement {
     const transform = this.getTransformAtTime(time);
     
     // 获取视频帧
-    const frameData = await this.videoElement.readNextFrame(progress);
+    const frameData = await this.videoElement.readNextFrame(progress, canvas);
     
     if (frameData) {
       // 应用变换
@@ -48,9 +63,21 @@ export class VideoElement extends BaseElement {
   }
 
   applyTransform(frameData, transform) {
-    // 这里应该实现视频帧的变换
-    // 简化实现，直接返回原始帧数据
-    return frameData;
+    // 获取位置属性
+    const positionProps = this.getPositionProps();
+    
+    // 应用变换
+    return {
+      ...frameData,
+      x: positionProps.left,
+      y: positionProps.top,
+      scaleX: transform.scaleX,
+      scaleY: transform.scaleY,
+      rotation: transform.rotation,
+      opacity: transform.opacity,
+      originX: positionProps.originX,
+      originY: positionProps.originY
+    };
   }
 
   async close() {
