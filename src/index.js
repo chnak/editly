@@ -1,0 +1,114 @@
+import EventEmitter from "events";
+import { VideoRenderer } from "./renderer.js";
+import { ConfigParser } from "./configParser.js";
+import { Timeline } from "./timeline.js";
+
+/**
+ * 基于 Creatomate 配置结构的视频制作库
+ * 结合 editly 的帧渲染机制
+ */
+export class VideoMaker extends EventEmitter {
+  constructor(config = {}) {
+    super();
+    
+    this.config = {
+      // 输出设置
+      outputFormat: config.outputFormat || 'mp4',
+      width: config.width || 1920,
+      height: config.height || 1080,
+      fps: config.fps || 30,
+      duration: config.duration || 4,
+      
+      // 渲染设置
+      verbose: config.verbose || false,
+      fast: config.fast || false,
+      outPath: config.outPath || 'output.mp4',
+      
+      // Creatomate 风格的元素配置
+      elements: config.elements || [],
+      
+      // 全局默认值
+      defaults: {
+        duration: 4,
+        transition: {
+          duration: 0.5,
+          name: "fade",
+        },
+        ...config.defaults
+      }
+    };
+    
+    this.timeline = null;
+    this.renderer = null;
+  }
+
+  /**
+   * 开始渲染视频
+   */
+  async start() {
+    try {
+      this.emit('start');
+      
+      // 解析配置
+      const configParser = new ConfigParser(this.config);
+      const parsedConfig = await configParser.parse();
+      
+      // 创建时间线
+      this.timeline = new Timeline(parsedConfig, this.config);
+      
+      // 创建渲染器
+      this.renderer = new VideoRenderer(this.config);
+      
+      // 开始渲染
+      const outputPath = await this.renderer.render(this.timeline);
+      
+      this.emit('complete', outputPath);
+      return outputPath;
+      
+    } catch (error) {
+      this.emit('error', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 关闭资源
+   */
+  async close() {
+    if (this.timeline) {
+      await this.timeline.close();
+    }
+    if (this.renderer) {
+      await this.renderer.close();
+    }
+  }
+}
+
+// 导出元素类
+export { VideoElement } from "./elements/video.js";
+export { ImageElement } from "./elements/image.js";
+export { TextElement } from "./elements/text.js";
+export { ShapeElement } from "./elements/shape.js";
+export { CompositionElement } from "./elements/composition.js";
+
+// 导出工具类
+export { Transition } from "./transitions/transition.js";
+
+// 导出动画系统
+export { 
+  AnimationManager, 
+  Animation, 
+  KeyframeAnimation,
+  animationManager 
+} from "./animations/AnimationManager.js";
+
+export { 
+  AnimationBuilder, 
+  PresetBuilder,
+  createAnimationBuilder, 
+  createPresetBuilder,
+  quickAnimation,
+  quickPreset
+} from "./animations/AnimationBuilder.js";
+
+export default VideoMaker;

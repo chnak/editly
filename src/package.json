@@ -1,0 +1,41 @@
+{
+  "name": "video-maker",
+  "version": "1.0.0",
+  "description": "基于 Creatomate 配置结构的视频制作库，结合 editly 的渲染机制",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node examples/basic-example.js",
+    "example:basic": "node examples/basic-example.js",
+    "example:advanced": "node examples/advanced-example.js",
+    "example:creatomate": "node examples/creatomate-style-example.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "video",
+    "animation",
+    "canvas",
+    "ffmpeg",
+    "creatomate",
+    "editly"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "fabric": "^6.5.4",
+    "nanoid": "^5.0.4",
+    "fs-extra": "^11.2.0"
+  },
+  "overrides": {
+    "canvas": "3.2.0"
+  },
+  "resolutions": {
+    "**/canvas": "3.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
