@@ -10,10 +10,9 @@ export class BaseElement {
     this.startTime = config.startTime || 0;
     this.duration = config.duration || 4;
     this.endTime = config.endTime || this.startTime + this.duration;
-    this.width = config.width || 1920;
-    this.height = config.height || 1080;
+    this.canvasWidth = config.canvasWidth || 1920;
+    this.canvasHeight = config.canvasHeight || 1080;
     this.fps = config.fps || 30;
-    
     // 变换属性
     this.x = config.x || 0;
     this.y = config.y || 0;
@@ -240,8 +239,8 @@ export class BaseElement {
       position,
       x,
       y,
-      width: this.width,
-      height: this.height,
+      width: this.canvasWidth,
+      height: this.canvasHeight,
       originX,
       originY
     });
@@ -254,7 +253,7 @@ export class BaseElement {
    * @returns {number} 解析后的像素值
    */
   parsePositionValue(value, dimension = 'width') {
-    const containerSize = dimension === 'width' ? this.width : this.height;
+    const containerSize = dimension === 'width' ? this.canvasWidth : this.canvasHeight;
     return parsePositionValue(value, containerSize);
   }
 }

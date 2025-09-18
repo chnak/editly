@@ -11,8 +11,8 @@ export class ShapeElement extends BaseElement {
     this.fillColor = config.fillColor || '#ffffff';
     this.strokeColor = config.strokeColor;
     this.strokeWidth = config.strokeWidth || 0;
-    this.shapeWidth = config.shapeWidth || 100;
-    this.shapeHeight = config.shapeHeight || 100;
+    this.shapeWidth = config.width || 100;
+    this.shapeHeight = config.height || 100;
     this.shapeElement = null;
   }
 
@@ -26,8 +26,8 @@ export class ShapeElement extends BaseElement {
       strokeWidth: this.strokeWidth,
       shapeWidth: this.shapeWidth,
       shapeHeight: this.shapeHeight,
-      width: this.width,
-      height: this.height
+      width: this.canvasWidth,
+      height: this.canvasHeight
     });
   }
 

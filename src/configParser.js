@@ -11,6 +11,8 @@ import { CompositionElement } from "./elements/composition.js";
 export class ConfigParser {
   constructor(config) {
     this.config = config;
+    this.canvasWidth = config.width||1280;
+    this.canvasHeight = config.height||720;
     this.elementTypes = {
       video: VideoElement,
       image: ImageElement,
@@ -40,8 +42,8 @@ export class ConfigParser {
     return {
       elements,
       duration: totalDuration,
-      width: this.config.width,
-      height: this.config.height,
+      canvasWidth: this.canvasWidth,
+      canvasHeight: this.canvasHeight,
       fps: this.config.fps
     };
   }
@@ -67,8 +69,8 @@ export class ConfigParser {
       startTime,
       duration,
       endTime,
-      width: this.config.width,
-      height: this.config.height,
+      canvasWidth: this.canvasWidth,
+      canvasHeight: this.canvasHeight,
       fps: this.config.fps
     });
 

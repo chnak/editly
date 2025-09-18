@@ -22,9 +22,9 @@ export class VideoRenderer {
       await fsExtra.ensureDir(this.tmpDir);
       
       const totalFrames = Math.ceil(timeline.duration * timeline.fps);
-      const frameSize = timeline.width * timeline.height * 4; // RGBA
-      
-      console.log(`开始渲染: ${timeline.width}x${timeline.height} ${timeline.fps}fps, 总帧数: ${totalFrames}`);
+      const frameSize = timeline.canvasWidth * timeline.canvasHeight * 4; // RGBA
+
+      console.log(`开始渲染: ${timeline.canvasWidth}x${timeline.canvasHeight} ${timeline.fps}fps, 总帧数: ${totalFrames}`);
       
       // 启动 FFmpeg 进程
       this.startFfmpegProcess();

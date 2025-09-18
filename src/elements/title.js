@@ -20,6 +20,8 @@ export class TitleElement extends BaseElement {
     this.splitDelay = config.splitDelay || 0.1;
     this.splitDuration = config.splitDuration || 0.3;
     this.titleElement = null;
+    this.canvasWidth = config.canvasWidth;
+    this.canvasHeight = config.canvasHeight;
   }
 
   async initialize() {
@@ -41,8 +43,8 @@ export class TitleElement extends BaseElement {
         split: this.split,
         splitDelay: this.splitDelay,
         splitDuration: this.splitDuration,
-        width: this.width,
-        height: this.height
+        width: this.canvasWidth,
+        height: this.canvasHeight
       });
     }
   }

@@ -7,10 +7,11 @@ export class Timeline {
   constructor(parsedConfig, globalConfig) {
     this.elements = parsedConfig.elements;
     this.duration = parsedConfig.duration;
-    this.width = parsedConfig.width;
-    this.height = parsedConfig.height;
+    this.canvasWidth= parsedConfig.canvasWidth;
+    this.canvasHeight = parsedConfig.canvasHeight;
     this.fps = parsedConfig.fps;
     this.globalConfig = globalConfig;
+
   }
 
   /**
@@ -19,8 +20,8 @@ export class Timeline {
   async getCompositeFrameAtTime(time, canvas) {
     if (!canvas) {
       canvas = createFabricCanvas({ 
-        width: this.width, 
-        height: this.height 
+        width: this.canvasWidth, 
+        height: this.canvasHeight 
       });
     }
 
@@ -64,8 +65,8 @@ export class Timeline {
   async addFrameToCanvas(canvas, frameData, element) {
     if (frameData instanceof Buffer) {
       // RGBA 数据 - 需要根据元素的实际尺寸创建图像
-      const elementWidth = element.width || this.width;
-      const elementHeight = element.height || this.height;
+      const elementWidth = element.width || this.canvasWidth;
+      const elementHeight = element.height || this.canvasHeight;
       
       const fabricImage = await rgbaToFabricImage({ 
         width: elementWidth, 

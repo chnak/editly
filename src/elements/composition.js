@@ -18,8 +18,8 @@ export class CompositionElement extends BaseElement {
     // 解析子元素
     this.configParser = new ConfigParser({
       elements: this.elements,
-      width: this.width,
-      height: this.height,
+      canvasWidth: this.canvasWidth,
+      canvasHeight: this.canvasHeight,
       fps: this.fps,
       defaults: this.config.defaults || {}
     });

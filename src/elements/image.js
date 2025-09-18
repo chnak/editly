@@ -9,10 +9,11 @@ export class ImageElement extends BaseElement {
     super(config);
     this.source = config.source;
     this.imageElement = null;
-    
+    this.canvasWidth = config.canvasWidth;
+    this.canvasHeight = config.canvasHeight;
     // 图片特有属性
-    this.imageWidth = config.imageWidth || config.width;
-    this.imageHeight = config.imageHeight || config.height;
+    this.imageWidth = config.width || config.canvasWidth;
+    this.imageHeight = config.height || config.canvasHeight;
     this.fit = config.fit || 'cover'; // 'cover', 'contain', 'fill', 'scale-down'
   }
 
@@ -25,8 +26,8 @@ export class ImageElement extends BaseElement {
         width: this.imageWidth,
         height: this.imageHeight,
         fit: this.fit,
-        containerWidth: this.width,
-        containerHeight: this.height
+        containerWidth: this.canvasWidth,
+        containerHeight: this.canvasHeight
       });
     }
   }

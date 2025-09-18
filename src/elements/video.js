@@ -11,10 +11,11 @@ export class VideoElement extends BaseElement {
     this.track = config.track || 1;
     this.transition = config.transition;
     this.videoElement = null;
-    
+    this.canvasWidth = config.canvasWidth;
+    this.canvasHeight = config.canvasHeight;
     // 视频特有属性
-    this.videoWidth = config.videoWidth || config.width;
-    this.videoHeight = config.videoHeight || config.height;
+    this.videoWidth = config.width || config.canvasWidth;
+    this.videoHeight = config.height|| config.canvasHeight;
     this.fit = config.fit || 'cover'; // 'cover', 'contain', 'fill', 'scale-down'
     
     // 视频截取属性
@@ -48,8 +49,8 @@ export class VideoElement extends BaseElement {
         speedFactor: this.speedFactor,
         loop: this.loop,
         elementDuration: this.duration,
-        containerWidth: this.width,
-        containerHeight: this.height
+        containerWidth: this.canvasWidth,
+        containerHeight: this.canvasHeight
       });
     }
   }

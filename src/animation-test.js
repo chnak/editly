@@ -20,8 +20,8 @@ async function testAnimationSystem() {
           duration: 5,
           x: '50%',
           y: '50%',
-          imageWidth:"50%",
-          imageHeight:"50%"
+          width:"50%",
+          height:"50%"
         },
         
         // 测试预设动画

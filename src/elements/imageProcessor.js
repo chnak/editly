@@ -7,7 +7,7 @@ import { parsePositionValue } from "../utils/positionUtils.js";
  */
 export async function createImageElement(config) {
   const { source, width, height, fit = 'cover', containerWidth, containerHeight } = config;
-  
+
   // 解析宽度和高度，支持百分比值
   const parsedWidth = typeof width === 'string' 
     ? parsePositionValue(width, containerWidth || 1280, 'px')
