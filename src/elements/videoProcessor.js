@@ -1,6 +1,7 @@
 import { ffmpeg, readFileStreams } from "../utils/ffmpegUtils.js";
 import { rawVideoToFrames, calculateVideoScale, getInputCodec, buildVideoFFmpegArgs, calculateVideoPosition } from "../utils/videoUtils.js";
 import { rgbaToFabricImage } from "../utils/fabricUtils.js";
+import { parsePositionValue } from "../utils/positionUtils.js";
 
 /**
  * 视频处理器 - 处理视频文件的帧提取
@@ -20,8 +21,18 @@ export async function createVideoElement(config) {
     originX = 'left',
     originY = 'top',
     loop = false,
-    elementDuration = 0
+    elementDuration = 0,
+    containerWidth = 1280,
+    containerHeight = 720
   } = config;
+  
+  // 解析宽度和高度，支持百分比值
+  const parsedWidth = typeof width === 'string' 
+    ? parsePositionValue(width, containerWidth, 'px')
+    : width;
+  const parsedHeight = typeof height === 'string'
+    ? parsePositionValue(height, containerHeight, 'px')
+    : height;
   
   // 获取视频流信息
   const streams = await readFileStreams(source);
@@ -38,8 +49,8 @@ export async function createVideoElement(config) {
   const scaleParams = calculateVideoScale({
     inputWidth,
     inputHeight,
-    requestedWidth: width,
-    requestedHeight: height,
+    requestedWidth: parsedWidth,
+    requestedHeight: parsedHeight,
     resizeMode: fit
   });
   

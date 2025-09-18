@@ -47,7 +47,9 @@ export class VideoElement extends BaseElement {
         cutTo: this.cutTo,
         speedFactor: this.speedFactor,
         loop: this.loop,
-        elementDuration: this.duration
+        elementDuration: this.duration,
+        containerWidth: this.width,
+        containerHeight: this.height
       });
     }
   }
@@ -89,7 +91,8 @@ export class VideoElement extends BaseElement {
       rotation: transform.rotation,
       opacity: transform.opacity,
       originX: positionProps.originX,
-      originY: positionProps.originY
+      originY: positionProps.originY,
+      applyPositionInTimeline: true
     };
   }
 
