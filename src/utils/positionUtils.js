@@ -15,6 +15,11 @@ export function parsePositionValue(value, containerSize, unit = 'px') {
   }
   
   if (typeof value === 'string') {
+    // 检查是否包含表达式（+ 或 -）
+    if (value.includes('+') || value.includes('-')) {
+      return parsePositionExpression(value, containerSize);
+    }
+    
     // 提取数值和单位
     const match = value.match(/^([+-]?\d*\.?\d+)([a-zA-Z%]*)$/);
     if (!match) {

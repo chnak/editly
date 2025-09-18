@@ -8,13 +8,10 @@ import { parsePositionValue } from "../utils/positionUtils.js";
 export async function createImageElement(config) {
   const { source, width, height, fit = 'cover', containerWidth, containerHeight } = config;
 
-  // 解析宽度和高度，支持百分比值
-  const parsedWidth = typeof width === 'string' 
-    ? parsePositionValue(width, containerWidth || 1280, 'px')
-    : width;
-  const parsedHeight = typeof height === 'string'
-    ? parsePositionValue(height, containerHeight || 720, 'px')
-    : height;
+  // 宽度和高度已经在 ImageElement 中解析过了，直接使用
+  // 但需要确保不为0
+  const finalWidth = Math.max(width || 100, 1);
+  const finalHeight = Math.max(height || 100, 1);
   
   let image = null;
   
@@ -35,59 +32,59 @@ export async function createImageElement(config) {
         return null;
       }
       
-      // 创建画布
-      const canvas = createCanvas(parsedWidth, parsedHeight);
-      const ctx = canvas.getContext('2d');
-      
-      // 根据适应模式绘制图像
-      const imageAspect = image.width / image.height;
-      const canvasAspect = parsedWidth / parsedHeight;
-      
-      let drawX = 0, drawY = 0, drawWidth = parsedWidth, drawHeight = parsedHeight;
+        // 创建画布
+        const canvas = createCanvas(finalWidth, finalHeight);
+        const ctx = canvas.getContext('2d');
+        
+        // 根据适应模式绘制图像
+        const imageAspect = image.width / image.height;
+        const canvasAspect = finalWidth / finalHeight;
+        
+        let drawX = 0, drawY = 0, drawWidth = finalWidth, drawHeight = finalHeight;
       
       switch (fit) {
         case 'cover':
           // 覆盖整个画布，保持宽高比，可能裁剪
           if (imageAspect > canvasAspect) {
-            drawWidth = parsedHeight * imageAspect;
-            drawHeight = parsedHeight;
-            drawX = (parsedWidth - drawWidth) / 2;
+            drawWidth = finalHeight * imageAspect;
+            drawHeight = finalHeight;
+            drawX = (finalWidth - drawWidth) / 2;
           } else {
-            drawWidth = parsedWidth;
-            drawHeight = parsedWidth / imageAspect;
-            drawY = (parsedHeight - drawHeight) / 2;
+            drawWidth = finalWidth;
+            drawHeight = finalWidth / imageAspect;
+            drawY = (finalHeight - drawHeight) / 2;
           }
           break;
         case 'contain':
           // 完整显示图像，保持宽高比，可能有空白
           if (imageAspect > canvasAspect) {
-            drawHeight = parsedWidth / imageAspect;
-            drawY = (parsedHeight - drawHeight) / 2;
+            drawHeight = finalWidth / imageAspect;
+            drawY = (finalHeight - drawHeight) / 2;
           } else {
-            drawWidth = parsedHeight * imageAspect;
-            drawX = (parsedWidth - drawWidth) / 2;
+            drawWidth = finalHeight * imageAspect;
+            drawX = (finalWidth - drawWidth) / 2;
           }
           break;
         case 'fill':
           // 拉伸填满整个画布，不保持宽高比
-          drawWidth = parsedWidth;
-          drawHeight = parsedHeight;
+          drawWidth = finalWidth;
+          drawHeight = finalHeight;
           break;
         case 'scale-down':
           // 缩小以适应画布，保持宽高比
-          if (image.width > parsedWidth || image.height > parsedHeight) {
+          if (image.width > finalWidth || image.height > finalHeight) {
             if (imageAspect > canvasAspect) {
-              drawHeight = parsedWidth / imageAspect;
-              drawY = (parsedHeight - drawHeight) / 2;
+              drawHeight = finalWidth / imageAspect;
+              drawY = (finalHeight - drawHeight) / 2;
             } else {
-              drawWidth = parsedHeight * imageAspect;
-              drawX = (parsedWidth - drawWidth) / 2;
+              drawWidth = finalHeight * imageAspect;
+              drawX = (finalWidth - drawWidth) / 2;
             }
           } else {
             drawWidth = image.width;
             drawHeight = image.height;
-            drawX = (parsedWidth - drawWidth) / 2;
-            drawY = (parsedHeight - drawHeight) / 2;
+            drawX = (finalWidth - drawWidth) / 2;
+            drawY = (finalHeight - drawHeight) / 2;
           }
           break;
       }
@@ -95,11 +92,11 @@ export async function createImageElement(config) {
       ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
       
       // 获取图像数据
-      const imageData = ctx.getImageData(0, 0, parsedWidth, parsedHeight);
+      const imageData = ctx.getImageData(0, 0, finalWidth, finalHeight);
       return {
         data: Buffer.from(imageData.data),
-        width: parsedWidth,
-        height: parsedHeight
+        width: finalWidth,
+        height: finalHeight
       };
     },
     
