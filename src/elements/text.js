@@ -1,5 +1,6 @@
 import { BaseElement } from "./base.js";
 import { createTextElement } from "./textProcessor.js";
+import { parseSizeValue } from "../utils/positionUtils.js";
 
 /**
  * 文本元素
@@ -17,7 +18,8 @@ export class TextElement extends BaseElement {
     this.textAlign = config.textAlign || 'left';
     this.textBaseline = config.textBaseline || 'top';
     this.lineHeight = config.lineHeight || 1.2;
-    this.maxWidth = config.maxWidth;
+    // 解析最大宽度，支持百分比和像素单位
+    this.maxWidth = config.maxWidth ? parseSizeValue(config.maxWidth, this.canvasWidth) : undefined;
     this.textElement = null;
   }
 

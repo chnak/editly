@@ -1,5 +1,6 @@
 import { BaseElement } from "./base.js";
 import { createVideoElement } from "./videoProcessor.js";
+import { parseSizeValue } from "../utils/positionUtils.js";
 
 /**
  * 视频元素
@@ -13,9 +14,9 @@ export class VideoElement extends BaseElement {
     this.videoElement = null;
     this.canvasWidth = config.canvasWidth;
     this.canvasHeight = config.canvasHeight;
-    // 视频特有属性
-    this.videoWidth = config.width || config.canvasWidth;
-    this.videoHeight = config.height|| config.canvasHeight;
+    // 视频特有属性 - 解析尺寸值，支持百分比和像素单位
+    this.videoWidth = config.width ? parseSizeValue(config.width, this.canvasWidth) : this.canvasWidth;
+    this.videoHeight = config.height ? parseSizeValue(config.height, this.canvasHeight) : this.canvasHeight;
     this.fit = config.fit || 'cover'; // 'cover', 'contain', 'fill', 'scale-down'
     
     // 视频截取属性

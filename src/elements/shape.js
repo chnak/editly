@@ -1,5 +1,6 @@
 import { BaseElement } from "./base.js";
 import { createShapeElement } from "./shapeProcessor.js";
+import { parseSizeValue } from "../utils/positionUtils.js";
 
 /**
  * 形状元素
@@ -11,8 +12,9 @@ export class ShapeElement extends BaseElement {
     this.fillColor = config.fillColor || '#ffffff';
     this.strokeColor = config.strokeColor;
     this.strokeWidth = config.strokeWidth || 0;
-    this.shapeWidth = config.width || 100;
-    this.shapeHeight = config.height || 100;
+    // 解析尺寸值，支持百分比和像素单位
+    this.shapeWidth = config.width ? parseSizeValue(config.width, this.canvasWidth) : 100;
+    this.shapeHeight = config.height ? parseSizeValue(config.height, this.canvasHeight) : 100;
     this.shapeElement = null;
   }
 

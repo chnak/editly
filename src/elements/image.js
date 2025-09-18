@@ -1,5 +1,6 @@
 import { BaseElement } from "./base.js";
 import { createImageElement } from "./imageProcessor.js";
+import { parseSizeValue } from "../utils/positionUtils.js";
 
 /**
  * 图像元素
@@ -12,8 +13,9 @@ export class ImageElement extends BaseElement {
     this.canvasWidth = config.canvasWidth;
     this.canvasHeight = config.canvasHeight;
     // 图片特有属性
-    this.imageWidth = config.width || config.canvasWidth;
-    this.imageHeight = config.height || config.canvasHeight;
+    // 解析尺寸值，支持百分比和像素单位
+    this.imageWidth = config.width ? parseSizeValue(config.width, this.canvasWidth) : this.canvasWidth;
+    this.imageHeight = config.height ? parseSizeValue(config.height, this.canvasHeight) : this.canvasHeight;
     this.fit = config.fit || 'cover'; // 'cover', 'contain', 'fill', 'scale-down'
   }
 
