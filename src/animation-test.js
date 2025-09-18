@@ -20,8 +20,9 @@ async function testAnimationSystem() {
           duration: 5,
           x: '50%',
           y: '50%',
-          width:"50%",
-          height:"50%"
+          // width:"50%",
+          // height:"50%",
+          fit:"contain-blur"
         },
         
         // 测试预设动画

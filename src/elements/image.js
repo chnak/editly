@@ -35,7 +35,9 @@ export class ImageElement extends BaseElement {
   }
 
   async readNextFrame(time, canvas) {
-    await this.initialize();
+    if (!this.imageElement) {
+      await this.initialize();
+    }
     
     if (!this.imageElement) {
       return null;
@@ -48,6 +50,17 @@ export class ImageElement extends BaseElement {
     const frameData = await this.imageElement.readNextFrame(progress);
     
     if (frameData) {
+      // 如果返回的是包含背景和前景的对象（contain-blur 模式）
+      if (frameData.background && frameData.foreground) {
+        return {
+          background: this.applyTransform(frameData.background, transform),
+          foreground: this.applyTransform(frameData.foreground, transform),
+          width: frameData.width,
+          height: frameData.height,
+          isContainBlur: true
+        };
+      }
+      
       // 应用变换
       return this.applyTransform(frameData, transform);
     }

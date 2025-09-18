@@ -63,6 +63,76 @@ export class Timeline {
    * 将帧数据添加到画布
    */
   async addFrameToCanvas(canvas, frameData, element) {
+    // 处理 contain-blur 效果
+    if (frameData && frameData.isContainBlur && frameData.background && frameData.foreground) {
+      // 先添加模糊背景
+      const backgroundImage = await rgbaToFabricImage({
+        width: frameData.background.width,
+        height: frameData.background.height,
+        rgba: frameData.background.data
+      });
+      
+      // 应用背景的位置和变换
+      if (frameData.background.x !== undefined && frameData.background.y !== undefined) {
+        backgroundImage.set('left', frameData.background.x);
+        backgroundImage.set('top', frameData.background.y);
+      }
+      if (frameData.background.originX !== undefined) {
+        backgroundImage.set('originX', frameData.background.originX);
+      }
+      if (frameData.background.originY !== undefined) {
+        backgroundImage.set('originY', frameData.background.originY);
+      }
+      if (frameData.background.scaleX !== undefined) {
+        backgroundImage.set('scaleX', frameData.background.scaleX);
+      }
+      if (frameData.background.scaleY !== undefined) {
+        backgroundImage.set('scaleY', frameData.background.scaleY);
+      }
+      if (frameData.background.rotation !== undefined) {
+        backgroundImage.set('angle', frameData.background.rotation);
+      }
+      if (frameData.background.opacity !== undefined) {
+        backgroundImage.set('opacity', frameData.background.opacity);
+      }
+      
+      canvas.add(backgroundImage);
+      
+      // 再添加前景图像
+      const foregroundImage = await rgbaToFabricImage({
+        width: frameData.foreground.width,
+        height: frameData.foreground.height,
+        rgba: frameData.foreground.data
+      });
+      
+      // 应用前景的位置和变换
+      if (frameData.foreground.x !== undefined && frameData.foreground.y !== undefined) {
+        foregroundImage.set('left', frameData.foreground.x);
+        foregroundImage.set('top', frameData.foreground.y);
+      }
+      if (frameData.foreground.originX !== undefined) {
+        foregroundImage.set('originX', frameData.foreground.originX);
+      }
+      if (frameData.foreground.originY !== undefined) {
+        foregroundImage.set('originY', frameData.foreground.originY);
+      }
+      if (frameData.foreground.scaleX !== undefined) {
+        foregroundImage.set('scaleX', frameData.foreground.scaleX);
+      }
+      if (frameData.foreground.scaleY !== undefined) {
+        foregroundImage.set('scaleY', frameData.foreground.scaleY);
+      }
+      if (frameData.foreground.rotation !== undefined) {
+        foregroundImage.set('angle', frameData.foreground.rotation);
+      }
+      if (frameData.foreground.opacity !== undefined) {
+        foregroundImage.set('opacity', frameData.foreground.opacity);
+      }
+      
+      canvas.add(foregroundImage);
+      return;
+    }
+    
     if (frameData instanceof Buffer) {
       // RGBA 数据 - 需要根据元素的实际尺寸创建图像
       const elementWidth = element.width || this.canvasWidth;
