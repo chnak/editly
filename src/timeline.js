@@ -78,6 +78,32 @@ export class Timeline {
         rgba: frameData.data 
       });
       
+      // 根据元素的标志位决定是否应用位置信息
+      if (frameData.applyPositionInTimeline && frameData.x !== undefined && frameData.y !== undefined) {
+        fabricImage.set('left', frameData.x);
+        fabricImage.set('top', frameData.y);
+        if (frameData.originX !== undefined) {
+          fabricImage.set('originX', frameData.originX);
+        }
+        if (frameData.originY !== undefined) {
+          fabricImage.set('originY', frameData.originY);
+        }
+      }
+      
+      // 应用变换信息（所有元素都需要）
+      if (frameData.scaleX !== undefined) {
+        fabricImage.set('scaleX', frameData.scaleX);
+      }
+      if (frameData.scaleY !== undefined) {
+        fabricImage.set('scaleY', frameData.scaleY);
+      }
+      if (frameData.rotation !== undefined) {
+        fabricImage.set('angle', frameData.rotation);
+      }
+      if (frameData.opacity !== undefined) {
+        fabricImage.set('opacity', frameData.opacity);
+      }
+      
       canvas.add(fabricImage);
     } else if (frameData && typeof frameData === 'object' && frameData.constructor && frameData.constructor.name) {
       console.log("📦 处理 Fabric 对象数据");

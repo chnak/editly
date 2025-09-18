@@ -24,7 +24,9 @@ export class ImageElement extends BaseElement {
         source: this.source,
         width: this.imageWidth,
         height: this.imageHeight,
-        fit: this.fit
+        fit: this.fit,
+        containerWidth: this.width,
+        containerHeight: this.height
       });
     }
   }
@@ -64,7 +66,9 @@ export class ImageElement extends BaseElement {
       rotation: transform.rotation,
       opacity: transform.opacity,
       originX: positionProps.originX,
-      originY: positionProps.originY
+      originY: positionProps.originY,
+      // 添加标志位，表示需要在 addFrameToCanvas 中应用位置信息
+      applyPositionInTimeline: true
     };
   }
 
