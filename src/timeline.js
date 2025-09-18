@@ -58,6 +58,8 @@ export class Timeline {
    * 将帧数据添加到画布
    */
   async addFrameToCanvas(canvas, frameData, element) {
+    // 使用 getPositionProps 计算正确的位置
+
     if (frameData instanceof Buffer) {
       // RGBA 数据 - 需要根据元素的实际尺寸创建图像
       const elementWidth = element.width || this.width;
@@ -69,13 +71,8 @@ export class Timeline {
         rgba: frameData 
       });
       
-      // 设置位置和变换
-      if (element.x !== undefined) fabricImage.set('left', element.x);
-      if (element.y !== undefined) fabricImage.set('top', element.y);
-      if (element.scaleX !== undefined) fabricImage.set('scaleX', element.scaleX);
-      if (element.scaleY !== undefined) fabricImage.set('scaleY', element.scaleY);
-      if (element.rotation !== undefined) fabricImage.set('angle', element.rotation);
-      if (element.opacity !== undefined) fabricImage.set('opacity', element.opacity);
+      // 使用计算出的位置属性
+
       
       canvas.add(fabricImage);
     } else if (frameData && typeof frameData === 'object' && frameData.data && frameData.width && frameData.height) {
@@ -86,24 +83,12 @@ export class Timeline {
         rgba: frameData.data 
       });
       
-      // 设置位置和变换
-      if (frameData.x !== undefined) fabricImage.set('left', frameData.x);
-      if (frameData.y !== undefined) fabricImage.set('top', frameData.y);
-      if (frameData.scaleX !== undefined) fabricImage.set('scaleX', frameData.scaleX);
-      if (frameData.scaleY !== undefined) fabricImage.set('scaleY', frameData.scaleY);
-      if (frameData.rotation !== undefined) fabricImage.set('angle', frameData.rotation);
-      if (frameData.opacity !== undefined) fabricImage.set('opacity', frameData.opacity);
+
       
       canvas.add(fabricImage);
     } else if (frameData && typeof frameData === 'object' && frameData.constructor && frameData.constructor.name) {
       console.log("📦 处理 Fabric 对象数据");
-      // Fabric 对象 - 设置位置和变换
-      if (element.x !== undefined) frameData.set('left', element.x);
-      if (element.y !== undefined) frameData.set('top', element.y);
-      if (element.scaleX !== undefined) frameData.set('scaleX', element.scaleX);
-      if (element.scaleY !== undefined) frameData.set('scaleY', element.scaleY);
-      if (element.rotation !== undefined) frameData.set('angle', element.rotation);
-      if (element.opacity !== undefined) frameData.set('opacity', element.opacity);
+
       
       canvas.add(frameData);
     }
