@@ -58,8 +58,6 @@ export class Timeline {
    * 将帧数据添加到画布
    */
   async addFrameToCanvas(canvas, frameData, element) {
-    // 使用 getPositionProps 计算正确的位置
-
     if (frameData instanceof Buffer) {
       // RGBA 数据 - 需要根据元素的实际尺寸创建图像
       const elementWidth = element.width || this.width;
@@ -71,9 +69,6 @@ export class Timeline {
         rgba: frameData 
       });
       
-      // 使用计算出的位置属性
-
-      
       canvas.add(fabricImage);
     } else if (frameData && typeof frameData === 'object' && frameData.data && frameData.width && frameData.height) {
       // 新的数据格式 - 包含变换信息（RGBA 数据）
@@ -83,13 +78,10 @@ export class Timeline {
         rgba: frameData.data 
       });
       
-
-      
       canvas.add(fabricImage);
     } else if (frameData && typeof frameData === 'object' && frameData.constructor && frameData.constructor.name) {
       console.log("📦 处理 Fabric 对象数据");
-
-      
+      // Fabric 对象 - 位置信息已在元素处理器中设置
       canvas.add(frameData);
     }
   }
