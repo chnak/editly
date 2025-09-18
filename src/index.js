@@ -67,6 +67,12 @@ export class VideoMaker extends EventEmitter {
       
     } catch (error) {
       this.emit('error', error);
+      // 确保在错误时也清理资源
+      try {
+        await this.close();
+      } catch (closeError) {
+        console.warn('清理资源时出错:', closeError.message);
+      }
       throw error;
     }
   }

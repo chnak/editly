@@ -62,6 +62,12 @@ export class VideoRenderer {
       
     } catch (error) {
       console.error('渲染失败:', error);
+      // 确保在错误时也清理临时目录
+      try {
+        await this.close();
+      } catch (closeError) {
+        console.warn('清理资源时出错:', closeError.message);
+      }
       throw error;
     }
   }

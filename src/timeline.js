@@ -37,6 +37,10 @@ export class Timeline {
         }
       } catch (error) {
         console.warn(`渲染元素失败: ${element.type}`, error);
+        // 对于关键错误（如文件不存在），抛出异常以停止渲染
+        if (error.message.includes('Command failed') || error.message.includes('ENOENT')) {
+          throw error;
+        }
       }
     }
 
