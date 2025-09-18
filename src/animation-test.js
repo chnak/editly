@@ -16,12 +16,12 @@ async function testAnimationSystem() {
         // 背景
         {
           type: "image",
-          source: "./assets/img1.jpg",
+          source: "../assets/img1.jpg",
           duration: 5,
-          x: 0,
-          y: 0,
-          scaleX: 1,
-          scaleY: 1
+          x: '50%',
+          y: '50%',
+          imageWidth:"50%",
+          imageHeight:"50%"
         },
         
         // 测试预设动画
