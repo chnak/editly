@@ -82,11 +82,11 @@ export class VideoElement extends BaseElement {
     // 获取位置属性
     const positionProps = this.getPositionProps();
     
-    // 应用变换
+    // 应用变换 - 使用动画计算后的位置
     return {
       ...frameData,
-      x: positionProps.left,
-      y: positionProps.top,
+      x: transform.x,
+      y: transform.y,
       scaleX: transform.scaleX,
       scaleY: transform.scaleY,
       rotation: transform.rotation,

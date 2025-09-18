@@ -177,18 +177,15 @@ export async function createVideoElement(config) {
           originY
         });
         
-        // 设置图像属性
+        // 设置图像属性 - 不设置位置，让上层处理
         img.set({
           originX,
           originY,
-          left: left + position.centerOffsetX,
-          top: top + position.centerOffsetY
+          left: position.centerOffsetX,
+          top: position.centerOffsetY
         });
         
-        // 添加到画布
-        if (canvas) {
-          canvas.add(img);
-        }
+        // 不添加到画布，让上层处理
         
         return {
           data: Buffer.from(rgba),
