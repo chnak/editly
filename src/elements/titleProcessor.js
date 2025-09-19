@@ -6,6 +6,7 @@ import { getPositionProps } from "../utils/positionUtils.js";
 import { animationManager } from "../animations/AnimationManager.js";
 import { textAnimationProcessor } from "../animations/TextAnimationProcessor.js";
 import { creatomateTextEffects } from "../animations/CreatomateTextEffects.js";
+import { createSplitText } from "../utils/fabricSplitText.js";
 
 // 缓存已加载的字体
 const loadedFonts = [];
@@ -146,29 +147,35 @@ export async function createTitleElement(config) {
   // 如果启用了分割动画，创建分割后的文本片段
   let textSegments = [];
   if (split) {
-    const segments = splitText(text, split);
+    // 使用 Fabric SplitText 进行精确的文本分割
+    const splitTextInstance = createSplitText(text, {
+      fontSize: fontSize,
+      fontFamily: finalFontFamily,
+      fill: textColor,
+      // 使用智能间距配置
+      autoSpacing: true,
+      minCharSpacing: 0.08,  // 最小字符间距
+      maxCharSpacing: 0.25,  // 最大字符间距
+      minWordSpacing: 0.15,  // 最小单词间距
+      maxWordSpacing: 0.4,   // 最大单词间距
+      lineHeight: 1.2
+    });
+    
+    // 获取指定类型的分割数据
+    const segments = splitTextInstance.getSegments(split);
+    
     textSegments = segments.map((segment, index) => {
-      // 对于空格，使用特殊处理
-      const isSpace = segment.trim() === '';
-      const displayText = isSpace ? ' ' : segment; // 确保空格被正确显示
-      
-      const segmentText = new fabric.Text(displayText, {
-        fill: textColor,
-        fontFamily: finalFontFamily,
-        fontSize: fontSize,
-        textAlign: "center"
-      });
-      
-      // 使用 Fabric.js 的 Text 对象获取准确宽度
-      const segmentWidth = segmentText.width;
-      
       return {
-        text: segmentText,
+        text: segment.text,
         index,
         startTime: index * splitDelay,
         endTime: index * splitDelay + splitDuration,
-        width: segmentWidth, // 保存 Fabric.js 计算的宽度
-        isSpace: isSpace // 标记是否为空格
+        width: segment.width,
+        height: segment.height,
+        x: segment.x,
+        y: segment.y,
+        isSpace: segment.isSpace || false,
+        splitTextInstance: splitTextInstance // 保存 SplitText 实例引用
       };
     });
   }
@@ -387,23 +394,29 @@ export async function createTitleElement(config) {
         // 使用精确的宽度计算
         const charSpacing = fontSize * 0.1; // 参考 slide-in-text.js 的字符间距设置
         
-        if (split === 'word' || split === 'letter') {
-          totalWidth = textSegments.reduce((sum, segment) => {
-            const segmentWidth = segment.width || segment.text.width;
-            // 如果是空格，不添加字符间距
-            const isSpace = segment.isSpace || false;
-            return sum + segmentWidth + (isSpace ? 0 : charSpacing);
-          }, 0);
-          // 减去最后一个元素的字符间距
-          if (textSegments.length > 0) {
-            const lastSegment = textSegments[textSegments.length - 1];
-            const isLastSpace = lastSegment.isSpace || false;
-            if (!isLastSpace) {
-              totalWidth -= charSpacing;
+        // 使用 SplitText 的精确尺寸计算
+        if (textSegments.length > 0 && textSegments[0].splitTextInstance) {
+          const splitTextInstance = textSegments[0].splitTextInstance;
+          totalWidth = splitTextInstance.getTotalWidth();
+          totalHeight = splitTextInstance.getTotalHeight();
+        } else {
+          // 回退到简单计算
+          if (split === 'word' || split === 'letter') {
+            totalWidth = textSegments.reduce((sum, segment) => {
+              const segmentWidth = segment.width || segment.text.width;
+              const isSpace = segment.isSpace || false;
+              return sum + segmentWidth + (isSpace ? 0 : charSpacing);
+            }, 0);
+            if (textSegments.length > 0) {
+              const lastSegment = textSegments[textSegments.length - 1];
+              const isLastSpace = lastSegment.isSpace || false;
+              if (!isLastSpace) {
+                totalWidth -= charSpacing;
+              }
             }
+          } else if (split === 'line') {
+            totalHeight = textSegments.length * fontSize * 1.5;
           }
-        } else if (split === 'line') {
-          totalHeight = textSegments.length * fontSize * 1.5;
         }
         
         let currentX = left - totalWidth / 2;
@@ -417,15 +430,20 @@ export async function createTitleElement(config) {
             let segmentLeft = currentX;
             let segmentTop = currentY;
             
-            if (split === 'word' || split === 'letter') {
-              segmentLeft = currentX;
-              // 使用精确的宽度
-              const segmentWidth = segment.width || segment.text.width;
-              // 如果是空格，不添加字符间距
-              const isSpace = segment.isSpace || false;
-              currentX += segmentWidth + (isSpace ? 0 : charSpacing);
-            } else if (split === 'line') {
-              segmentTop = currentY + segment.index * (fontSize * 1.5);
+            // 使用 SplitText 的精确位置
+            if (segment.x !== undefined && segment.y !== undefined) {
+              segmentLeft = currentX + segment.x;
+              segmentTop = currentY + segment.y;
+            } else {
+              // 回退到简单位置计算
+              if (split === 'word' || split === 'letter') {
+                segmentLeft = currentX;
+                const segmentWidth = segment.width || segment.text.width;
+                const isSpace = segment.isSpace || false;
+                currentX += segmentWidth + (isSpace ? 0 : charSpacing);
+              } else if (split === 'line') {
+                segmentTop = currentY + segment.index * (fontSize * 1.5);
+              }
             }
             
             // 使用动画库计算动画属性
