@@ -18,6 +18,7 @@ export class FabricSplitText {
       lineHeight: 1.2,
       // 智能间距配置
       autoSpacing: true,
+      dynamicSpacing: true,  // 启用动态间距调整
       minCharSpacing: 0.05, // 最小字符间距（相对于字体大小）
       maxCharSpacing: 0.3,  // 最大字符间距
       minWordSpacing: 0.1,  // 最小单词间距
@@ -204,6 +205,9 @@ export class FabricSplitText {
     let currentX = 0;
     const lineHeight = this.options.fontSize * this.options.lineHeight;
     
+    // 计算动态字符间距
+    const dynamicSpacing = this._calculateDynamicCharSpacing();
+    
     for (let i = 0; i < this.characters.length; i++) {
       const char = this.characters[i];
       
@@ -213,9 +217,10 @@ export class FabricSplitText {
       // 计算下一个字符的位置
       currentX += char.width;
       
-      // 添加字符间距（除了空格）
+      // 添加动态字符间距（除了空格）
       if (!char.isSpace) {
-        currentX += this.options.charSpacing;
+        const spacing = dynamicSpacing[i] || this.options.charSpacing;
+        currentX += spacing;
       } else {
         // 对于空格，添加较小的间距以保持自然感
         currentX += this.options.charSpacing * 0.3;
@@ -226,7 +231,8 @@ export class FabricSplitText {
     if (this.characters.length > 0) {
       const lastChar = this.characters[this.characters.length - 1];
       if (!lastChar.isSpace) {
-        currentX -= this.options.charSpacing;
+        const lastSpacing = dynamicSpacing[this.characters.length - 1] || this.options.charSpacing;
+        currentX -= lastSpacing;
       } else {
         currentX -= this.options.charSpacing * 0.3;
       }
@@ -237,11 +243,83 @@ export class FabricSplitText {
   }
 
   /**
+   * 计算动态字符间距
+   * 根据字符宽度差异来调整间距，使显示更匀称
+   */
+  _calculateDynamicCharSpacing() {
+    const spacing = [];
+    
+    // 如果未启用动态间距，返回空数组
+    if (!this.options.dynamicSpacing) {
+      return spacing;
+    }
+    
+    const chars = this.characters.filter(c => !c.isSpace);
+    
+    if (chars.length <= 1) {
+      return spacing;
+    }
+    
+    // 计算字符宽度统计
+    const widths = chars.map(c => c.width);
+    const avgWidth = widths.reduce((sum, w) => sum + w, 0) / widths.length;
+    const minWidth = Math.min(...widths);
+    const maxWidth = Math.max(...widths);
+    const widthRange = maxWidth - minWidth;
+    
+    // 如果宽度差异很小，使用固定间距
+    if (widthRange < avgWidth * 0.2) {
+      for (let i = 0; i < chars.length - 1; i++) {
+        spacing.push(this.options.charSpacing);
+      }
+      return spacing;
+    }
+    
+    // 计算动态间距
+    for (let i = 0; i < chars.length - 1; i++) {
+      const currentChar = chars[i];
+      const nextChar = chars[i + 1];
+      
+      // 基于当前字符和下一个字符的宽度计算间距
+      const currentWidthRatio = currentChar.width / avgWidth;
+      const nextWidthRatio = nextChar.width / avgWidth;
+      
+      // 计算基础间距
+      let baseSpacing = this.options.charSpacing;
+      
+      // 如果两个字符都很窄，增加间距
+      if (currentWidthRatio < 0.7 && nextWidthRatio < 0.7) {
+        baseSpacing *= 1.2;
+      }
+      // 如果两个字符都很宽，减少间距
+      else if (currentWidthRatio > 1.3 && nextWidthRatio > 1.3) {
+        baseSpacing *= 0.7;
+      }
+      // 如果宽度差异很大，使用中等间距
+      else if (Math.abs(currentWidthRatio - nextWidthRatio) > 0.6) {
+        baseSpacing *= 1.05;
+      }
+      
+      // 确保间距在合理范围内
+      const minSpacing = this.options.charSpacing * 0.3;
+      const maxSpacing = this.options.charSpacing * 1.5;
+      baseSpacing = Math.max(minSpacing, Math.min(maxSpacing, baseSpacing));
+      
+      spacing.push(baseSpacing);
+    }
+    
+    return spacing;
+  }
+
+  /**
    * 计算单词位置
    */
   _calculateWordPositions() {
     let currentX = 0;
     const lineHeight = this.options.fontSize * this.options.lineHeight;
+    
+    // 计算动态单词间距
+    const dynamicSpacing = this._calculateDynamicWordSpacing();
     
     for (let i = 0; i < this.words.length; i++) {
       const word = this.words[i];
@@ -252,9 +330,10 @@ export class FabricSplitText {
       // 计算下一个单词的位置
       currentX += word.width;
       
-      // 添加单词间距（除了空格）
+      // 添加动态单词间距（除了空格）
       if (!word.isSpace) {
-        currentX += this.options.wordSpacing;
+        const spacing = dynamicSpacing[i] || this.options.wordSpacing;
+        currentX += spacing;
       } else {
         // 对于空格，添加较小的间距以保持自然感
         currentX += this.options.wordSpacing * 0.5;
@@ -265,7 +344,8 @@ export class FabricSplitText {
     if (this.words.length > 0) {
       const lastWord = this.words[this.words.length - 1];
       if (!lastWord.isSpace) {
-        currentX -= this.options.wordSpacing;
+        const lastSpacing = dynamicSpacing[this.words.length - 1] || this.options.wordSpacing;
+        currentX -= lastSpacing;
       } else {
         currentX -= this.options.wordSpacing * 0.5;
       }
@@ -273,6 +353,75 @@ export class FabricSplitText {
     
     this.totalWidth = currentX;
     this.totalHeight = lineHeight;
+  }
+
+  /**
+   * 计算动态单词间距
+   * 根据单词长度差异来调整间距，使显示更匀称
+   */
+  _calculateDynamicWordSpacing() {
+    const spacing = [];
+    
+    // 如果未启用动态间距，返回空数组
+    if (!this.options.dynamicSpacing) {
+      return spacing;
+    }
+    
+    const words = this.words.filter(w => !w.isSpace);
+    
+    if (words.length <= 1) {
+      return spacing;
+    }
+    
+    // 计算单词宽度统计
+    const widths = words.map(w => w.width);
+    const avgWidth = widths.reduce((sum, w) => sum + w, 0) / widths.length;
+    const minWidth = Math.min(...widths);
+    const maxWidth = Math.max(...widths);
+    const widthRange = maxWidth - minWidth;
+    
+    // 如果宽度差异很小，使用固定间距
+    if (widthRange < avgWidth * 0.3) {
+      for (let i = 0; i < words.length - 1; i++) {
+        spacing.push(this.options.wordSpacing);
+      }
+      return spacing;
+    }
+    
+    // 计算动态间距
+    for (let i = 0; i < words.length - 1; i++) {
+      const currentWord = words[i];
+      const nextWord = words[i + 1];
+      
+      // 基于当前单词和下一个单词的长度计算间距
+      const currentWidthRatio = currentWord.width / avgWidth;
+      const nextWidthRatio = nextWord.width / avgWidth;
+      
+      // 计算基础间距
+      let baseSpacing = this.options.wordSpacing;
+      
+      // 如果两个单词都很短，增加间距
+      if (currentWidthRatio < 0.8 && nextWidthRatio < 0.8) {
+        baseSpacing *= 1.3;
+      }
+      // 如果两个单词都很长，减少间距
+      else if (currentWidthRatio > 1.2 && nextWidthRatio > 1.2) {
+        baseSpacing *= 0.8;
+      }
+      // 如果长度差异很大，使用中等间距
+      else if (Math.abs(currentWidthRatio - nextWidthRatio) > 0.5) {
+        baseSpacing *= 1.1;
+      }
+      
+      // 确保间距在合理范围内
+      const minSpacing = this.options.wordSpacing * 0.5;
+      const maxSpacing = this.options.wordSpacing * 1.8;
+      baseSpacing = Math.max(minSpacing, Math.min(maxSpacing, baseSpacing));
+      
+      spacing.push(baseSpacing);
+    }
+    
+    return spacing;
   }
 
   /**

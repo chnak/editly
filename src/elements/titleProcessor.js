@@ -154,6 +154,7 @@ export async function createTitleElement(config) {
       fill: textColor,
       // 使用智能间距配置
       autoSpacing: true,
+      dynamicSpacing: true,  // 启用动态间距调整
       minCharSpacing: 0.08,  // 最小字符间距
       maxCharSpacing: 0.25,  // 最大字符间距
       minWordSpacing: 0.15,  // 最小单词间距
