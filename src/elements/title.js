@@ -13,7 +13,7 @@ export class TitleElement extends BaseElement {
     this.fontFamily = config.fontFamily;
     this.textColor = config.textColor || '#ffffff';
     this.position = config.position || 'center';
-    this.zoomDirection = config.zoomDirection || 'in';
+    this.zoomDirection = config.zoomDirection; // 不设置默认值，只有传入时才启用
     this.zoomAmount = config.zoomAmount || 0.2;
     this.animate = config.animate || [];
     this.split = config.split || null;

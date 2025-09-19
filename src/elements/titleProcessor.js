@@ -24,7 +24,7 @@ export async function createTitleElement(config) {
     position = "center", 
     x, // 自定义 X 坐标
     y, // 自定义 Y 坐标
-    zoomDirection = "in", 
+    zoomDirection, // 不设置默认值，只有传入时才启用
     zoomAmount = 0.2, 
     animations = [], // 添加 animations 参数
     split = null, // 分割参数：'letter'、'word' 或 'line'
@@ -360,8 +360,8 @@ export async function createTitleElement(config) {
             }
           }
         }
-      } else {
-        // 使用传统的 zoomDirection 和 zoomAmount
+      } else if (zoomDirection) {
+        // 只有在传入 zoomDirection 时才使用传统的缩放动画
         zoomAnimation = textAnimationProcessor.createZoomAnimation({ 
           progress, 
           zoomDirection, 
@@ -372,6 +372,10 @@ export async function createTitleElement(config) {
           zoomDirection, 
           zoomAmount 
         });
+      } else {
+        // 没有传入 zoomDirection 和 animations，使用默认的静态显示
+        zoomAnimation = { scaleX: 1, scaleY: 1 };
+        translateAnimation = { translateX: 0, translateY: 0 };
       }
       
       const { left, top, originX, originY } = getPositionProps({ position, width, height, x, y });
