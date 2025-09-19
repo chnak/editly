@@ -197,6 +197,8 @@ export class AnimationManager {
    * 初始化预设动画
    */
   initializePresets() {
+    // ========== 基础动画 ==========
+    
     // 淡入动画
     this.addPreset('fadeIn', {
       property: 'opacity',
@@ -213,42 +215,6 @@ export class AnimationManager {
       to: 0,
       duration: 0.5,
       easing: 'easeIn'
-    });
-
-    // 从左侧滑入
-    this.addPreset('slideInLeft', {
-      property: 'x',
-      from: -1000,
-      to: 0,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // 从右侧滑入
-    this.addPreset('slideInRight', {
-      property: 'x',
-      from: 1000,
-      to: 0,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // 从上方滑入
-    this.addPreset('slideInTop', {
-      property: 'y',
-      from: -1000,
-      to: 0,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // 从下方滑入
-    this.addPreset('slideInBottom', {
-      property: 'y',
-      from: 1000,
-      to: 0,
-      duration: 0.6,
-      easing: 'easeOut'
     });
 
     // 缩放进入
@@ -296,107 +262,45 @@ export class AnimationManager {
       easing: 'elastic'
     });
 
-    // ========== Creatomate 风格文本动画特效 ==========
+    // ========== 滑动动画 ==========
 
-    // 打字机效果
-    this.addPreset('typewriter', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 2.0,
-      easing: 'linear',
-      type: 'typewriter'
-    });
-
-    // 逐字显示
-    this.addPreset('reveal', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 1.5,
-      easing: 'easeOut',
-      type: 'reveal'
-    });
-
-    // 擦除效果
-    this.addPreset('wipe', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 1.0,
-      easing: 'easeInOut',
-      type: 'wipe'
-    });
-
-    // 分割效果
-    this.addPreset('split', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 0.8,
-      easing: 'easeOut',
-      type: 'split'
-    });
-
-    // 模糊到清晰
-    this.addPreset('blurIn', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 1.2,
-      easing: 'easeOut',
-      type: 'blur'
-    });
-
-    // 故障效果
-    this.addPreset('glitch', {
+    // 从左侧滑入
+    this.addPreset('slideInLeft', {
       property: 'x',
-      from: 0,
-      to: 0,
-      duration: 0.5,
-      easing: 'linear',
-      type: 'glitch'
-    });
-
-    // 震动效果
-    this.addPreset('shake', {
-      property: 'x',
-      from: 0,
+      from: -200,
       to: 0,
       duration: 0.6,
-      easing: 'linear',
-      type: 'shake'
+      easing: 'easeOut'
     });
 
-    // 脉冲效果
-    this.addPreset('pulse', {
-      property: 'scaleX',
-      from: 1,
-      to: 1.1,
-      duration: 0.3,
-      easing: 'easeInOut',
-      type: 'pulse',
-      loop: true
-    });
-
-    // 波浪效果
-    this.addPreset('wave', {
-      property: 'y',
-      from: 0,
+    // 从右侧滑入
+    this.addPreset('slideInRight', {
+      property: 'x',
+      from: 200,
       to: 0,
-      duration: 1.0,
-      easing: 'easeInOut',
-      type: 'wave'
+      duration: 0.6,
+      easing: 'easeOut'
     });
 
-    // 弹簧效果
-    this.addPreset('spring', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 1.2,
-      easing: 'spring'
+    // 从上方滑入
+    this.addPreset('slideInTop', {
+      property: 'y',
+      from: -200,
+      to: 0,
+      duration: 0.6,
+      easing: 'easeOut'
     });
+
+    // 从下方滑入
+    this.addPreset('slideInBottom', {
+      property: 'y',
+      from: 200,
+      to: 0,
+      duration: 0.6,
+      easing: 'easeOut'
+    });
+
+    // ========== 3D效果 ==========
 
     // 3D翻转
     this.addPreset('flip3D', {
@@ -425,14 +329,33 @@ export class AnimationManager {
       easing: 'easeOut'
     });
 
+    // 翻转进入X轴
+    this.addPreset('flipInX', {
+      property: 'rotationX',
+      from: -90,
+      to: 0,
+      duration: 0.6,
+      easing: 'easeOut'
+    });
+
+    // 翻转进入Y轴
+    this.addPreset('flipInY', {
+      property: 'rotationY',
+      from: -90,
+      to: 0,
+      duration: 0.6,
+      easing: 'easeOut'
+    });
+
+    // ========== 特效动画 ==========
+
     // 爆炸效果
     this.addPreset('explode', {
       property: 'scaleX',
       from: 0,
       to: 1.5,
       duration: 0.4,
-      easing: 'easeOut',
-      type: 'explode'
+      easing: 'easeOut'
     });
 
     // 溶解效果
@@ -441,8 +364,7 @@ export class AnimationManager {
       from: 0,
       to: 1,
       duration: 1.0,
-      easing: 'easeInOut',
-      type: 'dissolve'
+      easing: 'easeInOut'
     });
 
     // 螺旋效果
@@ -451,20 +373,29 @@ export class AnimationManager {
       from: 0,
       to: 360,
       duration: 1.5,
-      easing: 'easeInOut',
-      type: 'spiral'
+      easing: 'easeInOut'
+    });
+
+    // 摇摆进入
+    this.addPreset('swingIn', {
+      property: 'rotation',
+      from: -15,
+      to: 0,
+      duration: 0.6,
+      easing: 'swing'
     });
 
     // 摇摆动画
     this.addPreset('wobble', {
       property: 'rotation',
-      from: 0,
-      to: 0,
+      from: -10,
+      to: 10,
       duration: 0.6,
-      easing: 'wobble'
+      easing: 'easeInOut',
+      repeat: 'reverse'
     });
 
-    // 脉冲动画
+    // 脉冲效果
     this.addPreset('pulse', {
       property: 'scaleX',
       from: 1,
@@ -484,81 +415,128 @@ export class AnimationManager {
       repeat: 'reverse'
     });
 
-    // 摇摆进入
-    this.addPreset('swingIn', {
-      property: 'rotation',
-      from: -15,
-      to: 0,
-      duration: 0.6,
-      easing: 'swing'
+    // 弹簧效果
+    this.addPreset('spring', {
+      property: 'scaleX',
+      from: 0,
+      to: 1,
+      duration: 1.2,
+      easing: 'spring'
     });
 
-    // 翻转进入
-    this.addPreset('flipInX', {
-      property: 'rotationX',
-      from: -90,
-      to: 0,
-      duration: 0.6,
+    // ========== 文本特效 ==========
+
+    // 打字机效果
+    this.addPreset('typewriter', {
+      property: 'opacity',
+      from: 0,
+      to: 1,
+      duration: 2.0,
+      easing: 'linear'
+    });
+
+    // 逐字显示
+    this.addPreset('reveal', {
+      property: 'opacity',
+      from: 0,
+      to: 1,
+      duration: 1.5,
       easing: 'easeOut'
     });
 
-    // 翻转进入Y轴
-    this.addPreset('flipInY', {
-      property: 'rotationY',
-      from: -90,
-      to: 0,
-      duration: 0.6,
+    // 擦除效果
+    this.addPreset('wipe', {
+      property: 'opacity',
+      from: 0,
+      to: 1,
+      duration: 1.0,
+      easing: 'easeInOut'
+    });
+
+    // 分割效果
+    this.addPreset('split', {
+      property: 'scaleX',
+      from: 0,
+      to: 1,
+      duration: 0.8,
       easing: 'easeOut'
     });
 
-    // ========== 文本专用动画预设 ==========
+    // 模糊到清晰
+    this.addPreset('blurIn', {
+      property: 'opacity',
+      from: 0,
+      to: 1,
+      duration: 1.2,
+      easing: 'easeOut'
+    });
+
+    // 故障效果
+    this.addPreset('glitch', {
+      property: 'x',
+      from: -5,
+      to: 5,
+      duration: 0.5,
+      easing: 'linear',
+      repeat: 'reverse'
+    });
+
+    // 震动效果
+    this.addPreset('shake', {
+      property: 'x',
+      from: -3,
+      to: 3,
+      duration: 0.6,
+      easing: 'linear',
+      repeat: 'reverse'
+    });
+
+    // 波浪效果
+    this.addPreset('wave', {
+      property: 'y',
+      from: -10,
+      to: 10,
+      duration: 1.0,
+      easing: 'easeInOut',
+      repeat: 'reverse'
+    });
+
+    // ========== 文本专用动画 ==========
 
     // 文本缩放进入
     this.addPreset('textZoomIn', {
       property: 'scaleX',
-      from: 1,
+      from: 0.8,
       to: 1.2,
       duration: 1.0,
-      easing: 'easeOut',
-      type: 'textZoom',
-      zoomDirection: 'in',
-      zoomAmount: 0.2
+      easing: 'easeOut'
     });
 
     // 文本缩放退出
     this.addPreset('textZoomOut', {
       property: 'scaleX',
       from: 1.2,
-      to: 1,
+      to: 0.8,
       duration: 1.0,
-      easing: 'easeIn',
-      type: 'textZoom',
-      zoomDirection: 'out',
-      zoomAmount: 0.2
+      easing: 'easeIn'
     });
 
-    // 文本位移动画（配合缩放）
+    // 文本位移动画进入
     this.addPreset('textTranslateIn', {
+      property: 'x',
+      from: -50,
+      to: 0,
+      duration: 1.0,
+      easing: 'easeOut'
+    });
+
+    // 文本位移动画退出
+    this.addPreset('textTranslateOut', {
       property: 'x',
       from: 0,
       to: 50,
       duration: 1.0,
-      easing: 'easeOut',
-      type: 'textTranslate',
-      zoomDirection: 'in',
-      zoomAmount: 0.2
-    });
-
-    // 文本位移动画（配合缩放）
-    this.addPreset('textTranslateOut', {
-      property: 'x',
-      from: 50,
-      to: 0,
-      duration: 1.0,
-      easing: 'easeIn',
-      type: 'textTranslate',
-      zoomDirection: 'out',
-      zoomAmount: 0.2
+      easing: 'easeIn'
     });
 
     // 文本分割动画 - 逐字显示
@@ -567,10 +545,7 @@ export class AnimationManager {
       from: 0,
       to: 1,
       duration: 0.3,
-      easing: 'easeOut',
-      type: 'textSplit',
-      splitType: 'word',
-      splitDelay: 0.1
+      easing: 'easeOut'
     });
 
     // 文本分割动画 - 逐行显示
@@ -579,10 +554,7 @@ export class AnimationManager {
       from: 0,
       to: 1,
       duration: 0.3,
-      easing: 'easeOut',
-      type: 'textSplit',
-      splitType: 'line',
-      splitDelay: 0.2
+      easing: 'easeOut'
     });
 
     // 文本打字机效果
@@ -591,9 +563,7 @@ export class AnimationManager {
       from: 0,
       to: 1,
       duration: 2.0,
-      easing: 'linear',
-      type: 'textTypewriter',
-      charDelay: 0.05
+      easing: 'linear'
     });
 
     // 文本擦除效果
@@ -602,228 +572,7 @@ export class AnimationManager {
       from: 0,
       to: 1,
       duration: 1.0,
-      easing: 'easeInOut',
-      type: 'textWipe',
-      wipeDirection: 'left'
-    });
-
-    // ========== Creatomate 风格文本特效预设 ==========
-
-    // 打字机效果
-    this.addPreset('typewriter', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 2.0,
-      easing: 'linear',
-      type: 'typewriter',
-      charDelay: 0.05
-    });
-
-    // 逐字显示
-    this.addPreset('reveal', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 1.5,
-      easing: 'easeOut',
-      type: 'reveal',
-      charDelay: 0.1
-    });
-
-    // 擦除效果
-    this.addPreset('wipe', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 1.0,
-      easing: 'easeInOut',
-      type: 'wipe',
-      wipeDirection: 'left'
-    });
-
-    // 分割效果
-    this.addPreset('split', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 0.8,
-      easing: 'easeOut',
-      type: 'split',
-      splitType: 'word'
-    });
-
-    // 模糊到清晰
-    this.addPreset('blurIn', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 1.2,
-      easing: 'easeOut',
-      type: 'blur'
-    });
-
-    // 故障效果
-    this.addPreset('glitch', {
-      property: 'x',
-      from: 0,
-      to: 0,
-      duration: 0.5,
-      easing: 'linear',
-      type: 'glitch'
-    });
-
-    // 震动效果
-    this.addPreset('shake', {
-      property: 'x',
-      from: 0,
-      to: 0,
-      duration: 0.6,
-      easing: 'linear',
-      type: 'shake'
-    });
-
-    // 脉冲效果
-    this.addPreset('pulse', {
-      property: 'scaleX',
-      from: 1,
-      to: 1.1,
-      duration: 0.3,
-      easing: 'easeInOut',
-      type: 'pulse',
-      loop: true
-    });
-
-    // 波浪效果
-    this.addPreset('wave', {
-      property: 'y',
-      from: 0,
-      to: 0,
-      duration: 1.0,
-      easing: 'easeInOut',
-      type: 'wave'
-    });
-
-    // 弹簧效果
-    this.addPreset('spring', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 1.2,
-      easing: 'spring'
-    });
-
-    // 3D翻转
-    this.addPreset('flip3D', {
-      property: 'rotationX',
-      from: -90,
-      to: 0,
-      duration: 0.8,
-      easing: 'easeOut'
-    });
-
-    // 3D缩放
-    this.addPreset('scale3D', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // 透视变换
-    this.addPreset('perspective', {
-      property: 'rotationY',
-      from: -45,
-      to: 0,
-      duration: 0.8,
-      easing: 'easeOut'
-    });
-
-    // 爆炸效果
-    this.addPreset('explode', {
-      property: 'scaleX',
-      from: 0,
-      to: 1.5,
-      duration: 0.4,
-      easing: 'easeOut',
-      type: 'explode'
-    });
-
-    // 溶解效果
-    this.addPreset('dissolve', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 1.0,
-      easing: 'easeInOut',
-      type: 'dissolve'
-    });
-
-    // 螺旋效果
-    this.addPreset('spiral', {
-      property: 'rotation',
-      from: 0,
-      to: 360,
-      duration: 1.5,
-      easing: 'easeInOut',
-      type: 'spiral'
-    });
-
-    // 摇摆动画
-    this.addPreset('wobble', {
-      property: 'rotation',
-      from: 0,
-      to: 0,
-      duration: 0.6,
-      easing: 'wobble'
-    });
-
-    // 脉冲动画
-    this.addPreset('pulse', {
-      property: 'scaleX',
-      from: 1,
-      to: 1.1,
-      duration: 0.3,
-      easing: 'easeInOut',
-      repeat: 'reverse'
-    });
-
-    // 闪烁动画
-    this.addPreset('blink', {
-      property: 'opacity',
-      from: 1,
-      to: 0,
-      duration: 0.1,
-      easing: 'linear',
-      repeat: 'reverse'
-    });
-
-    // 摇摆进入
-    this.addPreset('swingIn', {
-      property: 'rotation',
-      from: -15,
-      to: 0,
-      duration: 0.6,
-      easing: 'swing'
-    });
-
-    // 翻转进入
-    this.addPreset('flipInX', {
-      property: 'rotationX',
-      from: -90,
-      to: 0,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // 翻转进入Y轴
-    this.addPreset('flipInY', {
-      property: 'rotationY',
-      from: -90,
-      to: 0,
-      duration: 0.6,
-      easing: 'easeOut'
+      easing: 'easeInOut'
     });
   }
 

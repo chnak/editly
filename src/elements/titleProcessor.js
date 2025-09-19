@@ -3,13 +3,93 @@ import { registerFont, createCanvas } from "canvas";
 import { basename, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { getPositionProps } from "../utils/positionUtils.js";
-import { animationManager } from "../animations/AnimationManager.js";
-import { textAnimationProcessor } from "../animations/TextAnimationProcessor.js";
-import { creatomateTextEffects } from "../animations/CreatomateTextEffects.js";
 import { createSplitText } from "../utils/fabricSplitText.js";
+import { animationManager } from "../animations/AnimationManager.js";
 
 // 缓存已加载的字体
 const loadedFonts = [];
+
+/**
+ * 处理预设动画配置
+ * 支持以下格式：
+ * 1. 字符串数组: ["fadeIn", "zoomIn"]
+ * 2. 对象数组: [{type: "fadeIn"}, {type: "zoomIn", duration: 2}]
+ * 3. 复杂配置: [{property: "scaleX", keyframes: [...]}]
+ */
+function processPresetAnimations(animations) {
+  if (!animations || !Array.isArray(animations)) {
+    return [];
+  }
+  
+  const processedAnimations = [];
+  
+  for (const anim of animations) {
+    if (typeof anim === 'string') {
+      // 字符串格式: "fadeIn"
+      const preset = animationManager.presets.get(anim);
+      if (preset) {
+        processedAnimations.push({
+          property: preset.property,
+          keyframes: [
+            { time: 0, value: preset.from },
+            { time: 1, value: preset.to }
+          ],
+          duration: preset.duration || 1,
+          easing: preset.easing || 'easeOut',
+          type: anim // 保存原始类型用于特殊处理
+        });
+        
+        // 如果是缩放动画，自动添加 scaleY
+        if (preset.property === 'scaleX' && (anim === 'zoomIn' || anim === 'zoomOut' || anim === 'textZoomIn' || anim === 'textZoomOut')) {
+          processedAnimations.push({
+            property: 'scaleY',
+            keyframes: [
+              { time: 0, value: preset.from },
+              { time: 1, value: preset.to }
+            ],
+            duration: preset.duration || 1,
+            easing: preset.easing || 'easeOut',
+            type: anim
+          });
+        }
+      }
+    } else if (anim.type) {
+      // 对象格式: {type: "fadeIn", duration: 2}
+      const preset = animationManager.presets.get(anim.type);
+      if (preset) {
+        processedAnimations.push({
+          property: preset.property,
+          keyframes: [
+            { time: 0, value: preset.from },
+            { time: 1, value: preset.to }
+          ],
+          duration: anim.duration || preset.duration || 1,
+          easing: anim.easing || preset.easing || 'easeOut',
+          type: anim.type
+        });
+        
+        // 如果是缩放动画，自动添加 scaleY
+        if (preset.property === 'scaleX' && (anim.type === 'zoomIn' || anim.type === 'zoomOut' || anim.type === 'textZoomIn' || anim.type === 'textZoomOut')) {
+          processedAnimations.push({
+            property: 'scaleY',
+            keyframes: [
+              { time: 0, value: preset.from },
+              { time: 1, value: preset.to }
+            ],
+            duration: anim.duration || preset.duration || 1,
+            easing: anim.easing || preset.easing || 'easeOut',
+            type: anim.type
+          });
+        }
+      }
+    } else if (anim.property) {
+      // 复杂配置格式: {property: "scaleX", keyframes: [...]}
+      processedAnimations.push(anim);
+    }
+  }
+  
+  return processedAnimations;
+}
 
 /**
  * 标题处理器 - 参考 editly 的 title.js 实现
@@ -26,7 +106,7 @@ export async function createTitleElement(config) {
     y, // 自定义 Y 坐标
     zoomDirection, // 不设置默认值，只有传入时才启用
     zoomAmount = 0.2, 
-    animations = [], // 添加 animations 参数
+    animations = [], // 动画配置
     split = null, // 分割参数：'letter'、'word' 或 'line'
     splitDelay = 0.1, // 分割动画延迟
     splitDuration = 0.3, // 分割动画持续时间
@@ -80,69 +160,7 @@ export async function createTitleElement(config) {
   // 计算字体大小
   const fontSize = Math.round(Math.min(width, height) * 0.1);
   
-  // 文本分割辅助函数 - 参考 slide-in-text.js 实现
-  function splitText(text, splitType) {
-    if (!splitType) return [text];
-    
-    switch (splitType) {
-      case 'letter':
-        // 按字符分割
-        return text.split('').filter(char => char.trim());
-      case 'word':
-        // 按单词分割（支持中英文）
-        // 使用正则表达式分割，保留空格
-        const words = text.split(/(\s+)/);
-        return words.filter(word => word.length > 0);
-      case 'line':
-        // 按行分割
-        return text.split('\n').filter(item => item.trim());
-      default:
-        return [text];
-    }
-  }
-
-  // 字符宽度计算辅助函数 - 参考 slide-in-text.js 实现
-  function measureTextWidth(text, fontSize, fontFamily) {
-    // 创建临时canvas测量文本宽度
-    const tempCanvas = createCanvas(1, 1);
-    const ctx = tempCanvas.getContext('2d');
-    ctx.font = `${fontSize}px ${fontFamily}`;
-    return ctx.measureText(text).width;
-  }
-
-  // 将文本分割为多行 - 参考 slide-in-text.js 实现
-  function splitTextIntoLines(text, fontSize, maxWidth, fontFamily) {
-    const words = text.split('\n');
-    const lines = [];
-    let currentLine = '';
-    
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const width = measureTextWidth(testLine, fontSize, fontFamily);
-      
-      if (width > maxWidth && currentLine !== '') {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    }
-    
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-    
-    return lines;
-  }
   
-  // 创建文本对象
-    const textBox = new fabric.Textbox(text, {
-    fill: textColor,
-    fontFamily: finalFontFamily,
-    fontSize: fontSize,
-    textAlign: "center",
-    width: width * 0.8
-  });
   
   // 如果启用了分割动画，创建分割后的文本片段
   let textSegments = [];
@@ -181,8 +199,6 @@ export async function createTitleElement(config) {
     });
   }
   
-  // 设置文本动画处理器
-  textAnimationProcessor.setAnimationManager(animationManager);
   
   
   return {
@@ -192,206 +208,87 @@ export async function createTitleElement(config) {
         return null;
       }
       
-      // 优先使用 animations 参数，如果没有则使用 zoomDirection 和 zoomAmount
-      let zoomAnimation, translateAnimation;
+      // 处理动画效果
+      let zoomAnimation, translateAnimation, rotationAnimation, opacityAnimation;
       
+      // 初始化默认值
+      zoomAnimation = { scaleX: 1, scaleY: 1 };
+      translateAnimation = { translateX: 0, translateY: 0 };
+      rotationAnimation = { rotation: 0 };
+      opacityAnimation = { opacity: 1 };
+      
+      // 处理 animations 配置
       if (animations && animations.length > 0) {
-        // 使用 animations 参数
-        zoomAnimation = { scaleX: 1, scaleY: 1 };
-        translateAnimation = { translateX: 0, translateY: 0 };
+        // 处理预设动画配置
+        const processedAnimations = processPresetAnimations(animations);
         
-        // 检查是否有 Creatomate 风格的文本特效
-        const textEffect = animations.find(anim => anim.type && creatomateTextEffects.getAvailableEffects().includes(anim.type));
-        
-        if (textEffect) {
-          // 处理 Creatomate 风格的文本特效
-          const effectResult = creatomateTextEffects.processTextEffect(textEffect.type, {
-            text,
-            progress,
-            split: textEffect.split || 'default', // 添加 split 参数支持
-            ...textEffect
-          });
+        for (const anim of processedAnimations) {
+          // 计算动画值
+          let animValue = null;
           
-          // 根据特效类型应用不同的变换
-          switch (textEffect.type) {
-            case 'typewriter':
-              // 打字机效果 - 只显示部分文本
-              if (effectResult.visibleText) {
-                text = effectResult.visibleText;
+          if (anim.keyframes && anim.keyframes.length > 0) {
+            // 使用关键帧计算动画值
+            // progress 是 0-1 之间的值，表示当前元素的时间进度
+            const animTime = progress; // 直接使用 progress，因为它是 0-1 之间的值
+            
+            // 简单的线性插值
+            for (let i = 0; i < anim.keyframes.length - 1; i++) {
+              const current = anim.keyframes[i];
+              const next = anim.keyframes[i + 1];
+              
+              if (animTime >= current.time && animTime <= next.time) {
+                const t = (animTime - current.time) / (next.time - current.time);
+                animValue = current.value + (next.value - current.value) * t;
+                break;
               }
-              break;
-            case 'reveal':
-              // 逐字显示效果
-              if (effectResult.visibleChars) {
-                text = effectResult.visibleChars.map(char => char.char).join('');
-              }
-              break;
-            case 'wipe':
-              // 擦除效果
-              if (effectResult.clipWidth !== undefined) {
-                // 这里需要特殊的裁剪处理
-              }
-              break;
-            case 'split':
-            case 'splitWords':
-            case 'splitLines':
-            case 'splitChars':
-            case 'waveSplit':
-            case 'rotateSplit':
-            case 'scaleSplit':
-            case 'fadeSplit':
-            case 'slideSplit':
-              // 分割效果 - 需要特殊处理
-              if (effectResult.segments) {
-                // 分割效果需要特殊渲染，直接处理
-                return renderSplitTextEffect(canvas, effectResult, {
-                  x: x || 0,
-                  y: y || 0,
-                  fontSize,
-                  color: textColor,
-                  fontFamily: finalFontFamily,
-                  width,
-                  height
-                });
-              }
-              break;
-            case 'glitch':
-              // 故障效果
-              if (effectResult.x !== undefined) {
-                translateAnimation.translateX += effectResult.x;
-                translateAnimation.translateY += effectResult.y || 0;
-                zoomAnimation.rotation = effectResult.rotation || 0;
-              }
-              break;
-            case 'shake':
-              // 震动效果
-              if (effectResult.x !== undefined) {
-                translateAnimation.translateX += effectResult.x;
-                translateAnimation.translateY += effectResult.y || 0;
-                zoomAnimation.rotation = effectResult.rotation || 0;
-              }
-              break;
-            case 'pulse':
-              // 脉冲效果
-              if (effectResult.scaleX !== undefined) {
-                zoomAnimation.scaleX *= effectResult.scaleX;
-                zoomAnimation.scaleY *= effectResult.scaleY || effectResult.scaleX;
-              }
-              break;
-            case 'wave':
-              // 波浪效果
-              if (effectResult.y !== undefined) {
-                translateAnimation.translateY += effectResult.y;
-                zoomAnimation.rotation = effectResult.rotation || 0;
-                zoomAnimation.scaleX *= effectResult.scaleX || 1;
-              }
-              break;
-            case 'spring':
-              // 弹簧效果
-              if (effectResult.scaleX !== undefined) {
-                zoomAnimation.scaleX *= effectResult.scaleX;
-                zoomAnimation.scaleY *= effectResult.scaleY || effectResult.scaleX;
-                zoomAnimation.rotation = effectResult.rotation || 0;
-              }
-              break;
-            case 'flip3D':
-              // 3D翻转效果
-              if (effectResult.rotationX !== undefined) {
-                zoomAnimation.rotationX = effectResult.rotationX;
-                zoomAnimation.rotationY = effectResult.rotationY || 0;
-                zoomAnimation.scaleX *= effectResult.scaleX || 1;
-                zoomAnimation.scaleY *= effectResult.scaleY || 1;
-              }
-              break;
-            case 'explode':
-              // 爆炸效果
-              if (effectResult.scaleX !== undefined) {
-                zoomAnimation.scaleX *= effectResult.scaleX;
-                zoomAnimation.scaleY *= effectResult.scaleY || effectResult.scaleX;
-                zoomAnimation.rotation = effectResult.rotation || 0;
-              }
-              break;
-            case 'dissolve':
-              // 溶解效果
-              if (effectResult.scaleX !== undefined) {
-                zoomAnimation.scaleX *= effectResult.scaleX;
-                zoomAnimation.scaleY *= effectResult.scaleY || effectResult.scaleX;
-                zoomAnimation.rotation = effectResult.rotation || 0;
-              }
-              break;
-            case 'spiral':
-              // 螺旋效果
-              if (effectResult.rotation !== undefined) {
-                zoomAnimation.rotation = effectResult.rotation;
-                zoomAnimation.scaleX *= effectResult.scaleX || 1;
-                zoomAnimation.scaleY *= effectResult.scaleY || 1;
-                translateAnimation.translateX += effectResult.x || 0;
-                translateAnimation.translateY += effectResult.y || 0;
-              }
-              break;
-            case 'wobble':
-              // 摇摆效果
-              if (effectResult.rotation !== undefined) {
-                zoomAnimation.rotation = effectResult.rotation;
-                zoomAnimation.scaleX *= effectResult.scaleX || 1;
-                zoomAnimation.scaleY *= effectResult.scaleY || 1;
-              }
-              break;
+            }
+            
+            // 如果时间超出范围，使用最后一个关键帧的值
+            if (animValue === null && anim.keyframes.length > 0) {
+              const lastKeyframe = anim.keyframes[anim.keyframes.length - 1];
+              animValue = lastKeyframe.value;
+            }
+          } else if (anim.getValueAtTime) {
+            // 使用现有的 getValueAtTime 方法
+            animValue = anim.getValueAtTime(progress);
           }
-        } else {
-          // 处理普通的 animations 参数
-          for (const anim of animations) {
-            const animValue = anim.getValueAtTime ? anim.getValueAtTime(progress * 2) : null; // 假设持续时间为2秒
-            if (animValue !== null) {
-              switch (anim.property) {
-                case 'scaleX':
-                  zoomAnimation.scaleX = animValue;
-                  break;
-                case 'scaleY':
-                  zoomAnimation.scaleY = animValue;
-                  break;
-                case 'x':
-                  translateAnimation.translateX = animValue - (x || 0);
-                  break;
-                case 'y':
-                  translateAnimation.translateY = animValue - (y || 0);
-                  break;
-              }
+          
+          if (animValue !== null) {
+            switch (anim.property) {
+              case 'scaleX':
+                zoomAnimation.scaleX = animValue;
+                break;
+              case 'scaleY':
+                zoomAnimation.scaleY = animValue;
+                break;
+              case 'x':
+                translateAnimation.translateX = animValue - (x || 0);
+                break;
+              case 'y':
+                translateAnimation.translateY = animValue - (y || 0);
+                break;
+              case 'rotation':
+              case 'rotationX':
+              case 'rotationY':
+              case 'rotationZ':
+                rotationAnimation.rotation = animValue;
+                break;
+              case 'opacity':
+                opacityAnimation.opacity = animValue;
+                break;
             }
           }
         }
       } else if (zoomDirection) {
-        // 只有在传入 zoomDirection 时才使用传统的缩放动画
-        zoomAnimation = textAnimationProcessor.createZoomAnimation({ 
-          progress, 
-          zoomDirection, 
-          zoomAmount 
-        });
-        translateAnimation = textAnimationProcessor.createTranslateAnimation({ 
-          progress, 
-          zoomDirection, 
-          zoomAmount 
-        });
-      } else {
-        // 没有传入 zoomDirection 和 animations，使用默认的静态显示
-        zoomAnimation = { scaleX: 1, scaleY: 1 };
-        translateAnimation = { translateX: 0, translateY: 0 };
+        // 回退到简单的缩放动画
+        const scale = 1 + (zoomAmount * (zoomDirection === 'in' ? progress : 1 - progress));
+        zoomAnimation = { scaleX: scale, scaleY: scale };
       }
       
       const { left, top, originX, originY } = getPositionProps({ position, width, height, x, y });
       
       if (split && textSegments.length > 0) {
-        // 使用动画库处理分割动画
-        const splitAnimation = textAnimationProcessor.createSplitAnimation({
-          text,
-          splitType: split,
-          splitDelay,
-          splitDuration,
-          progress,
-          fontSize,
-          textColor,
-          fontFamily
-        });
+        // 处理分割动画
         
         let totalWidth = 0;
         let totalHeight = 0;
@@ -451,7 +348,7 @@ export async function createTitleElement(config) {
               }
             }
             
-            // 使用动画库计算动画属性
+            // 计算动画属性
             const animatedProps = {
               originX: "center",
               originY: "center",
@@ -459,7 +356,8 @@ export async function createTitleElement(config) {
               top: segmentTop + translateAnimation.translateY,
               scaleX: zoomAnimation.scaleX,
               scaleY: zoomAnimation.scaleY,
-              opacity: segmentProgress
+              angle: rotationAnimation.rotation,
+              opacity: opacityAnimation.opacity
             };
             
             // 创建新的文本段对象避免画布冲突
@@ -485,14 +383,16 @@ export async function createTitleElement(config) {
           originY: "center"
         });
         
-        // 使用动画库计算文本属性
+        // 计算文本属性
         const textProps = {
           originX,
           originY,
           left: left + translateAnimation.translateX,
           top: top + translateAnimation.translateY,
           scaleX: zoomAnimation.scaleX,
-          scaleY: zoomAnimation.scaleY
+          scaleY: zoomAnimation.scaleY,
+          angle: rotationAnimation.rotation,
+          opacity: opacityAnimation.opacity
         };
         
         newTextBox.set(textProps);
@@ -517,64 +417,3 @@ export async function createTitleElement(config) {
   };
 }
 
-/**
- * 渲染分割文本效果
- */
-function renderSplitTextEffect(canvas, splitData, options) {
-  const { segments, splitType } = splitData;
-  const { x, y, fontSize, color, fontFamily, width, height } = options;
-  
-  if (!segments || segments.length === 0) {
-    return null;
-  }
-  
-  let currentX = x;
-  let currentY = y;
-  const lineHeight = fontSize * 1.2;
-  const charSpacing = fontSize * 0.1; // 参考 slide-in-text.js 的字符间距设置
-  
-  segments.forEach((segment, index) => {
-    if (segment.opacity > 0) {
-      const segmentText = new fabric.FabricText(segment.text, {
-        fontFamily: fontFamily,
-        fontSize: fontSize,
-        fill: color,
-        originX: "center",
-        originY: "center",
-        left: currentX + (segment.x || 0),
-        top: currentY + (segment.y || 0),
-        scaleX: segment.scaleX || 1,
-        scaleY: segment.scaleY || 1,
-        angle: segment.rotation || 0,
-        opacity: segment.opacity
-      });
-      
-      canvas.add(segmentText);
-      
-      // 使用 Fabric.js 计算的准确宽度
-      const segmentWidth = segmentText.width;
-      
-      // 计算下一个元素的位置 - 使用 Fabric.js 计算的宽度
-      if (splitType === 'word' || splitType === 'letter' || splitType === 'char' || splitType === 'space') {
-        // 如果是空格，不添加字符间距
-        const textContent = typeof segment.text === 'string' ? segment.text : segment.text.text;
-        const isSpace = textContent.trim() === '';
-        currentX += segmentWidth + (isSpace ? 0 : charSpacing);
-      } else if (splitType === 'line') {
-        currentY += lineHeight;
-        currentX = x; // 重置X位置
-      }
-    }
-  });
-  
-  // 渲染画布并返回帧数据
-  canvas.renderAll();
-  const canvasElement = canvas.getElement();
-  const imageData = canvasElement.getContext('2d').getImageData(0, 0, width, height);
-  
-  return {
-    data: Buffer.from(imageData.data),
-    width: width,
-    height: height
-  };
-}
