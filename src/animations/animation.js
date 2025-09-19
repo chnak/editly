@@ -3,6 +3,7 @@
  */
 export class Animation {
   constructor(config) {
+    this.id = config.id || Math.random().toString(36).substr(2, 9);
     this.property = config.property; // x, y, scaleX, scaleY, rotation, opacity
     this.from = config.from;
     this.to = config.to;
