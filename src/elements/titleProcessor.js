@@ -357,7 +357,7 @@ export async function createTitleElement(config) {
               scaleX: zoomAnimation.scaleX,
               scaleY: zoomAnimation.scaleY,
               angle: rotationAnimation.rotation,
-              opacity: opacityAnimation.opacity
+              opacity: opacityAnimation.opacity * segmentProgress // 透明度应该与片段进度相乘
             };
             
             // 创建新的文本段对象避免画布冲突
