@@ -22,15 +22,15 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
-    "fabric": "^6.5.4",
+    "fabric": "^6.7.1",
     "nanoid": "^5.0.4",
     "fs-extra": "^11.2.0"
   },
   "overrides": {
-    "canvas": "3.2.0"
+    "canvas": "^3.2.0"
   },
   "resolutions": {
-    "**/canvas": "3.2.0"
+    "**/canvas": "^3.2.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0"
