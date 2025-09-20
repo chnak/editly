@@ -326,7 +326,7 @@ export class AnimationManager {
       property: 'y',
       from: -200,
       to: 0,
-      duration: 0.8,
+      duration: 0.5,
       easing: 'easeOut',
       isOffset: true // 标记为偏移量动画
     });
@@ -336,7 +336,7 @@ export class AnimationManager {
       property: 'y',
       from: 200,
       to: 0,
-      duration: 0.8,
+      duration: 0.5,
       easing: 'easeOut',
       isOffset: true // 标记为偏移量动画
     });

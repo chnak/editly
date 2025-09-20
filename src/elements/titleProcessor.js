@@ -78,6 +78,7 @@ function processPresetAnimations(animations) {
       // 字符串格式: "fadeIn"
       const preset = animationManager.presets.get(anim);
       if (preset) {
+        
         processedAnimations.push({
           property: preset.property,
           keyframes: [
@@ -86,7 +87,8 @@ function processPresetAnimations(animations) {
           ],
           duration: preset.duration || 1,
           easing: preset.easing || 'easeOut',
-          type: anim // 保存原始类型用于特殊处理
+          type: anim, // 保存原始类型用于特殊处理
+          isOffset: preset.isOffset || false // 传递 isOffset 属性
         });
         
         // 如果是缩放动画，自动添加 scaleY
@@ -115,7 +117,8 @@ function processPresetAnimations(animations) {
           ],
           duration: anim.duration || preset.duration || 1,
           easing: anim.easing || preset.easing || 'easeOut',
-          type: anim.type
+          type: anim.type,
+          isOffset: preset.isOffset || false // 传递 isOffset 属性
         });
         
         // 如果是缩放动画，自动添加 scaleY
@@ -307,10 +310,9 @@ export async function createTitleElement(config) {
         
         for (let i = 0; i < textSegments.length; i++) {
           const segment = textSegments[i];
-          // 使用绝对时间计算分割动画进度，而不是元素进度
-          const segmentProgress = time !== null 
-            ? Math.max(0, Math.min(1, (time - segment.startTime) / (segment.endTime - segment.startTime)))
-            : Math.max(0, Math.min(1, (progress - segment.startTime) / (segment.endTime - segment.startTime)));
+          // 计算分割动画进度
+          // segment.startTime 和 segment.endTime 是相对于分割动画的延迟时间
+          const segmentProgress = Math.max(0, Math.min(1, (progress - segment.startTime) / (segment.endTime - segment.startTime)));
           
           if (segmentProgress > 0) {
             let segmentLeft = currentX;
@@ -338,13 +340,20 @@ export async function createTitleElement(config) {
             let rotationX = 0, rotationY = 0, rotationZ = 0, translateZ = 0;
             let opacity = segmentProgress; // 默认使用分割进度作为透明度
             
+            
             if (animations && animations.length > 0) {
-              // 处理预设动画
-              const processedAnimations = processPresetAnimations(animations);
-              
-              for (const anim of processedAnimations) {
+              // 直接处理 Animation 对象
+              for (const anim of animations) {
                 const animProgress = Math.max(0, Math.min(1, segmentProgress));
-                const animValue = anim.from + (anim.to - anim.from) * animProgress;
+                
+                // 从 Animation 对象计算当前值
+                let animValue = 0;
+                if (anim.from !== undefined && anim.to !== undefined) {
+                  animValue = anim.from + (anim.to - anim.from) * animProgress;
+                }
+                
+                
+                
                 
                 switch (anim.property) {
                   case 'scaleX':
@@ -365,10 +374,20 @@ export async function createTitleElement(config) {
                     rotationY = animValue;
                     break;
                   case 'x':
-                    translateX = animValue;
+                    // 检查是否为偏移量动画
+                    if (anim.isOffset) {
+                      translateX += animValue; // 累加偏移量
+                    } else {
+                      translateX = animValue; // 直接设置位置
+                    }
                     break;
                   case 'y':
-                    translateY = animValue;
+                    // 检查是否为偏移量动画
+                    if (anim.isOffset) {
+                      translateY += animValue; // 累加偏移量
+                    } else {
+                      translateY = animValue; // 直接设置位置
+                    }
                     break;
                   case 'translateZ':
                     translateZ = animValue;
