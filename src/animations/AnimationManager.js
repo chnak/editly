@@ -271,9 +271,27 @@ export class AnimationManager {
       easing: 'bounce'
     });
 
+    // 弹跳进入 - Y轴
+    this.addPreset('bounceInY', {
+      property: 'scaleY',
+      from: 0,
+      to: 1,
+      duration: 0.8,
+      easing: 'bounce'
+    });
+
     // 弹性进入
     this.addPreset('elasticIn', {
       property: 'scaleX',
+      from: 0,
+      to: 1,
+      duration: 1.0,
+      easing: 'elastic'
+    });
+
+    // 弹性进入 - Y轴
+    this.addPreset('elasticInY', {
+      property: 'scaleY',
       from: 0,
       to: 1,
       duration: 1.0,
@@ -285,18 +303,18 @@ export class AnimationManager {
     // 从左侧滑入
     this.addPreset('slideInLeft', {
       property: 'x',
-      from: -200,
+      from: -300,
       to: 0,
-      duration: 0.6,
+      duration: 0.8,
       easing: 'easeOut'
     });
 
     // 从右侧滑入
     this.addPreset('slideInRight', {
       property: 'x',
-      from: 200,
+      from: 300,
       to: 0,
-      duration: 0.6,
+      duration: 0.8,
       easing: 'easeOut'
     });
 
@@ -305,7 +323,7 @@ export class AnimationManager {
       property: 'y',
       from: -200,
       to: 0,
-      duration: 0.6,
+      duration: 0.8,
       easing: 'easeOut'
     });
 
@@ -314,7 +332,7 @@ export class AnimationManager {
       property: 'y',
       from: 200,
       to: 0,
-      duration: 0.6,
+      duration: 0.8,
       easing: 'easeOut'
     });
 
@@ -322,8 +340,8 @@ export class AnimationManager {
 
     // 3D翻转
     this.addPreset('flip3D', {
-      property: 'rotationX',
-      from: -90,
+      property: 'rotation',
+      from: -180,
       to: 0,
       duration: 0.8,
       easing: 'easeOut'
@@ -340,7 +358,7 @@ export class AnimationManager {
 
     // 透视变换
     this.addPreset('perspective', {
-      property: 'rotationY',
+      property: 'rotation',
       from: -45,
       to: 0,
       duration: 0.8,
@@ -349,7 +367,7 @@ export class AnimationManager {
 
     // 翻转进入X轴
     this.addPreset('flipInX', {
-      property: 'rotationX',
+      property: 'rotation',
       from: -90,
       to: 0,
       duration: 0.6,
@@ -358,8 +376,8 @@ export class AnimationManager {
 
     // 翻转进入Y轴
     this.addPreset('flipInY', {
-      property: 'rotationY',
-      from: -90,
+      property: 'rotation',
+      from: 90,
       to: 0,
       duration: 0.6,
       easing: 'easeOut'
@@ -409,18 +427,16 @@ export class AnimationManager {
       from: -10,
       to: 10,
       duration: 0.6,
-      easing: 'easeInOut',
-      repeat: 'reverse'
+      easing: 'easeInOut'
     });
 
     // 脉冲效果
     this.addPreset('pulse', {
       property: 'scaleX',
       from: 1,
-      to: 1.1,
-      duration: 0.3,
-      easing: 'easeInOut',
-      repeat: 'reverse'
+      to: 1.2,
+      duration: 0.5,
+      easing: 'easeInOut'
     });
 
     // 闪烁动画
@@ -428,9 +444,8 @@ export class AnimationManager {
       property: 'opacity',
       from: 1,
       to: 0,
-      duration: 0.1,
-      easing: 'linear',
-      repeat: 'reverse'
+      duration: 0.3,
+      easing: 'linear'
     });
 
     // 弹簧效果
@@ -495,8 +510,7 @@ export class AnimationManager {
       from: -5,
       to: 5,
       duration: 0.5,
-      easing: 'linear',
-      repeat: 'reverse'
+      easing: 'linear'
     });
 
     // 震动效果
@@ -505,8 +519,7 @@ export class AnimationManager {
       from: -3,
       to: 3,
       duration: 0.6,
-      easing: 'linear',
-      repeat: 'reverse'
+      easing: 'linear'
     });
 
     // 波浪效果
@@ -515,8 +528,7 @@ export class AnimationManager {
       from: -10,
       to: 10,
       duration: 1.0,
-      easing: 'easeInOut',
-      repeat: 'reverse'
+      easing: 'easeInOut'
     });
 
     // ========== 文本专用动画 ==========
