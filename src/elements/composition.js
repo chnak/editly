@@ -42,8 +42,8 @@ export class CompositionElement extends BaseElement {
       try {
         const frameData = await element.readNextFrame(time, subCanvas);
         if (frameData) {
-          // 应用变换
-          const transformedFrame = this.applyTransform(frameData, transform);
+          // 创建完整的帧数据，包含所有变换信息
+          const transformedFrame = this.createCompleteFrameData(frameData, transform);
           // 这里应该将变换后的帧添加到画布
         }
       } catch (error) {
@@ -54,10 +54,6 @@ export class CompositionElement extends BaseElement {
     return null; // 组合元素不直接返回帧数据，而是通过子元素渲染到画布
   }
 
-  applyTransform(frameData, transform) {
-    // 这里应该实现组合元素的变换
-    return frameData;
-  }
 
   async close() {
     // 关闭所有子元素

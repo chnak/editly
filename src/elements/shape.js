@@ -47,27 +47,13 @@ export class ShapeElement extends BaseElement {
     const frameData = await this.shapeElement.readNextFrame(progress, canvas);
     
     if (frameData) {
-      // 应用变换
-      return this.applyTransform(frameData, transform);
+      // 创建完整的帧数据，包含所有变换信息
+      return this.createCompleteFrameData(frameData, transform);
     }
     
     return null;
   }
 
-  applyTransform(frameData, transform) {
-    // 返回包含变换信息的对象
-    return {
-      data: frameData.data,
-      width: frameData.width,
-      height: frameData.height,
-      x: transform.x,
-      y: transform.y,
-      scaleX: transform.scaleX,
-      scaleY: transform.scaleY,
-      rotation: transform.rotation,
-      opacity: transform.opacity
-    };
-  }
 
   async close() {
     if (this.shapeElement && this.shapeElement.close) {

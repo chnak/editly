@@ -53,8 +53,8 @@ export class ImageElement extends BaseElement {
       // 如果返回的是包含背景和前景的对象（contain-blur 模式）
       if (frameData.background && frameData.foreground) {
         return {
-          background: this.applyTransform(frameData.background, transform),
-          foreground: this.applyTransform(frameData.foreground, transform),
+          background: this.applyTransformToContainBlurBackground(frameData.background, transform),
+          foreground: this.applyTransformToContainBlurForeground(frameData.foreground, transform),
           width: frameData.width,
           height: frameData.height,
           isContainBlur: true
