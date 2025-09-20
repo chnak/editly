@@ -94,6 +94,20 @@ export class BaseElement {
       // 设置动画的开始时间为元素的开始时间
       animation.startTime = this.startTime;
       this.animations.push(animation);
+      
+      // 为缩放动画自动添加Y轴
+      if (animation.property === 'scaleX' && (animConfig === 'zoomIn' || animConfig === 'zoomOut' || 
+          (animConfig.type && (animConfig.type === 'zoomIn' || animConfig.type === 'zoomOut')))) {
+        const yAnimation = this.animationManager.createAnimation({
+          property: 'scaleY',
+          from: animation.from,
+          to: animation.to,
+          duration: animation.duration,
+          easing: animation.easing,
+          startTime: animation.startTime
+        });
+        this.animations.push(yAnimation);
+      }
     });
   }
 
@@ -139,14 +153,16 @@ export class BaseElement {
     // 应用动画
     for (const animation of this.animations) {
       const animValue = animation.getValueAtTime(time);
+      
+      
       if (animValue !== null) {
         
         switch (animation.property) {
           case 'x':
-            x = animValue;
+            x = animation.isOffset ? this.x + animValue : animValue;
             break;
           case 'y':
-            y = animValue;
+            y = animation.isOffset ? this.y + animValue : animValue;
             break;
           case 'scaleX':
             scaleX = animValue;
@@ -261,5 +277,143 @@ export class BaseElement {
   parsePositionValue(value, dimension = 'width') {
     const containerSize = dimension === 'width' ? this.canvasWidth : this.canvasHeight;
     return parsePositionValue(value, containerSize);
+  }
+
+  /**
+   * 将变换信息应用到 frameData
+   * @param {Object} frameData - 原始帧数据
+   * @param {Object} transform - 变换信息
+   * @returns {Object} 应用变换后的帧数据
+   */
+  applyTransformToFrameData(frameData, transform) {
+    if (!frameData) return null;
+
+    // 获取位置属性
+    const positionProps = this.getPositionProps();
+    
+    // 如果 frameData 已经包含了位置信息（如分割文本），则使用原有的位置
+    // 否则使用计算出的位置
+    const finalX = frameData.x !== undefined ? frameData.x : positionProps.left;
+    const finalY = frameData.y !== undefined ? frameData.y : positionProps.top;
+    const finalOriginX = frameData.originX !== undefined ? frameData.originX : positionProps.originX;
+    const finalOriginY = frameData.originY !== undefined ? frameData.originY : positionProps.originY;
+    
+    // 应用变换信息
+    return {
+      ...frameData,
+      x: finalX,
+      y: finalY,
+      scaleX: transform.scaleX,
+      scaleY: transform.scaleY,
+      rotation: transform.rotation,
+      opacity: transform.opacity,
+      rotationX: transform.rotationX,
+      rotationY: transform.rotationY,
+      translateZ: transform.translateZ,
+      originX: finalOriginX,
+      originY: finalOriginY
+    };
+  }
+
+  /**
+   * 将变换信息应用到 Fabric 对象
+   * @param {Object} fabricObject - Fabric 对象
+   * @param {Object} transform - 变换信息
+   * @returns {Object} 应用变换后的 Fabric 对象
+   */
+  applyTransformToFabricObject(fabricObject, transform) {
+    if (!fabricObject || !fabricObject.set) return fabricObject;
+
+    // 获取位置属性
+    const positionProps = this.getPositionProps();
+    
+    // 应用变换信息
+    fabricObject.set({
+      left: positionProps.left,
+      top: positionProps.top,
+      scaleX: transform.scaleX,
+      scaleY: transform.scaleY,
+      angle: transform.rotation,
+      opacity: transform.opacity,
+      rotationX: transform.rotationX,
+      rotationY: transform.rotationY,
+      translateZ: transform.translateZ,
+      originX: positionProps.originX,
+      originY: positionProps.originY
+    });
+
+    return fabricObject;
+  }
+
+  /**
+   * 将变换信息应用到 contain-blur 效果的背景图像
+   * @param {Object} backgroundData - 背景数据
+   * @param {Object} transform - 变换信息
+   * @returns {Object} 应用变换后的背景数据
+   */
+  applyTransformToContainBlurBackground(backgroundData, transform) {
+    if (!backgroundData) return null;
+
+    // 获取位置属性
+    const positionProps = this.getPositionProps();
+    
+    return {
+      ...backgroundData,
+      x: positionProps.left,
+      y: positionProps.top,
+      scaleX: transform.scaleX,
+      scaleY: transform.scaleY,
+      rotation: transform.rotation,
+      opacity: transform.opacity,
+      originX: positionProps.originX,
+      originY: positionProps.originY
+    };
+  }
+
+  /**
+   * 将变换信息应用到 contain-blur 效果的前景图像
+   * @param {Object} foregroundData - 前景数据
+   * @param {Object} transform - 变换信息
+   * @returns {Object} 应用变换后的前景数据
+   */
+  applyTransformToContainBlurForeground(foregroundData, transform) {
+    if (!foregroundData) return null;
+
+    // 获取位置属性
+    const positionProps = this.getPositionProps();
+    
+    return {
+      ...foregroundData,
+      x: positionProps.left,
+      y: positionProps.top,
+      scaleX: transform.scaleX,
+      scaleY: transform.scaleY,
+      rotation: transform.rotation,
+      opacity: transform.opacity,
+      originX: positionProps.originX,
+      originY: positionProps.originY
+    };
+  }
+
+  /**
+   * 创建完整的 frameData，包含所有必要的变换信息
+   * @param {Object} rawFrameData - 原始帧数据
+   * @param {Object} transform - 变换信息
+   * @returns {Object} 完整的帧数据
+   */
+  createCompleteFrameData(rawFrameData, transform) {
+    if (!rawFrameData) return null;
+
+    // 如果是 contain-blur 效果
+    if (rawFrameData.isContainBlur && rawFrameData.background && rawFrameData.foreground) {
+      return {
+        ...rawFrameData,
+        background: this.applyTransformToContainBlurBackground(rawFrameData.background, transform),
+        foreground: this.applyTransformToContainBlurForeground(rawFrameData.foreground, transform)
+      };
+    }
+
+    // 普通帧数据
+    return this.applyTransformToFrameData(rawFrameData, transform);
   }
 }

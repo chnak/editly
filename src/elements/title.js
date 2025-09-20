@@ -64,42 +64,13 @@ export class TitleElement extends BaseElement {
     // 获取标题帧
     const frameData = await this.titleElement.readNextFrame(progress, canvas, time);
     
-    if (frameData && frameData.data) {
+    if (frameData) {
       // 更新元素的尺寸
-      this.width = frameData.width;
-      this.height = frameData.height;
+      if (frameData.width) this.width = frameData.width;
+      if (frameData.height) this.height = frameData.height;
       
-      // 应用动画变换 - 返回变换后的数据
-      return {
-        data: frameData.data,
-        width: frameData.width,
-        height: frameData.height,
-        x: transform.x,
-        y: transform.y,
-        scaleX: transform.scaleX,
-        scaleY: transform.scaleY,
-        rotation: transform.rotation,
-        opacity: transform.opacity,
-        rotationX: transform.rotationX,
-        rotationY: transform.rotationY,
-        translateZ: transform.translateZ
-      };
-    } else if (frameData && typeof frameData === 'object' && frameData.constructor && frameData.constructor.name) {
-      // Fabric 对象 - 应用动画变换
-      if (frameData.set) {
-        frameData.set({
-          left: transform.x,
-          top: transform.y,
-          scaleX: transform.scaleX,
-          scaleY: transform.scaleY,
-          angle: transform.rotation,
-          opacity: transform.opacity,
-          rotationX: transform.rotationX,
-          rotationY: transform.rotationY,
-          translateZ: transform.translateZ
-        });
-      }
-      return frameData;
+      // 创建完整的帧数据，包含所有变换信息
+      return this.createCompleteFrameData(frameData, transform);
     }
     
     return null;

@@ -61,32 +61,13 @@ export class ImageElement extends BaseElement {
         };
       }
       
-      // 应用变换
-      return this.applyTransform(frameData, transform);
+      // 创建完整的帧数据，包含所有变换信息
+      return this.createCompleteFrameData(frameData, transform);
     }
     
     return null;
   }
 
-  applyTransform(frameData, transform) {
-    // 获取位置属性
-    const positionProps = this.getPositionProps();
-    
-    // 应用变换
-    return {
-      ...frameData,
-      x: positionProps.left,
-      y: positionProps.top,
-      scaleX: transform.scaleX,
-      scaleY: transform.scaleY,
-      rotation: transform.rotation,
-      opacity: transform.opacity,
-      originX: positionProps.originX,
-      originY: positionProps.originY,
-      // 添加标志位，表示需要在 addFrameToCanvas 中应用位置信息
-      applyPositionInTimeline: true
-    };
-  }
 
   async close() {
     if (this.imageElement && this.imageElement.close) {

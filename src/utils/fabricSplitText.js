@@ -196,6 +196,22 @@ export class FabricSplitText {
     this._calculateCharacterPositions();
     this._calculateWordPositions();
     this._calculateLinePositions();
+    
+    // 确保 totalWidth 使用正确的值
+    // 对于单词分割，使用计算出的实际宽度
+    if (this.words.length > 0 && this._calculatedWordWidth !== undefined) {
+      this.totalWidth = this._calculatedWordWidth;
+    } else if (this.words.length > 0) {
+      // 回退到最后一个单词的位置 + 宽度
+      const lastWord = this.words[this.words.length - 1];
+      this.totalWidth = lastWord.x + lastWord.width;
+    }
+    
+    // 对于字符分割，使用字符位置计算的实际宽度
+    if (this.characters.length > 0) {
+      const lastChar = this.characters[this.characters.length - 1];
+      this.totalWidth = Math.max(this.totalWidth, lastChar.x + lastChar.width);
+    }
   }
 
   /**
@@ -336,7 +352,8 @@ export class FabricSplitText {
         currentX += spacing;
       } else {
         // 对于空格，添加较小的间距以保持自然感
-        currentX += this.options.wordSpacing * 0.5;
+        const spacing = this.options.wordSpacing * 0.5;
+        currentX += spacing;
       }
     }
     
@@ -347,11 +364,13 @@ export class FabricSplitText {
         const lastSpacing = dynamicSpacing[this.words.length - 1] || this.options.wordSpacing;
         currentX -= lastSpacing;
       } else {
-        currentX -= this.options.wordSpacing * 0.5;
+        const lastSpacing = this.options.wordSpacing * 0.5;
+        currentX -= lastSpacing;
       }
     }
     
-    this.totalWidth = currentX;
+    // 将计算出的最终宽度保存为实例变量，供 _calculateDimensions 使用
+    this._calculatedWordWidth = currentX;
     this.totalHeight = lineHeight;
   }
 

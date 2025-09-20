@@ -10,6 +10,7 @@ export class Animation {
     this.duration = config.duration || 1;
     this.startTime = config.startTime || 0;
     this.easing = config.easing || 'linear';
+    this.isOffset = config.isOffset || false; // 是否为偏移量动画
   }
 
   /**
@@ -19,8 +20,10 @@ export class Animation {
     const animTime = time - this.startTime;
     const progress = Math.max(0, Math.min(animTime / this.duration, 1));
     const easedProgress = this.ease(progress, this.easing);
+    const value = this.lerp(this.from, this.to, easedProgress);
     
-    return this.lerp(this.from, this.to, easedProgress);
+    
+    return value;
   }
 
   /**

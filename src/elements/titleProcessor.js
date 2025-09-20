@@ -297,6 +297,8 @@ export async function createTitleElement(config) {
           }
         }
         
+        // 计算文本的起始位置（左上角）
+        // left 和 top 是中心坐标，需要转换为起始位置
         let currentX = left - totalWidth / 2;
         let currentY = top - totalHeight / 2;
         
@@ -316,6 +318,7 @@ export async function createTitleElement(config) {
             
             // 使用 SplitText 的精确位置
             if (segment.x !== undefined && segment.y !== undefined) {
+              // segment.x 是相对于文本起始点的偏移量，直接使用
               segmentLeft = currentX + segment.x;
               segmentTop = currentY + segment.y;
             } else {
@@ -354,8 +357,12 @@ export async function createTitleElement(config) {
         const rgba = await renderFabricCanvas(mainCanvas);
         return {
           data: rgba,
-          width: width,
-          height: height
+          width: width,  // 使用传入的 width 参数
+          height: height,  // 使用传入的 height 参数
+          x: left,  // 返回中心坐标，让 BaseElement 处理
+          y: top,
+          originX: originX,  // 传递原点信息
+          originY: originY
         };
       } else {
         // 处理普通文本动画 - 使用Fabric Canvas
@@ -384,7 +391,11 @@ export async function createTitleElement(config) {
         return {
           data: rgba,
           width: width,
-          height: height
+          height: height,
+          x: left,  // 返回中心坐标，让 BaseElement 处理
+          y: top,
+          originX: originX,  // 传递原点信息
+          originY: originY
         };
       }
       

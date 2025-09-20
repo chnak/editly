@@ -64,32 +64,18 @@ export class TextElement extends BaseElement {
     // 获取文本帧
     const frameData = await this.textElement.readNextFrame(progress, canvas);
     
-    if (frameData && frameData.data) {
+    if (frameData) {
       // 更新元素的尺寸
-      this.width = frameData.width;
-      this.height = frameData.height;
+      if (frameData.width) this.width = frameData.width;
+      if (frameData.height) this.height = frameData.height;
       
-      // 应用变换
-      return this.applyTransform(frameData, transform);
+      // 创建完整的帧数据，包含所有变换信息
+      return this.createCompleteFrameData(frameData, transform);
     }
     
     return null;
   }
 
-  applyTransform(frameData, transform) {
-    // 返回包含变换信息的对象
-    return {
-      data: frameData.data,
-      width: frameData.width,
-      height: frameData.height,
-      x: transform.x,
-      y: transform.y,
-      scaleX: transform.scaleX,
-      scaleY: transform.scaleY,
-      rotation: transform.rotation,
-      opacity: transform.opacity
-    };
-  }
 
   async close() {
     if (this.textElement && this.textElement.close) {

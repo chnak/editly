@@ -63,78 +63,36 @@ export class Timeline {
    * 将帧数据添加到画布
    */
   async addFrameToCanvas(canvas, frameData, element) {
+    if (!frameData) return;
+
     // 处理 contain-blur 效果
-    if (frameData && frameData.isContainBlur && frameData.background && frameData.foreground) {
-      // 先添加模糊背景
+    if (frameData.isContainBlur && frameData.background && frameData.foreground) {
+      // 添加背景图像
       const backgroundImage = await rgbaToFabricImage({
         width: frameData.background.width,
         height: frameData.background.height,
         rgba: frameData.background.data
       });
       
-      // 应用背景的位置和变换
-      if (frameData.background.x !== undefined && frameData.background.y !== undefined) {
-        backgroundImage.set('left', frameData.background.x);
-        backgroundImage.set('top', frameData.background.y);
-      }
-      if (frameData.background.originX !== undefined) {
-        backgroundImage.set('originX', frameData.background.originX);
-      }
-      if (frameData.background.originY !== undefined) {
-        backgroundImage.set('originY', frameData.background.originY);
-      }
-      if (frameData.background.scaleX !== undefined) {
-        backgroundImage.set('scaleX', frameData.background.scaleX);
-      }
-      if (frameData.background.scaleY !== undefined) {
-        backgroundImage.set('scaleY', frameData.background.scaleY);
-      }
-      if (frameData.background.rotation !== undefined) {
-        backgroundImage.set('angle', frameData.background.rotation);
-      }
-      if (frameData.background.opacity !== undefined) {
-        backgroundImage.set('opacity', frameData.background.opacity);
-      }
-      
+      // 应用背景的变换信息
+      this.applyFabricTransform(backgroundImage, frameData.background);
       canvas.add(backgroundImage);
       
-      // 再添加前景图像
+      // 添加前景图像
       const foregroundImage = await rgbaToFabricImage({
         width: frameData.foreground.width,
         height: frameData.foreground.height,
         rgba: frameData.foreground.data
       });
       
-      // 应用前景的位置和变换
-      if (frameData.foreground.x !== undefined && frameData.foreground.y !== undefined) {
-        foregroundImage.set('left', frameData.foreground.x);
-        foregroundImage.set('top', frameData.foreground.y);
-      }
-      if (frameData.foreground.originX !== undefined) {
-        foregroundImage.set('originX', frameData.foreground.originX);
-      }
-      if (frameData.foreground.originY !== undefined) {
-        foregroundImage.set('originY', frameData.foreground.originY);
-      }
-      if (frameData.foreground.scaleX !== undefined) {
-        foregroundImage.set('scaleX', frameData.foreground.scaleX);
-      }
-      if (frameData.foreground.scaleY !== undefined) {
-        foregroundImage.set('scaleY', frameData.foreground.scaleY);
-      }
-      if (frameData.foreground.rotation !== undefined) {
-        foregroundImage.set('angle', frameData.foreground.rotation);
-      }
-      if (frameData.foreground.opacity !== undefined) {
-        foregroundImage.set('opacity', frameData.foreground.opacity);
-      }
-      
+      // 应用前景的变换信息
+      this.applyFabricTransform(foregroundImage, frameData.foreground);
       canvas.add(foregroundImage);
       return;
     }
     
     if (frameData instanceof Buffer) {
-      // RGBA 数据 - 需要根据元素的实际尺寸创建图像
+      // 旧格式 RGBA 数据 - 根据元素尺寸创建图像
       const elementWidth = element.width || this.canvasWidth;
       const elementHeight = element.height || this.canvasHeight;
       
@@ -145,46 +103,51 @@ export class Timeline {
       });
       
       canvas.add(fabricImage);
-    } else if (frameData && typeof frameData === 'object' && frameData.data && frameData.width && frameData.height) {
-      // 新的数据格式 - 包含变换信息（RGBA 数据）
+    } else if (frameData.data && frameData.width && frameData.height) {
+      // 新格式 RGBA 数据 - 包含变换信息
       const fabricImage = await rgbaToFabricImage({ 
         width: frameData.width, 
         height: frameData.height, 
         rgba: frameData.data 
       });
       
-      // 根据元素的标志位决定是否应用位置信息
-      if (frameData.applyPositionInTimeline && frameData.x !== undefined && frameData.y !== undefined) {
-        fabricImage.set('left', frameData.x);
-        fabricImage.set('top', frameData.y);
-        if (frameData.originX !== undefined) {
-          fabricImage.set('originX', frameData.originX);
-        }
-        if (frameData.originY !== undefined) {
-          fabricImage.set('originY', frameData.originY);
-        }
-      }
-      
-      // 应用变换信息（所有元素都需要）
-      if (frameData.scaleX !== undefined) {
-        fabricImage.set('scaleX', frameData.scaleX);
-      }
-      if (frameData.scaleY !== undefined) {
-        fabricImage.set('scaleY', frameData.scaleY);
-      }
-      if (frameData.rotation !== undefined) {
-        fabricImage.set('angle', frameData.rotation);
-      }
-      if (frameData.opacity !== undefined) {
-        fabricImage.set('opacity', frameData.opacity);
-      }
-      
+      // 应用变换信息
+      this.applyFabricTransform(fabricImage, frameData);
       canvas.add(fabricImage);
-    } else if (frameData && typeof frameData === 'object' && frameData.constructor && frameData.constructor.name) {
-      console.log("📦 处理 Fabric 对象数据");
-      // Fabric 对象 - 位置信息已在元素处理器中设置
+    } else if (frameData.constructor && frameData.constructor.name) {
+      // Fabric 对象 - 变换信息已在元素处理器中设置
       canvas.add(frameData);
     }
+  }
+
+  /**
+   * 将变换信息应用到 Fabric 对象
+   * @param {Object} fabricObject - Fabric 对象
+   * @param {Object} transformData - 变换数据
+   */
+  applyFabricTransform(fabricObject, transformData) {
+    if (!fabricObject || !fabricObject.set) return;
+
+    // 处理位置属性
+    if (transformData.x !== undefined) {
+      fabricObject.set('left', transformData.x);
+    }
+    if (transformData.y !== undefined) {
+      fabricObject.set('top', transformData.y);
+    }
+
+    // 处理其他属性
+    const properties = [
+      'originX', 'originY', 'scaleX', 'scaleY', 
+      'rotation', 'opacity', 'rotationX', 'rotationY', 'translateZ'
+    ];
+
+    properties.forEach(prop => {
+      if (transformData[prop] !== undefined) {
+        const fabricProp = prop === 'rotation' ? 'angle' : prop;
+        fabricObject.set(fabricProp, transformData[prop]);
+      }
+    });
   }
 
   /**

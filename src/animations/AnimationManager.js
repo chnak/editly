@@ -140,6 +140,7 @@ export class AnimationManager {
       id: this.generateId()
     };
 
+
     return this.createAnimation(config);
   }
 
@@ -306,7 +307,8 @@ export class AnimationManager {
       from: -300,
       to: 0,
       duration: 0.8,
-      easing: 'easeOut'
+      easing: 'easeOut',
+      isOffset: true // 标记为偏移量动画
     });
 
     // 从右侧滑入
@@ -315,7 +317,8 @@ export class AnimationManager {
       from: 300,
       to: 0,
       duration: 0.8,
-      easing: 'easeOut'
+      easing: 'easeOut',
+      isOffset: true // 标记为偏移量动画
     });
 
     // 从上方滑入
@@ -324,7 +327,8 @@ export class AnimationManager {
       from: -200,
       to: 0,
       duration: 0.8,
-      easing: 'easeOut'
+      easing: 'easeOut',
+      isOffset: true // 标记为偏移量动画
     });
 
     // 从下方滑入
@@ -333,7 +337,8 @@ export class AnimationManager {
       from: 200,
       to: 0,
       duration: 0.8,
-      easing: 'easeOut'
+      easing: 'easeOut',
+      isOffset: true // 标记为偏移量动画
     });
 
     // ========== 3D效果 ==========

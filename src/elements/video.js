@@ -72,31 +72,13 @@ export class VideoElement extends BaseElement {
     const frameData = await this.videoElement.readNextFrame(progress, canvas);
     
     if (frameData) {
-      // 应用变换
-      return this.applyTransform(frameData, transform);
+      // 创建完整的帧数据，包含所有变换信息
+      return this.createCompleteFrameData(frameData, transform);
     }
     
     return null;
   }
 
-  applyTransform(frameData, transform) {
-    // 获取位置属性
-    const positionProps = this.getPositionProps();
-    
-    // 应用变换 - 使用动画计算后的位置
-    return {
-      ...frameData,
-      x: transform.x,
-      y: transform.y,
-      scaleX: transform.scaleX,
-      scaleY: transform.scaleY,
-      rotation: transform.rotation,
-      opacity: transform.opacity,
-      originX: positionProps.originX,
-      originY: positionProps.originY,
-      applyPositionInTimeline: true
-    };
-  }
 
   async close() {
     if (this.videoElement && this.videoElement.close) {
