@@ -2,12 +2,61 @@ import * as fabric from "fabric/node";
 import { registerFont, createCanvas } from "canvas";
 import { basename, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { getPositionProps } from "../utils/positionUtils.js";
+import { getPositionProps, parsePositionValue } from "../utils/positionUtils.js";
 import { createSplitText } from "../utils/fabricSplitText.js";
 import { animationManager } from "../animations/AnimationManager.js";
+import { createFabricCanvas, renderFabricCanvas } from "../utils/fabricUtils.js";
 
 // 缓存已加载的字体
 const loadedFonts = [];
+
+/**
+ * 解析字体大小，支持多种单位
+ * @param {string|number} value - 字体大小值
+ * @param {number} width - 容器宽度
+ * @param {number} height - 容器高度
+ * @returns {number} 解析后的像素值
+ */
+function parseFontSize(value, width, height) {
+  if (typeof value === 'number') {
+    return value;
+  }
+  
+  if (typeof value === 'string') {
+    // 提取数值和单位
+    const match = value.match(/^([+-]?\d*\.?\d+)([a-zA-Z%]*)$/);
+    if (!match) {
+      return 72; // 默认字体大小
+    }
+    
+    const numValue = parseFloat(match[1]);
+    const valueUnit = match[2] || 'px';
+    
+    switch (valueUnit) {
+      case 'px':
+        return numValue;
+      case '%':
+        // 百分比基于最小尺寸
+        return (numValue / 100) * Math.min(width, height);
+      case 'vw':
+        // 视口宽度单位
+        return (numValue / 100) * width;
+      case 'vh':
+        // 视口高度单位
+        return (numValue / 100) * height;
+      case 'vmin':
+        // 视口最小单位
+        return (numValue / 100) * Math.min(width, height);
+      case 'vmax':
+        // 视口最大单位
+        return (numValue / 100) * Math.max(width, height);
+      default:
+        return numValue;
+    }
+  }
+  
+  return 72; // 默认字体大小
+}
 
 /**
  * 处理预设动画配置
@@ -101,6 +150,7 @@ export async function createTitleElement(config) {
     font, 
     fontPath,
     fontFamily,
+    fontSize = 72, // 添加 fontSize 参数，默认 72px
     textColor = "#ffffff", 
     position = "center", 
     x, // 自定义 X 坐标
@@ -128,7 +178,7 @@ export async function createTitleElement(config) {
       if (!loadedFonts.includes(fontName)) {
         registerFont(defaultChineseFont, { 
           family: fontName, 
-          weight: "bold", 
+          weight: "normal", 
           style: "normal" 
         });
         loadedFonts.push(fontName);
@@ -158,8 +208,8 @@ export async function createTitleElement(config) {
     finalFontFamily = fontName;
   }
   
-  // 计算字体大小
-  const fontSize = Math.round(Math.min(width, height) * 0.1);
+  // 处理字体大小，支持多种单位
+  const finalFontSize = Math.round(parseFontSize(fontSize, width, height));
   
   
   
@@ -168,7 +218,7 @@ export async function createTitleElement(config) {
   if (split) {
     // 使用 Fabric SplitText 进行精确的文本分割
     const splitTextInstance = createSplitText(text, {
-      fontSize: fontSize,
+      fontSize: finalFontSize,
       fontFamily: finalFontFamily,
       fill: textColor,
       // 使用智能间距配置
@@ -302,7 +352,7 @@ export async function createTitleElement(config) {
         let totalHeight = 0;
         
         // 使用精确的宽度计算
-        const charSpacing = fontSize * 0.1; // 参考 slide-in-text.js 的字符间距设置
+        const charSpacing = finalFontSize * 0.1; // 参考 slide-in-text.js 的字符间距设置
         
         // 使用 SplitText 的精确尺寸计算
         if (textSegments.length > 0 && textSegments[0].splitTextInstance) {
@@ -325,12 +375,15 @@ export async function createTitleElement(config) {
               }
             }
           } else if (split === 'line') {
-            totalHeight = textSegments.length * fontSize * 1.5;
+            totalHeight = textSegments.length * finalFontSize * 1.5;
           }
         }
         
         let currentX = left - totalWidth / 2;
         let currentY = top - totalHeight / 2;
+        
+        // 创建主Fabric Canvas用于合成所有分割文本片段
+        const mainCanvas = createFabricCanvas({ width, height });
         
         for (let i = 0; i < textSegments.length; i++) {
           const segment = textSegments[i];
@@ -352,94 +405,63 @@ export async function createTitleElement(config) {
                 const isSpace = segment.isSpace || false;
                 currentX += segmentWidth + (isSpace ? 0 : charSpacing);
               } else if (split === 'line') {
-                segmentTop = currentY + segment.index * (fontSize * 1.5);
+                segmentTop = currentY + segment.index * (finalFontSize * 1.5);
               }
             }
             
-            // 计算动画属性
-            const animatedProps = {
-              originX: "center",
-              originY: "center",
+            // 创建Fabric.js Text对象渲染分割文本片段
+            const textObj = new fabric.Text(segment.char || segment.text.text || segment.text, {
+              fontSize: finalFontSize,
+              fontFamily: finalFontFamily,
+              fill: textColor,
               left: segmentLeft + translateAnimation.translateX,
               top: segmentTop + translateAnimation.translateY,
               scaleX: zoomAnimation.scaleX,
               scaleY: zoomAnimation.scaleY,
               angle: rotationAnimation.rotation,
-              opacity: opacityAnimation.opacity * segmentProgress // 透明度应该与片段进度相乘
-            };
+              opacity: opacityAnimation.opacity * segmentProgress,
+              originX: 'center',
+              originY: 'center'
+            });
             
-            // 创建独立的Canvas渲染分割文本
-            const segmentCanvas = createCanvas(width, height);
-            const ctx = segmentCanvas.getContext('2d');
-            
-            // 保存当前状态
-            ctx.save();
-            
-            // 应用变换
-            ctx.translate(segmentLeft + translateAnimation.translateX, segmentTop + translateAnimation.translateY);
-            ctx.rotate((rotationAnimation.rotation * Math.PI) / 180);
-            ctx.scale(zoomAnimation.scaleX, zoomAnimation.scaleY);
-            
-            // 设置透明度
-            ctx.globalAlpha = opacityAnimation.opacity * segmentProgress;
-            
-            // 设置文本样式
-            ctx.font = `${fontSize}px ${finalFontFamily}`;
-            ctx.fillStyle = textColor;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // 绘制文本段
-            ctx.fillText(segment.text.text, 0, 0);
-            
-            // 恢复状态
-            ctx.restore();
-            
-            // 将独立Canvas的内容绘制到主Canvas上
-            const mainCtx = canvas.getContext('2d');
-            if (mainCtx && mainCtx.drawImage) {
-              mainCtx.drawImage(segmentCanvas, 0, 0);
-            } else {
-              console.log("警告: 无法获取主Canvas的2D上下文");
-            }
+            // 将文本对象添加到主Canvas
+            mainCanvas.add(textObj);
           }
         }
-      } else {
-        // 处理普通文本动画 - 直接返回独立Canvas的图像数据
-        const textCanvas = createCanvas(width, height);
-        const ctx = textCanvas.getContext('2d');
         
-        // 保存当前状态
-        ctx.save();
-        
-        // 应用变换
-        ctx.translate(left + translateAnimation.translateX, top + translateAnimation.translateY);
-        ctx.rotate((rotationAnimation.rotation * Math.PI) / 180);
-        ctx.scale(zoomAnimation.scaleX, zoomAnimation.scaleY);
-        
-        // 设置透明度
-        ctx.globalAlpha = opacityAnimation.opacity;
-        
-        // 设置文本样式
-        ctx.font = `${fontSize}px ${finalFontFamily}`;
-        ctx.fillStyle = textColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // 绘制文本
-        ctx.fillText(text, 0, 0);
-        
-        
-        
-        // 恢复状态
-        ctx.restore();
-        
-        // 直接返回独立Canvas的图像数据
-        const imageData = ctx.getImageData(0, 0, width, height);
-        
-        
+        // 渲染Fabric Canvas并返回图像数据
+        const rgba = await renderFabricCanvas(mainCanvas);
         return {
-          data: Buffer.from(imageData.data),
+          data: rgba,
+          width: width,
+          height: height
+        };
+      } else {
+        // 处理普通文本动画 - 使用Fabric Canvas
+        const textCanvas = createFabricCanvas({ width, height });
+        
+        // 创建Fabric.js Text对象
+        const textObj = new fabric.Text(text, {
+          fontSize: finalFontSize,
+          fontFamily: finalFontFamily,
+          fill: textColor,
+          left: left + translateAnimation.translateX,
+          top: top + translateAnimation.translateY,
+          scaleX: zoomAnimation.scaleX,
+          scaleY: zoomAnimation.scaleY,
+          angle: rotationAnimation.rotation,
+          opacity: opacityAnimation.opacity,
+          originX: 'center',
+          originY: 'center'
+        });
+        
+        // 将文本对象添加到Canvas
+        textCanvas.add(textObj);
+        
+        // 渲染Fabric Canvas并返回图像数据
+        const rgba = await renderFabricCanvas(textCanvas);
+        return {
+          data: rgba,
           width: width,
           height: height
         };

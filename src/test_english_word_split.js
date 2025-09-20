@@ -15,17 +15,29 @@ async function testEnglishWordSplit() {
       elements: [
         // 英文单词分割测试
         {
+            type: "shape",
+            shape: "rectangle",
+            fillColor: "#2c3e50",
+            width: "100%",
+            height: "100%",
+            duration: 10,
+            startTime: 0,
+            x: '50%',
+            y: '50%'
+        },
+        {
           type: "title",
           text: "Hello World Test",
           textColor: "#ff6b6b",
-          fontSize: 48,
+          fontSize: '30%',
           duration: 3,
           x: 640,
           y: 200,
           startTime: 0,
           split: "word",
           splitDelay: 0.2,
-          splitDuration: 0.5
+          splitDuration: 0.5,
+          animations: ["rotateIn"] 
         },
         
         // 英文句子分割测试
@@ -40,7 +52,8 @@ async function testEnglishWordSplit() {
           startTime: 1,
           split: "word",
           splitDelay: 0.15,
-          splitDuration: 0.4
+          splitDuration: 0.4,
+          animations: ["fadeIn"] 
         },
         
         // 中英文混合单词分割测试
@@ -55,7 +68,8 @@ async function testEnglishWordSplit() {
           startTime: 2,
           split: "word",
           splitDelay: 0.18,
-          splitDuration: 0.6
+          splitDuration: 0.6,
+          animations: ["zoomIn"] 
         },
         
         // 带标点符号的英文测试
