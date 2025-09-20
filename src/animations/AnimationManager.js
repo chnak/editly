@@ -268,7 +268,7 @@ export class AnimationManager {
       property: 'scaleX',
       from: 0,
       to: 1,
-      duration: 0.8,
+      duration: 0.6,
       easing: 'bounce'
     });
 
@@ -277,7 +277,7 @@ export class AnimationManager {
       property: 'scaleY',
       from: 0,
       to: 1,
-      duration: 0.8,
+      duration: 0.6,
       easing: 'bounce'
     });
 
@@ -286,7 +286,7 @@ export class AnimationManager {
       property: 'scaleX',
       from: 0,
       to: 1,
-      duration: 1.0,
+      duration: 0.6,
       easing: 'elastic'
     });
 
@@ -295,7 +295,7 @@ export class AnimationManager {
       property: 'scaleY',
       from: 0,
       to: 1,
-      duration: 1.0,
+      duration: 0.6,
       easing: 'elastic'
     });
 
@@ -348,7 +348,7 @@ export class AnimationManager {
       property: 'rotation',
       from: -180,
       to: 0,
-      duration: 0.8,
+      duration: 0.5,
       easing: 'easeOut'
     });
 
@@ -357,7 +357,7 @@ export class AnimationManager {
       property: 'scaleX',
       from: 0,
       to: 1,
-      duration: 0.6,
+      duration: 0.5,
       easing: 'easeOut'
     });
 
@@ -366,7 +366,7 @@ export class AnimationManager {
       property: 'rotation',
       from: -45,
       to: 0,
-      duration: 0.8,
+      duration: 0.5,
       easing: 'easeOut'
     });
 
@@ -404,7 +404,7 @@ export class AnimationManager {
       property: 'opacity',
       from: 0,
       to: 1,
-      duration: 1.0,
+      duration: 0.5,
       easing: 'easeInOut'
     });
 
@@ -413,7 +413,7 @@ export class AnimationManager {
       property: 'rotation',
       from: 0,
       to: 360,
-      duration: 1.5,
+      duration: 0.5,
       easing: 'easeInOut'
     });
 
@@ -458,7 +458,7 @@ export class AnimationManager {
       property: 'scaleX',
       from: 0,
       to: 1,
-      duration: 1.2,
+      duration: 0.6,
       easing: 'spring'
     });
 
@@ -469,7 +469,7 @@ export class AnimationManager {
       property: 'opacity',
       from: 0,
       to: 1,
-      duration: 2.0,
+      duration: 0.6,
       easing: 'linear'
     });
 
@@ -478,7 +478,7 @@ export class AnimationManager {
       property: 'opacity',
       from: 0,
       to: 1,
-      duration: 1.5,
+      duration: 0.6,
       easing: 'easeOut'
     });
 
@@ -487,7 +487,7 @@ export class AnimationManager {
       property: 'opacity',
       from: 0,
       to: 1,
-      duration: 1.0,
+      duration: 0.6,
       easing: 'easeInOut'
     });
 
@@ -496,7 +496,7 @@ export class AnimationManager {
       property: 'scaleX',
       from: 0,
       to: 1,
-      duration: 0.8,
+      duration: 0.6,
       easing: 'easeOut'
     });
 
@@ -505,7 +505,7 @@ export class AnimationManager {
       property: 'opacity',
       from: 0,
       to: 1,
-      duration: 1.2,
+      duration: 0.6,
       easing: 'easeOut'
     });
 

@@ -29,8 +29,8 @@ async function testEnglishWordSplit() {
           type: "title",
           text: "Hello World Test",
           textColor: "#ff6b6b",
-          fontSize: '30%',
-          duration: 3,
+          fontSize: '50px',
+          duration: 10,
           x: 640,
           y: 200,
           startTime: 0,
@@ -84,7 +84,8 @@ async function testEnglishWordSplit() {
           startTime: 3,
           split: "word",
           splitDelay: 0.12,
-          splitDuration: 0.4
+          splitDuration: 0.4,
+          animations: ["slideInLeft"] 
         },
         
         // 长英文句子测试
