@@ -117,4 +117,8 @@ export {
   quickPreset
 } from "./animations/AnimationBuilder.js";
 
+// 导出场景系统
+export { SceneManager, Scene } from "./scenes/SceneManager.js";
+export { SceneTemplateManager } from "./scenes/SceneTemplates.js";
+
 export default VideoMaker;
