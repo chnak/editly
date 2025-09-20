@@ -23,6 +23,7 @@ function processPresetAnimations(animations) {
   
   const processedAnimations = [];
   
+  
   for (const anim of animations) {
     if (typeof anim === 'string') {
       // 字符串格式: "fadeIn"
@@ -219,14 +220,23 @@ export async function createTitleElement(config) {
       
       // 处理 animations 配置
       if (animations && animations.length > 0) {
-        // 处理预设动画配置
-        const processedAnimations = processPresetAnimations(animations);
+        // 直接使用 animations，因为它们已经是 Animation 对象
+        const processedAnimations = animations;
+        
         
         for (const anim of processedAnimations) {
           // 计算动画值
           let animValue = null;
           
-          if (anim.keyframes && anim.keyframes.length > 0) {
+          
+          
+          // 检查是否是 Animation 对象
+          if (anim.getValueAtTime) {
+            // 使用 Animation 对象的 getValueAtTime 方法
+            animValue = anim.getValueAtTime(progress);
+            
+            
+          } else if (anim.keyframes && anim.keyframes.length > 0) {
             // 使用关键帧计算动画值
             // progress 是 0-1 之间的值，表示当前元素的时间进度
             const animTime = progress; // 直接使用 progress，因为它是 0-1 之间的值
@@ -248,9 +258,6 @@ export async function createTitleElement(config) {
               const lastKeyframe = anim.keyframes[anim.keyframes.length - 1];
               animValue = lastKeyframe.value;
             }
-          } else if (anim.getValueAtTime) {
-            // 使用现有的 getValueAtTime 方法
-            animValue = anim.getValueAtTime(progress);
           }
           
           if (animValue !== null) {
@@ -277,6 +284,7 @@ export async function createTitleElement(config) {
                 opacityAnimation.opacity = animValue;
                 break;
             }
+            
           }
         }
       } else if (zoomDirection) {
@@ -360,49 +368,88 @@ export async function createTitleElement(config) {
               opacity: opacityAnimation.opacity * segmentProgress // 透明度应该与片段进度相乘
             };
             
-            // 创建新的文本段对象避免画布冲突
-            const newSegmentText = new fabric.Text(segment.text.text, {
-              fontFamily: finalFontFamily,
-              fontSize: fontSize,
-              fill: textColor,
-              originX: "center",
-              originY: "center"
-            });
+            // 创建独立的Canvas渲染分割文本
+            const segmentCanvas = createCanvas(width, height);
+            const ctx = segmentCanvas.getContext('2d');
             
-            newSegmentText.set(animatedProps);
-            canvas.add(newSegmentText);
+            // 保存当前状态
+            ctx.save();
+            
+            // 应用变换
+            ctx.translate(segmentLeft + translateAnimation.translateX, segmentTop + translateAnimation.translateY);
+            ctx.rotate((rotationAnimation.rotation * Math.PI) / 180);
+            ctx.scale(zoomAnimation.scaleX, zoomAnimation.scaleY);
+            
+            // 设置透明度
+            ctx.globalAlpha = opacityAnimation.opacity * segmentProgress;
+            
+            // 设置文本样式
+            ctx.font = `${fontSize}px ${finalFontFamily}`;
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 绘制文本段
+            ctx.fillText(segment.text.text, 0, 0);
+            
+            // 恢复状态
+            ctx.restore();
+            
+            // 将独立Canvas的内容绘制到主Canvas上
+            const mainCtx = canvas.getContext('2d');
+            if (mainCtx && mainCtx.drawImage) {
+              mainCtx.drawImage(segmentCanvas, 0, 0);
+            } else {
+              console.log("警告: 无法获取主Canvas的2D上下文");
+            }
           }
         }
       } else {
-        // 处理普通文本动画 - 使用动画库
-        const newTextBox = new fabric.Text(text, {
-          fontFamily: finalFontFamily,
-          fontSize: fontSize,
-          fill: textColor,
-          originX: "center",
-          originY: "center"
-        });
+        // 处理普通文本动画 - 直接返回独立Canvas的图像数据
+        const textCanvas = createCanvas(width, height);
+        const ctx = textCanvas.getContext('2d');
         
-        // 计算文本属性
-        const textProps = {
-          originX,
-          originY,
-          left: left + translateAnimation.translateX,
-          top: top + translateAnimation.translateY,
-          scaleX: zoomAnimation.scaleX,
-          scaleY: zoomAnimation.scaleY,
-          angle: rotationAnimation.rotation,
-          opacity: opacityAnimation.opacity
+        // 保存当前状态
+        ctx.save();
+        
+        // 应用变换
+        ctx.translate(left + translateAnimation.translateX, top + translateAnimation.translateY);
+        ctx.rotate((rotationAnimation.rotation * Math.PI) / 180);
+        ctx.scale(zoomAnimation.scaleX, zoomAnimation.scaleY);
+        
+        // 设置透明度
+        ctx.globalAlpha = opacityAnimation.opacity;
+        
+        // 设置文本样式
+        ctx.font = `${fontSize}px ${finalFontFamily}`;
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // 绘制文本
+        ctx.fillText(text, 0, 0);
+        
+        
+        
+        // 恢复状态
+        ctx.restore();
+        
+        // 直接返回独立Canvas的图像数据
+        const imageData = ctx.getImageData(0, 0, width, height);
+        
+        
+        return {
+          data: Buffer.from(imageData.data),
+          width: width,
+          height: height
         };
-        
-        newTextBox.set(textProps);
-        canvas.add(newTextBox);
       }
       
       // 渲染画布并返回帧数据
       canvas.renderAll();
       const canvasElement = canvas.getElement();
       const imageData = canvasElement.getContext('2d').getImageData(0, 0, width, height);
+      
       
       return {
         data: Buffer.from(imageData.data),

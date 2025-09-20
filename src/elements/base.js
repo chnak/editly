@@ -76,6 +76,10 @@ export class BaseElement {
         // 如果是字符串，当作预设动画处理
         const animation = this.animationManager.applyPreset(animConfig);
         this.animations.push(animation);
+      } else if (animConfig.type) {
+        // 如果是 { type: "rotateIn" } 格式，当作预设动画处理
+        const animation = this.animationManager.applyPreset(animConfig.type, animConfig);
+        this.animations.push(animation);
       } else if (animConfig.preset) {
         // 如果是预设动画配置
         const animation = this.animationManager.applyPreset(animConfig.preset, animConfig);
