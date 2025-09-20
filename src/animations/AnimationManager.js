@@ -226,9 +226,27 @@ export class AnimationManager {
       easing: 'easeOut'
     });
 
+    // 缩放进入 - Y轴
+    this.addPreset('zoomInY', {
+      property: 'scaleY',
+      from: 0,
+      to: 1,
+      duration: 0.5,
+      easing: 'easeOut'
+    });
+
     // 缩放退出
     this.addPreset('zoomOut', {
       property: 'scaleX',
+      from: 1,
+      to: 0,
+      duration: 0.5,
+      easing: 'easeIn'
+    });
+
+    // 缩放退出 - Y轴
+    this.addPreset('zoomOutY', {
+      property: 'scaleY',
       from: 1,
       to: 0,
       duration: 0.5,

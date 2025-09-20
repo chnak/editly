@@ -72,27 +72,28 @@ export class BaseElement {
    */
   processAnimations(animations) {
     animations.forEach(animConfig => {
+      let animation;
+      
       if (typeof animConfig === 'string') {
         // 如果是字符串，当作预设动画处理
-        const animation = this.animationManager.applyPreset(animConfig);
-        this.animations.push(animation);
+        animation = this.animationManager.applyPreset(animConfig);
       } else if (animConfig.type) {
         // 如果是 { type: "rotateIn" } 格式，当作预设动画处理
-        const animation = this.animationManager.applyPreset(animConfig.type, animConfig);
-        this.animations.push(animation);
+        animation = this.animationManager.applyPreset(animConfig.type, animConfig);
       } else if (animConfig.preset) {
         // 如果是预设动画配置
-        const animation = this.animationManager.applyPreset(animConfig.preset, animConfig);
-        this.animations.push(animation);
+        animation = this.animationManager.applyPreset(animConfig.preset, animConfig);
       } else if (animConfig.keyframes) {
         // 如果是关键帧动画
-        const animation = this.animationManager.createKeyframeAnimation(animConfig);
-        this.animations.push(animation);
+        animation = this.animationManager.createKeyframeAnimation(animConfig);
       } else {
         // 普通动画配置
-        const animation = this.animationManager.createAnimation(animConfig);
-        this.animations.push(animation);
+        animation = this.animationManager.createAnimation(animConfig);
       }
+      
+      // 设置动画的开始时间为元素的开始时间
+      animation.startTime = this.startTime;
+      this.animations.push(animation);
     });
   }
 
@@ -139,6 +140,7 @@ export class BaseElement {
     for (const animation of this.animations) {
       const animValue = animation.getValueAtTime(time);
       if (animValue !== null) {
+        
         switch (animation.property) {
           case 'x':
             x = animValue;
@@ -191,7 +193,7 @@ export class BaseElement {
    */
   getAnimationProgress(time, animation) {
     const animStartTime = this.startTime + (animation.startTime || 0);
-    const animDuration = animation.duration || this.duration;
+    const animDuration = animation.duration || 1; // 使用动画的默认时长1秒，而不是元素时长
     const animEndTime = animStartTime + animDuration;
     
     if (time < animStartTime || time > animEndTime) {

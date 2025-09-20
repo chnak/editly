@@ -62,7 +62,7 @@ export class TitleElement extends BaseElement {
     const transform = this.getTransformAtTime(time);
     
     // 获取标题帧
-    const frameData = await this.titleElement.readNextFrame(progress, canvas);
+    const frameData = await this.titleElement.readNextFrame(progress, canvas, time);
     
     if (frameData && frameData.data) {
       // 更新元素的尺寸

@@ -254,94 +254,12 @@ export async function createTitleElement(config) {
   
   return {
     text: text, // 保存 text 变量到返回对象中
-    async readNextFrame(progress, canvas) {
+    async readNextFrame(progress, canvas, time = null) {
       if (!this.text) {
         return null;
       }
       
-      // 处理动画效果
-      let zoomAnimation, translateAnimation, rotationAnimation, opacityAnimation;
-      
-      // 初始化默认值
-      zoomAnimation = { scaleX: 1, scaleY: 1 };
-      translateAnimation = { translateX: 0, translateY: 0 };
-      rotationAnimation = { rotation: 0 };
-      opacityAnimation = { opacity: 1 };
-      
-      // 处理 animations 配置
-      if (animations && animations.length > 0) {
-        // 直接使用 animations，因为它们已经是 Animation 对象
-        const processedAnimations = animations;
-        
-        
-        for (const anim of processedAnimations) {
-          // 计算动画值
-          let animValue = null;
-          
-          
-          
-          // 检查是否是 Animation 对象
-          if (anim.getValueAtTime) {
-            // 使用 Animation 对象的 getValueAtTime 方法
-            animValue = anim.getValueAtTime(progress);
-            
-            
-          } else if (anim.keyframes && anim.keyframes.length > 0) {
-            // 使用关键帧计算动画值
-            // progress 是 0-1 之间的值，表示当前元素的时间进度
-            const animTime = progress; // 直接使用 progress，因为它是 0-1 之间的值
-            
-            // 简单的线性插值
-            for (let i = 0; i < anim.keyframes.length - 1; i++) {
-              const current = anim.keyframes[i];
-              const next = anim.keyframes[i + 1];
-              
-              if (animTime >= current.time && animTime <= next.time) {
-                const t = (animTime - current.time) / (next.time - current.time);
-                animValue = current.value + (next.value - current.value) * t;
-                break;
-              }
-            }
-            
-            // 如果时间超出范围，使用最后一个关键帧的值
-            if (animValue === null && anim.keyframes.length > 0) {
-              const lastKeyframe = anim.keyframes[anim.keyframes.length - 1];
-              animValue = lastKeyframe.value;
-            }
-          }
-          
-          if (animValue !== null) {
-            switch (anim.property) {
-              case 'scaleX':
-                zoomAnimation.scaleX = animValue;
-                break;
-              case 'scaleY':
-                zoomAnimation.scaleY = animValue;
-                break;
-              case 'x':
-                translateAnimation.translateX = animValue - (x || 0);
-                break;
-              case 'y':
-                translateAnimation.translateY = animValue - (y || 0);
-                break;
-              case 'rotation':
-              case 'rotationX':
-              case 'rotationY':
-              case 'rotationZ':
-                rotationAnimation.rotation = animValue;
-                break;
-              case 'opacity':
-                opacityAnimation.opacity = animValue;
-                break;
-            }
-            
-          }
-        }
-      } else if (zoomDirection) {
-        // 回退到简单的缩放动画
-        const scale = 1 + (zoomAmount * (zoomDirection === 'in' ? progress : 1 - progress));
-        zoomAnimation = { scaleX: scale, scaleY: scale };
-      }
+      // 动画效果由 BaseElement 处理，这里不需要处理
       
       const { left, top, originX, originY } = getPositionProps({ position, width, height, x, y });
       
@@ -387,7 +305,10 @@ export async function createTitleElement(config) {
         
         for (let i = 0; i < textSegments.length; i++) {
           const segment = textSegments[i];
-          const segmentProgress = Math.max(0, Math.min(1, (progress - segment.startTime) / (segment.endTime - segment.startTime)));
+          // 使用绝对时间计算分割动画进度，而不是元素进度
+          const segmentProgress = time !== null 
+            ? Math.max(0, Math.min(1, (time - segment.startTime) / (segment.endTime - segment.startTime)))
+            : Math.max(0, Math.min(1, (progress - segment.startTime) / (segment.endTime - segment.startTime)));
           
           if (segmentProgress > 0) {
             let segmentLeft = currentX;
@@ -414,12 +335,12 @@ export async function createTitleElement(config) {
               fontSize: finalFontSize,
               fontFamily: finalFontFamily,
               fill: textColor,
-              left: segmentLeft + translateAnimation.translateX,
-              top: segmentTop + translateAnimation.translateY,
-              scaleX: zoomAnimation.scaleX,
-              scaleY: zoomAnimation.scaleY,
-              angle: rotationAnimation.rotation,
-              opacity: opacityAnimation.opacity * segmentProgress,
+              left: segmentLeft,
+              top: segmentTop,
+              scaleX: 1,
+              scaleY: 1,
+              angle: 0,
+              opacity: segmentProgress,
               originX: 'center',
               originY: 'center'
             });
@@ -445,12 +366,12 @@ export async function createTitleElement(config) {
           fontSize: finalFontSize,
           fontFamily: finalFontFamily,
           fill: textColor,
-          left: left + translateAnimation.translateX,
-          top: top + translateAnimation.translateY,
-          scaleX: zoomAnimation.scaleX,
-          scaleY: zoomAnimation.scaleY,
-          angle: rotationAnimation.rotation,
-          opacity: opacityAnimation.opacity,
+          left: left,
+          top: top,
+          scaleX: 1,
+          scaleY: 1,
+          angle: 0,
+          opacity: 1,
           originX: 'center',
           originY: 'center'
         });
