@@ -333,19 +333,72 @@ export async function createTitleElement(config) {
               }
             }
             
+            // 处理分割文本的动画效果
+            let scaleX = 1, scaleY = 1, angle = 0, translateX = 0, translateY = 0;
+            let rotationX = 0, rotationY = 0, rotationZ = 0, translateZ = 0;
+            let opacity = segmentProgress; // 默认使用分割进度作为透明度
+            
+            if (animations && animations.length > 0) {
+              // 处理预设动画
+              const processedAnimations = processPresetAnimations(animations);
+              
+              for (const anim of processedAnimations) {
+                const animProgress = Math.max(0, Math.min(1, segmentProgress));
+                const animValue = anim.from + (anim.to - anim.from) * animProgress;
+                
+                switch (anim.property) {
+                  case 'scaleX':
+                    scaleX = animValue;
+                    break;
+                  case 'scaleY':
+                    scaleY = animValue;
+                    break;
+                  case 'rotation':
+                  case 'rotationZ':
+                    angle = animValue;
+                    rotationZ = animValue;
+                    break;
+                  case 'rotationX':
+                    rotationX = animValue;
+                    break;
+                  case 'rotationY':
+                    rotationY = animValue;
+                    break;
+                  case 'x':
+                    translateX = animValue;
+                    break;
+                  case 'y':
+                    translateY = animValue;
+                    break;
+                  case 'translateZ':
+                    translateZ = animValue;
+                    break;
+                  case 'opacity':
+                    opacity = animValue;
+                    break;
+                }
+              }
+            }
+            
             // 创建Fabric.js Text对象渲染分割文本片段
-            const textObj = new fabric.Text(segment.char || segment.text.text || segment.text, {
+            const textContent = segment.char || (segment.text && segment.text.text) || segment.text || '';
+            const textObj = new fabric.Text(textContent, {
               fontSize: finalFontSize,
               fontFamily: finalFontFamily,
               fill: textColor,
-              left: segmentLeft,
-              top: segmentTop,
-              scaleX: 1,
-              scaleY: 1,
-              angle: 0,
-              opacity: segmentProgress,
+              left: segmentLeft + translateX,
+              top: segmentTop + translateY,
+              scaleX: scaleX,
+              scaleY: scaleY,
+              angle: angle,
+              opacity: opacity,
               originX: 'center',
-              originY: 'center'
+              originY: 'center',
+              // 3D 变换属性（Fabric.js 可能不完全支持，但保留以备将来扩展）
+              rotationX: rotationX,
+              rotationY: rotationY,
+              rotationZ: rotationZ,
+              translateZ: translateZ
             });
             
             // 将文本对象添加到主Canvas
