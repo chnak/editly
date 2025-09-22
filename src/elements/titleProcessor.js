@@ -78,61 +78,98 @@ function processPresetAnimations(animations) {
       // 字符串格式: "fadeIn"
       const preset = animationManager.presets.get(anim);
       if (preset) {
-        
-        processedAnimations.push({
-          property: preset.property,
-          keyframes: [
-            { time: 0, value: preset.from },
-            { time: 1, value: preset.to }
-          ],
-          duration: preset.duration || 1,
-          easing: preset.easing || 'easeOut',
-          type: anim, // 保存原始类型用于特殊处理
-          isOffset: preset.isOffset || false // 传递 isOffset 属性
-        });
-        
-        // 如果是缩放动画，自动添加 scaleY
-        if (preset.property === 'scaleX' && (anim === 'zoomIn' || anim === 'zoomOut' || anim === 'textZoomIn' || anim === 'textZoomOut')) {
+        // 检查是否为多属性动画
+        if (preset.type === 'multi' && preset.properties) {
+          // 处理多属性动画
+          for (const prop of preset.properties) {
+            processedAnimations.push({
+              property: prop.property,
+              keyframes: [
+                { time: 0, value: prop.from },
+                { time: 1, value: prop.to }
+              ],
+              duration: prop.duration || 1,
+              easing: prop.easing || 'easeOut',
+              type: anim,
+              isOffset: prop.isOffset || false
+            });
+          }
+        } else {
+          // 单属性动画
           processedAnimations.push({
-            property: 'scaleY',
+            property: preset.property,
             keyframes: [
               { time: 0, value: preset.from },
               { time: 1, value: preset.to }
             ],
             duration: preset.duration || 1,
             easing: preset.easing || 'easeOut',
-            type: anim
+            type: anim, // 保存原始类型用于特殊处理
+            isOffset: preset.isOffset || false // 传递 isOffset 属性
           });
+          
+          // 如果是缩放动画，自动添加 scaleY
+          if (preset.property === 'scaleX' && (anim === 'zoomIn' || anim === 'zoomOut' || anim === 'textZoomIn' || anim === 'textZoomOut')) {
+            processedAnimations.push({
+              property: 'scaleY',
+              keyframes: [
+                { time: 0, value: preset.from },
+                { time: 1, value: preset.to }
+              ],
+              duration: preset.duration || 1,
+              easing: preset.easing || 'easeOut',
+              type: anim
+            });
+          }
         }
       }
     } else if (anim.type) {
       // 对象格式: {type: "fadeIn", duration: 2}
       const preset = animationManager.presets.get(anim.type);
       if (preset) {
-        processedAnimations.push({
-          property: preset.property,
-          keyframes: [
-            { time: 0, value: preset.from },
-            { time: 1, value: preset.to }
-          ],
-          duration: anim.duration || preset.duration || 1,
-          easing: anim.easing || preset.easing || 'easeOut',
-          type: anim.type,
-          isOffset: preset.isOffset || false // 传递 isOffset 属性
-        });
-        
-        // 如果是缩放动画，自动添加 scaleY
-        if (preset.property === 'scaleX' && (anim.type === 'zoomIn' || anim.type === 'zoomOut' || anim.type === 'textZoomIn' || anim.type === 'textZoomOut')) {
+        // 检查是否为多属性动画
+        if (preset.type === 'multi' && preset.properties) {
+          // 处理多属性动画
+          for (const prop of preset.properties) {
+            processedAnimations.push({
+              property: prop.property,
+              keyframes: [
+                { time: 0, value: prop.from },
+                { time: 1, value: prop.to }
+              ],
+              duration: anim.duration || prop.duration || 1,
+              easing: anim.easing || prop.easing || 'easeOut',
+              type: anim.type,
+              isOffset: prop.isOffset || false
+            });
+          }
+        } else {
+          // 单属性动画
           processedAnimations.push({
-            property: 'scaleY',
+            property: preset.property,
             keyframes: [
               { time: 0, value: preset.from },
               { time: 1, value: preset.to }
             ],
             duration: anim.duration || preset.duration || 1,
             easing: anim.easing || preset.easing || 'easeOut',
-            type: anim.type
+            type: anim.type,
+            isOffset: preset.isOffset || false // 传递 isOffset 属性
           });
+          
+          // 如果是缩放动画，自动添加 scaleY
+          if (preset.property === 'scaleX' && (anim.type === 'zoomIn' || anim.type === 'zoomOut' || anim.type === 'textZoomIn' || anim.type === 'textZoomOut')) {
+            processedAnimations.push({
+              property: 'scaleY',
+              keyframes: [
+                { time: 0, value: preset.from },
+                { time: 1, value: preset.to }
+              ],
+              duration: anim.duration || preset.duration || 1,
+              easing: anim.easing || preset.easing || 'easeOut',
+              type: anim.type
+            });
+          }
         }
       }
     } else if (anim.property) {

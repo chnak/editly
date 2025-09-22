@@ -72,39 +72,45 @@ export class BaseElement {
    */
   processAnimations(animations) {
     animations.forEach(animConfig => {
-      let animation;
+      let animationResult;
       
       if (typeof animConfig === 'string') {
         // 如果是字符串，当作预设动画处理
-        animation = this.animationManager.applyPreset(animConfig);
+        animationResult = this.animationManager.applyPreset(animConfig);
       } else if (animConfig.type) {
         // 如果是 { type: "rotateIn" } 格式，当作预设动画处理
-        animation = this.animationManager.applyPreset(animConfig.type, animConfig);
+        animationResult = this.animationManager.applyPreset(animConfig.type, animConfig);
       } else if (animConfig.preset) {
         // 如果是预设动画配置
-        animation = this.animationManager.applyPreset(animConfig.preset, animConfig);
+        animationResult = this.animationManager.applyPreset(animConfig.preset, animConfig);
       } else if (animConfig.keyframes) {
         // 如果是关键帧动画
-        animation = this.animationManager.createKeyframeAnimation(animConfig);
+        animationResult = this.animationManager.createKeyframeAnimation(animConfig);
       } else {
         // 普通动画配置
-        animation = this.animationManager.createAnimation(animConfig);
+        animationResult = this.animationManager.createAnimation(animConfig);
       }
       
-      // 设置动画的开始时间为元素的开始时间
-      animation.startTime = this.startTime;
-      this.animations.push(animation);
+      // 处理动画结果（可能是单个动画或多个动画）
+      const animationsToAdd = Array.isArray(animationResult) ? animationResult : [animationResult];
       
-      // 为缩放动画自动添加Y轴
-      if (animation.property === 'scaleX' && (animConfig === 'zoomIn' || animConfig === 'zoomOut' || 
-          (animConfig.type && (animConfig.type === 'zoomIn' || animConfig.type === 'zoomOut')))) {
+      animationsToAdd.forEach(animation => {
+        // 设置动画的开始时间为元素的开始时间
+        animation.startTime = this.startTime;
+        this.animations.push(animation);
+      });
+      
+      // 为缩放动画自动添加Y轴（仅对单属性动画）
+      if (!Array.isArray(animationResult) && animationResult.property === 'scaleX' && 
+          (animConfig === 'zoomIn' || animConfig === 'zoomOut' || 
+           (animConfig.type && (animConfig.type === 'zoomIn' || animConfig.type === 'zoomOut')))) {
         const yAnimation = this.animationManager.createAnimation({
           property: 'scaleY',
-          from: animation.from,
-          to: animation.to,
-          duration: animation.duration,
-          easing: animation.easing,
-          startTime: animation.startTime
+          from: animationResult.from,
+          to: animationResult.to,
+          duration: animationResult.duration,
+          easing: animationResult.easing,
+          startTime: animationResult.startTime
         });
         this.animations.push(yAnimation);
       }

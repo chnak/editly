@@ -126,7 +126,7 @@ export class AnimationManager {
    * 应用预设动画
    * @param {string} presetName 预设名称
    * @param {Object} options 动画选项
-   * @returns {Animation} 动画实例
+   * @returns {Animation|Array<Animation>} 动画实例或动画数组（多属性动画）
    */
   applyPreset(presetName, options = {}) {
     const preset = this.presets.get(presetName);
@@ -134,14 +134,26 @@ export class AnimationManager {
       throw new Error(`预设动画 "${presetName}" 不存在`);
     }
 
-    const config = {
-      ...preset,
-      ...options,
-      id: this.generateId()
-    };
-
-
-    return this.createAnimation(config);
+    // 检查是否为多属性动画
+    if (preset.type === 'multi' && preset.properties) {
+      // 返回多属性动画数组
+      return preset.properties.map(prop => {
+        const config = {
+          ...prop,
+          ...options,
+          id: this.generateId()
+        };
+        return this.createAnimation(config);
+      });
+    } else {
+      // 单属性动画
+      const config = {
+        ...preset,
+        ...options,
+        id: this.generateId()
+      };
+      return this.createAnimation(config);
+    }
   }
 
   /**
@@ -188,10 +200,19 @@ export class AnimationManager {
   /**
    * 添加自定义预设动画
    * @param {string} name 预设名称
-   * @param {Object} config 动画配置
+   * @param {Object|Array} config 动画配置，支持单属性或多属性
    */
   addPreset(name, config) {
-    this.presets.set(name, config);
+    // 如果配置是数组，表示多属性动画
+    if (Array.isArray(config)) {
+      this.presets.set(name, {
+        type: 'multi',
+        properties: config
+      });
+    } else {
+      // 单属性动画
+      this.presets.set(name, config);
+    }
   }
 
   /**
@@ -609,6 +630,134 @@ export class AnimationManager {
       duration: 1.0,
       easing: 'easeInOut'
     });
+
+    // ========== 多属性酷炫动画 ==========
+
+    // 超级缩放进入 - 同时缩放X、Y和透明度
+    this.addPreset('superZoomIn', [
+      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    // 超级缩放退出 - 同时缩放X、Y和透明度
+    this.addPreset('superZoomOut', [
+      { property: 'scaleX', from: 1, to: 0, duration: 0.6, easing: 'easeIn' },
+      { property: 'scaleY', from: 1, to: 0, duration: 0.6, easing: 'easeIn' },
+      { property: 'opacity', from: 1, to: 0, duration: 0.4, easing: 'easeIn' }
+    ]);
+
+    // 超级滑入 - 同时移动和淡入
+    this.addPreset('superSlideInLeft', [
+      { property: 'x', from: -300, to: 0, duration: 0.5, easing: 'easeOut', isOffset: true },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    this.addPreset('superSlideInRight', [
+      { property: 'x', from: 300, to: 0, duration: 0.5, easing: 'easeOut', isOffset: true },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    this.addPreset('superSlideInTop', [
+      { property: 'y', from: -200, to: 0, duration: 0.5, easing: 'easeOut', isOffset: true },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    this.addPreset('superSlideInBottom', [
+      { property: 'y', from: 200, to: 0, duration: 0.5, easing: 'easeOut', isOffset: true },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    // 超级旋转进入 - 同时旋转和缩放
+    this.addPreset('superRotateIn', [
+      { property: 'rotation', from: -180, to: 0, duration: 0.6, easing: 'easeOut' },
+      { property: 'scaleX', from: 0.5, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'scaleY', from: 0.5, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    // 超级弹跳进入 - 同时弹跳和旋转
+    this.addPreset('superBounceIn', [
+      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
+      { property: 'rotation', from: -10, to: 0, duration: 0.6, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
+    ]);
+
+    // 超级弹性进入 - 同时弹性和缩放
+    this.addPreset('superElasticIn', [
+      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'elastic' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'elastic' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    // 超级3D翻转 - 同时旋转和缩放
+    this.addPreset('superFlip3D', [
+      { property: 'rotation', from: -180, to: 0, duration: 0.6, easing: 'easeOut' },
+      { property: 'scaleX', from: 0.8, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'scaleY', from: 0.8, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    // 超级爆炸效果 - 同时缩放、旋转和透明度
+    this.addPreset('superExplode', [
+      { property: 'scaleX', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
+      { property: 'rotation', from: 0, to: 360, duration: 0.4, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
+    ]);
+
+    // 超级脉冲效果 - 同时缩放和透明度变化
+    this.addPreset('superPulse', [
+      { property: 'scaleX', from: 1, to: 1.2, duration: 0.5, easing: 'easeInOut' },
+      { property: 'scaleY', from: 1, to: 1.2, duration: 0.5, easing: 'easeInOut' },
+      { property: 'opacity', from: 1, to: 0.8, duration: 0.5, easing: 'easeInOut' }
+    ]);
+
+    // 超级摇摆效果 - 同时旋转和位移
+    this.addPreset('superSwing', [
+      { property: 'rotation', from: -15, to: 15, duration: 0.6, easing: 'easeInOut' },
+      { property: 'x', from: -10, to: 10, duration: 0.6, easing: 'easeInOut', isOffset: true },
+      { property: 'y', from: -5, to: 5, duration: 0.6, easing: 'easeInOut', isOffset: true }
+    ]);
+
+    // 超级故障效果 - 同时位移、旋转和透明度
+    this.addPreset('superGlitch', [
+      { property: 'x', from: -5, to: 5, duration: 0.5, easing: 'linear' },
+      { property: 'y', from: -3, to: 3, duration: 0.5, easing: 'linear' },
+      { property: 'rotation', from: -2, to: 2, duration: 0.5, easing: 'linear' },
+      { property: 'opacity', from: 0.8, to: 1, duration: 0.5, easing: 'linear' }
+    ]);
+
+    // 超级波浪效果 - 同时Y轴位移和旋转
+    this.addPreset('superWave', [
+      { property: 'y', from: -10, to: 10, duration: 1.0, easing: 'easeInOut' },
+      { property: 'rotation', from: -5, to: 5, duration: 1.0, easing: 'easeInOut' },
+      { property: 'scaleX', from: 0.95, to: 1.05, duration: 1.0, easing: 'easeInOut' }
+    ]);
+
+    // 超级螺旋效果 - 同时旋转、缩放和透明度
+    this.addPreset('superSpiral', [
+      { property: 'rotation', from: 0, to: 360, duration: 0.6, easing: 'easeInOut' },
+      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    // 超级溶解效果 - 同时透明度和缩放
+    this.addPreset('superDissolve', [
+      { property: 'opacity', from: 0, to: 1, duration: 0.6, easing: 'easeInOut' },
+      { property: 'scaleX', from: 0.8, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'scaleY', from: 0.8, to: 1, duration: 0.6, easing: 'easeOut' }
+    ]);
+
+    // 超级弹簧效果 - 同时缩放和旋转
+    this.addPreset('superSpring', [
+      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'spring' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'spring' },
+      { property: 'rotation', from: -10, to: 0, duration: 0.6, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
+    ]);
   }
 
   /**
