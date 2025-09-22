@@ -1,7 +1,7 @@
 import { ffmpeg, readFileStreams } from "../utils/ffmpegUtils.js";
 import { rawVideoToFrames, calculateVideoScale, getInputCodec, buildVideoFFmpegArgs, calculateVideoPosition } from "../utils/videoUtils.js";
 import { rgbaToFabricImage } from "../utils/fabricUtils.js";
-import { parsePositionValue } from "../utils/positionUtils.js";
+import { parsePositionValue, getPositionProps } from "../utils/positionUtils.js";
 
 /**
  * 视频处理器 - 处理视频文件的帧提取
@@ -16,15 +16,28 @@ export async function createVideoElement(config) {
     cutFrom,
     cutTo,
     speedFactor = 1,
-    left = 0,
-    top = 0,
-    originX = 'left',
-    originY = 'top',
+    position = 'center',
+    x = 0,
+    y = 0,
+    originX = 'center',
+    originY = 'center',
     loop = false,
     elementDuration = 0,
     containerWidth = 1280,
     containerHeight = 720
   } = config;
+  
+  // 使用 getPositionProps 解析位置
+  const positionProps = getPositionProps({
+    position,
+    x,
+    y,
+    width: containerWidth,
+    height: containerHeight,
+    originX,
+    originY
+  });
+  
   
   // 解析宽度和高度，支持百分比值
   const parsedWidth = typeof width === 'string' 
@@ -190,7 +203,11 @@ export async function createVideoElement(config) {
         return {
           data: Buffer.from(rgba),
           width: targetWidth,
-          height: targetHeight
+          height: targetHeight,
+          x: positionProps.left,
+          y: positionProps.top,
+          originX: positionProps.originX,
+          originY: positionProps.originY
         };
         
       } catch (error) {

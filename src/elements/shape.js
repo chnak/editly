@@ -29,7 +29,12 @@ export class ShapeElement extends BaseElement {
       shapeWidth: this.shapeWidth,
       shapeHeight: this.shapeHeight,
       width: this.canvasWidth,
-      height: this.canvasHeight
+      height: this.canvasHeight,
+      position: this.position,
+      x: this.x,
+      y: this.y,
+      originX: this.originX,
+      originY: this.originY
     });
   }
 

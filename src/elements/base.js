@@ -348,12 +348,24 @@ export class BaseElement {
   applyTransformToFrameData(frameData, transform) {
     if (!frameData) return null;
 
-    // 获取位置属性
-    const positionProps = this.getPositionProps();
-    const finalX = frameData.x !== undefined ? frameData.x : positionProps.left;
-    const finalY = frameData.y !== undefined ? frameData.y : positionProps.top;
-    const finalOriginX = frameData.originX !== undefined ? frameData.originX : positionProps.originX;
-    const finalOriginY = frameData.originY !== undefined ? frameData.originY : positionProps.originY;
+    // 如果 frameData 已经包含位置信息，优先使用（如 titleProcessor、imageProcessor、videoProcessor 的情况）
+    // 否则使用 BaseElement 的 getPositionProps 解析
+    let finalX, finalY, finalOriginX, finalOriginY;
+    
+    if (frameData.x !== undefined && frameData.y !== undefined) {
+      // frameData 已经包含位置信息，直接使用
+      finalX = frameData.x;
+      finalY = frameData.y;
+      finalOriginX = frameData.originX || 'center';
+      finalOriginY = frameData.originY || 'center';
+    } else {
+      // frameData 不包含位置信息，使用 BaseElement 解析
+      const positionProps = this.getPositionProps();
+      finalX = positionProps.left;
+      finalY = positionProps.top;
+      finalOriginX = positionProps.originX;
+      finalOriginY = positionProps.originY;
+    }
     
     // 应用变换信息
     return {

@@ -32,19 +32,17 @@ export class VideoElement extends BaseElement {
     await super.initialize();
     
     if (this.source) {
-      // 获取位置属性
-      const positionProps = this.getPositionProps();
-      
       this.videoElement = await createVideoElement({
         source: this.source,
         width: this.videoWidth,
         height: this.videoHeight,
         fps: this.fps,
         fit: this.fit,
-        left: positionProps.left,
-        top: positionProps.top,
-        originX: positionProps.originX,
-        originY: positionProps.originY,
+        position: this.position,
+        x: this.x,
+        y: this.y,
+        originX: this.originX,
+        originY: this.originY,
         cutFrom: this.cutFrom,
         cutTo: this.cutTo,
         speedFactor: this.speedFactor,
