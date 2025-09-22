@@ -348,7 +348,8 @@ export class AnimationManager {
 
     // 摇摆效果
     this.addPreset('swing', [
-      { property: 'rotation', from: -15, to: 15, duration: 0.6, easing: 'easeInOut' },
+      { property: 'rotation', from: -15, to: 15, duration: 0.3, easing: 'easeInOut' },
+      { property: 'rotation', from: 15, to: 0, duration: 0.3, easing: 'easeInOut', delay: 0.3 },
       { property: 'x', from: -5, to: 5, duration: 0.6, easing: 'easeInOut', isOffset: true }
     ]);
 
@@ -486,7 +487,8 @@ export class AnimationManager {
 
     // 超级摇摆效果
     this.addPreset('superSwing', [
-      { property: 'rotation', from: -15, to: 15, duration: 0.6, easing: 'easeInOut' },
+      { property: 'rotation', from: -15, to: 15, duration: 0.3, easing: 'easeInOut' },
+      { property: 'rotation', from: 15, to: 0, duration: 0.3, easing: 'easeInOut', delay: 0.3 },
       { property: 'x', from: -10, to: 10, duration: 0.6, easing: 'easeInOut', isOffset: true },
       { property: 'y', from: -5, to: 5, duration: 0.6, easing: 'easeInOut', isOffset: true }
     ]);
@@ -495,14 +497,16 @@ export class AnimationManager {
     this.addPreset('superGlitch', [
       { property: 'x', from: -5, to: 5, duration: 0.5, easing: 'linear' },
       { property: 'y', from: -3, to: 3, duration: 0.5, easing: 'linear' },
-      { property: 'rotation', from: -2, to: 2, duration: 0.5, easing: 'linear' },
+      { property: 'rotation', from: -2, to: 2, duration: 0.25, easing: 'linear' },
+      { property: 'rotation', from: 2, to: 0, duration: 0.25, easing: 'linear', delay: 0.25 },
       { property: 'opacity', from: 0.8, to: 1, duration: 0.5, easing: 'linear' }
     ]);
 
     // 超级波浪效果
     this.addPreset('superWave', [
       { property: 'y', from: -10, to: 10, duration: 1.0, easing: 'easeInOut' },
-      { property: 'rotation', from: -5, to: 5, duration: 1.0, easing: 'easeInOut' },
+      { property: 'rotation', from: -5, to: 5, duration: 0.5, easing: 'easeInOut' },
+      { property: 'rotation', from: 5, to: 0, duration: 0.5, easing: 'easeInOut', delay: 0.5 },
       { property: 'scaleX', from: 0.95, to: 1.05, duration: 1.0, easing: 'easeInOut' }
     ]);
 
