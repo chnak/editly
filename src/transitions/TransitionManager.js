@@ -664,7 +664,7 @@ export class TransitionManager {
       height: canvasHeight
     });
 
-    // 计算 3D 变换 - 连续旋转
+    // 计算 3D 变换 - 使用Fabric.js支持的属性模拟3D效果
     const totalAngle = config.angle ?? 180;
     const axis = config.axis ?? 'y';
     const currentAngle = totalAngle * progress;
@@ -684,11 +684,22 @@ export class TransitionManager {
       
       const transform = {};
       if (axis === 'x') {
-        transform.rotationX = currentAngle;
+        // 模拟X轴旋转：使用skewY和scaleX
+        const skewY = Math.sin(currentAngle * Math.PI / 180) * 0.5;
+        const scaleX = Math.cos(currentAngle * Math.PI / 180);
+        transform.skewY = skewY;
+        transform.scaleX = Math.abs(scaleX);
+        if (scaleX < 0) transform.flipX = true;
       } else if (axis === 'y') {
-        transform.rotationY = currentAngle;
+        // 模拟Y轴旋转：使用skewX和scaleY
+        const skewX = Math.sin(currentAngle * Math.PI / 180) * 0.5;
+        const scaleY = Math.cos(currentAngle * Math.PI / 180);
+        transform.skewX = skewX;
+        transform.scaleY = Math.abs(scaleY);
+        if (scaleY < 0) transform.flipY = true;
       } else {
-        transform.rotationZ = currentAngle;
+        // Z轴旋转：直接使用angle
+        transform.angle = currentAngle;
       }
       
       fromImage.set({
@@ -712,11 +723,22 @@ export class TransitionManager {
       
       const transform = {};
       if (axis === 'x') {
-        transform.rotationX = currentAngle;
+        // 模拟X轴旋转：使用skewY和scaleX
+        const skewY = Math.sin(currentAngle * Math.PI / 180) * 0.5;
+        const scaleX = Math.cos(currentAngle * Math.PI / 180);
+        transform.skewY = skewY;
+        transform.scaleX = Math.abs(scaleX);
+        if (scaleX < 0) transform.flipX = true;
       } else if (axis === 'y') {
-        transform.rotationY = currentAngle;
+        // 模拟Y轴旋转：使用skewX和scaleY
+        const skewX = Math.sin(currentAngle * Math.PI / 180) * 0.5;
+        const scaleY = Math.cos(currentAngle * Math.PI / 180);
+        transform.skewX = skewX;
+        transform.scaleY = Math.abs(scaleY);
+        if (scaleY < 0) transform.flipY = true;
       } else {
-        transform.rotationZ = currentAngle;
+        // Z轴旋转：直接使用angle
+        transform.angle = currentAngle;
       }
       
       toImage.set({
