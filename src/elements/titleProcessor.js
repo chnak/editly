@@ -349,6 +349,7 @@ export async function createTitleElement(config) {
           const segment = textSegments[i];
           // 计算分割动画进度
           // segment.startTime 和 segment.endTime 是相对于分割动画的延迟时间
+          // 使用元素进度来计算分割动画进度
           const segmentProgress = Math.max(0, Math.min(1, (progress - segment.startTime) / (segment.endTime - segment.startTime)));
           
           if (segmentProgress > 0) {
