@@ -155,20 +155,30 @@ export class BaseElement {
     let rotationY = this.rotationY;
     let rotationZ = this.rotationZ;
     let translateZ = this.translateZ;
+    
+    // 用于累加偏移量的变量
+    let translateX = 0;
+    let translateY = 0;
 
     // 应用动画
     for (const animation of this.animations) {
       const animValue = animation.getValueAtTime(time);
       
-      
       if (animValue !== null) {
-        
         switch (animation.property) {
           case 'x':
-            x = animation.isOffset ? this.x + animValue : animValue;
+            if (animation.isOffset) {
+              translateX += animValue; // 累加偏移量
+            } else {
+              x = animValue; // 直接设置位置
+            }
             break;
           case 'y':
-            y = animation.isOffset ? this.y + animValue : animValue;
+            if (animation.isOffset) {
+              translateY += animValue; // 累加偏移量
+            } else {
+              y = animValue; // 直接设置位置
+            }
             break;
           case 'scaleX':
             scaleX = animValue;
@@ -195,6 +205,10 @@ export class BaseElement {
         }
       }
     }
+
+    // 应用偏移量到最终位置
+    x += translateX;
+    y += translateY;
 
     return { 
       x, y, scaleX, scaleY, rotation, opacity,
@@ -297,10 +311,9 @@ export class BaseElement {
     // 获取位置属性
     const positionProps = this.getPositionProps();
     
-    // 如果 frameData 已经包含了位置信息（如分割文本），则使用原有的位置
-    // 否则使用计算出的位置
-    const finalX = frameData.x !== undefined ? frameData.x : positionProps.left;
-    const finalY = frameData.y !== undefined ? frameData.y : positionProps.top;
+    // 使用变换后的位置信息（包含动画效果）
+    const finalX = transform.x !== undefined ? transform.x : (frameData.x !== undefined ? frameData.x : positionProps.left);
+    const finalY = transform.y !== undefined ? transform.y : (frameData.y !== undefined ? frameData.y : positionProps.top);
     const finalOriginX = frameData.originX !== undefined ? frameData.originX : positionProps.originX;
     const finalOriginY = frameData.originY !== undefined ? frameData.originY : positionProps.originY;
     
