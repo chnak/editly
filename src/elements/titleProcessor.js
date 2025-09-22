@@ -526,19 +526,110 @@ export async function createTitleElement(config) {
         // 创建实际尺寸的画布
         const textCanvas = createFabricCanvas({ width: actualWidth, height: actualHeight });
         
-        // 创建Fabric.js Text对象，放在画布中心
+        // 处理动画效果
+        let scaleX = 1, scaleY = 1, angle = 0, translateX = 0, translateY = 0;
+        let rotationX = 0, rotationY = 0, rotationZ = 0, translateZ = 0;
+        let opacity = 1;
+        
+        if (animations && animations.length > 0) {
+          // 处理多个动画的组合
+          let scaleXAnimations = [];
+          let scaleYAnimations = [];
+          let rotationAnimations = [];
+          let opacityAnimations = [];
+          let translateXAnimations = [];
+          let translateYAnimations = [];
+          
+          // 收集所有动画值
+          for (const anim of animations) {
+            const absoluteTime = time || (progress * duration);
+            const animValue = anim.getValueAtTime(absoluteTime);
+            
+            if (animValue !== null) {
+              switch (anim.property) {
+                case 'scaleX':
+                  scaleXAnimations.push(animValue);
+                  break;
+                case 'scaleY':
+                  scaleYAnimations.push(animValue);
+                  break;
+                case 'rotation':
+                case 'rotationZ':
+                  rotationAnimations.push(animValue);
+                  break;
+                case 'rotationX':
+                  rotationAnimations.push(animValue);
+                  break;
+                case 'rotationY':
+                  rotationAnimations.push(animValue);
+                  break;
+                case 'x':
+                  if (anim.isOffset) {
+                    translateXAnimations.push(animValue);
+                  } else {
+                    translateX = animValue;
+                  }
+                  break;
+                case 'y':
+                  if (anim.isOffset) {
+                    translateYAnimations.push(animValue);
+                  } else {
+                    translateY = animValue;
+                  }
+                  break;
+                case 'translateZ':
+                  translateZ = animValue;
+                  break;
+                case 'opacity':
+                  opacityAnimations.push(animValue);
+                  break;
+              }
+            }
+          }
+          
+          // 应用动画组合
+          if (scaleXAnimations.length > 0) {
+            // 对于缩放，使用乘法组合（bounceIn: 0→1, explodeOut: 1→1.5）
+            scaleX = scaleXAnimations.reduce((acc, val) => acc * val, 1);
+          }
+          if (scaleYAnimations.length > 0) {
+            scaleY = scaleYAnimations.reduce((acc, val) => acc * val, 1);
+          }
+          if (rotationAnimations.length > 0) {
+            // 对于旋转，使用加法组合
+            angle = rotationAnimations.reduce((acc, val) => acc + val, 0);
+            rotationZ = angle;
+          }
+          if (opacityAnimations.length > 0) {
+            // 对于透明度，使用乘法组合
+            opacity = opacityAnimations.reduce((acc, val) => acc * val, 1);
+          }
+          if (translateXAnimations.length > 0) {
+            translateX += translateXAnimations.reduce((acc, val) => acc + val, 0);
+          }
+          if (translateYAnimations.length > 0) {
+            translateY += translateYAnimations.reduce((acc, val) => acc + val, 0);
+          }
+        }
+        
+        // 创建Fabric.js Text对象，放在画布中心，应用动画
         const textObj = new fabric.Text(text, {
           fontSize: finalFontSize,
           fontFamily: finalFontFamily,
           fill: textColor,
-          left: actualWidth / 2,   // 画布中心
-          top: actualHeight / 2,   // 画布中心
-          scaleX: 1,
-          scaleY: 1,
-          angle: 0,
-          opacity: 1,
+          left: actualWidth / 2 + translateX,   // 画布中心 + 动画偏移
+          top: actualHeight / 2 + translateY,   // 画布中心 + 动画偏移
+          scaleX: scaleX,
+          scaleY: scaleY,
+          angle: angle,
+          opacity: opacity,
           originX: 'center', // 使用 center 作为原点
-          originY: 'center'  // 使用 center 作为原点
+          originY: 'center',  // 使用 center 作为原点
+          // 3D 变换属性（Fabric.js 可能不完全支持，但保留以备将来扩展）
+          rotationX: rotationX,
+          rotationY: rotationY,
+          rotationZ: rotationZ,
+          translateZ: translateZ
         });
         
         // 将文本对象添加到Canvas

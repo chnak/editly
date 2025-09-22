@@ -95,14 +95,24 @@ export class BaseElement {
       const animationsToAdd = Array.isArray(animationResult) ? animationResult : [animationResult];
       
       animationsToAdd.forEach((animation, index) => {
-        // 设置动画的开始时间
-        if (animation.startTime === undefined || animation.startTime === 0) {
-          // 对于 Out 动画（delay < 0），应该在元素结束时间开始
-          if (animation.delay < 0) {
-            animation.startTime = this.startTime + this.duration;
-          } else {
+        // 设置动画的开始时间（仅对非关键帧动画）
+        if (animation.constructor.name !== 'KeyframeAnimation') {
+          if (animation.startTime === undefined || animation.startTime === 0) {
+            // 对于 Out 动画（delay < 0），应该在元素结束时间开始
+            if (animation.delay < 0) {
+              animation.startTime = this.startTime + this.duration;
+            } else {
+              animation.startTime = this.startTime;
+            }
+          }
+        } else {
+          // 关键帧动画：设置相对于元素开始时间的偏移
+          if (animation.startTime === undefined || animation.startTime === 0) {
             animation.startTime = this.startTime;
           }
+          // 重新计算关键帧动画的时间范围
+          animation.actualStartTime = animation.startTime + (animation.delay || 0);
+          animation.endTime = animation.actualStartTime + animation.duration;
         }
         this.animations.push(animation);
       });
@@ -179,6 +189,7 @@ export class BaseElement {
     // 收集所有动画值
     for (const animation of this.animations) {
       const animValue = animation.getValueAtTime(time);
+      
       
       if (animValue !== null) {
         switch (animation.property) {
