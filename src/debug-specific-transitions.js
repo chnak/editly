@@ -156,18 +156,18 @@ async function debugSpecificTransitions() {
        transitions: [
          {
            type: "fadeTest",
-           startTime: 3.0,  // 场景1结束时开始过渡
-           duration: 1.0    // 过渡到场景2开始
+           startTime: 2.5,  // 场景1结束前0.5秒开始过渡
+           duration: 1.5    // 过渡到场景2开始后0.5秒
          },
          {
            type: "rotationTest",
-           startTime: 7.0,  // 场景2结束时开始过渡
-           duration: 1.0    // 过渡到场景3开始
+           startTime: 6.5,  // 场景2结束前0.5秒开始过渡
+           duration: 1.5    // 过渡到场景3开始后0.5秒
          },
          {
            type: "flip3DTest",
-           startTime: 11.0, // 场景3结束时开始过渡
-           duration: 1.0    // 过渡到场景4开始
+           startTime: 10.5, // 场景3结束前0.5秒开始过渡
+           duration: 1.5    // 过渡到场景4开始后0.5秒
          }
        ]
     });

@@ -464,15 +464,15 @@ export class TransitionManager {
     const toAngle = config.to?.angle ?? 360;
     
     // 根据进度插值计算实际角度
-    const actualFromAngle = fromAngle + (toAngle - fromAngle) * progress;
-    const actualToAngle = fromAngle + (toAngle - fromAngle) * progress;
+    // 简单的连续旋转：从 fromAngle 旋转到 toAngle
+    const actualAngle = fromAngle + (toAngle - fromAngle) * progress;
 
     console.log(`[TransitionManager] 旋转计算:`, {
-      fromAngle, toAngle, actualFromAngle, actualToAngle
+      fromAngle, toAngle, actualAngle, progress
     });
 
-    // 添加 fromFrame
-    if (fromFrame) {
+    // 添加 fromFrame (前半段)
+    if (fromFrame && progress < 0.5) {
       const fromImage = await rgbaToFabricImage({
         width: fromFrame.width,
         height: fromFrame.height,
@@ -483,14 +483,14 @@ export class TransitionManager {
         top: canvasHeight / 2,
         originX: 'center',
         originY: 'center',
-        angle: actualFromAngle
+        angle: actualAngle
       });
       transitionCanvas.add(fromImage);
-      console.log(`[TransitionManager] 添加 fromFrame, 角度: ${actualFromAngle}`);
+      console.log(`[TransitionManager] 添加 fromFrame, 角度: ${actualAngle}`);
     }
 
-    // 添加 toFrame
-    if (toFrame) {
+    // 添加 toFrame (后半段)
+    if (toFrame && progress >= 0.5) {
       const toImage = await rgbaToFabricImage({
         width: toFrame.width,
         height: toFrame.height,
@@ -501,10 +501,10 @@ export class TransitionManager {
         top: canvasHeight / 2,
         originX: 'center',
         originY: 'center',
-        angle: actualToAngle
+        angle: actualAngle
       });
       transitionCanvas.add(toImage);
-      console.log(`[TransitionManager] 添加 toFrame, 角度: ${actualToAngle}`);
+      console.log(`[TransitionManager] 添加 toFrame, 角度: ${actualAngle}`);
     }
 
     return await renderFabricCanvas(transitionCanvas);
@@ -664,16 +664,18 @@ export class TransitionManager {
       height: canvasHeight
     });
 
-    // 计算 3D 变换
-    const angle = (config.angle ?? 180) * progress;
+    // 计算 3D 变换 - 连续旋转
+    const totalAngle = config.angle ?? 180;
     const axis = config.axis ?? 'y';
+    const currentAngle = totalAngle * progress;
 
     console.log(`[TransitionManager] 3D变换计算:`, {
-      angle, axis, progress
+      totalAngle, currentAngle, axis, progress
     });
 
-    // 添加 fromFrame
+    // 根据进度决定显示哪个帧
     if (fromFrame && progress < 0.5) {
+      // 前半段：显示 fromFrame，逐渐旋转
       const fromImage = await rgbaToFabricImage({
         width: fromFrame.width,
         height: fromFrame.height,
@@ -682,11 +684,11 @@ export class TransitionManager {
       
       const transform = {};
       if (axis === 'x') {
-        transform.rotationX = angle;
+        transform.rotationX = currentAngle;
       } else if (axis === 'y') {
-        transform.rotationY = angle;
+        transform.rotationY = currentAngle;
       } else {
-        transform.rotationZ = angle;
+        transform.rotationZ = currentAngle;
       }
       
       fromImage.set({
@@ -700,8 +702,8 @@ export class TransitionManager {
       console.log(`[TransitionManager] 添加 fromFrame, 3D变换:`, transform);
     }
 
-    // 添加 toFrame
     if (toFrame && progress >= 0.5) {
+      // 后半段：显示 toFrame，继续旋转
       const toImage = await rgbaToFabricImage({
         width: toFrame.width,
         height: toFrame.height,
@@ -710,11 +712,11 @@ export class TransitionManager {
       
       const transform = {};
       if (axis === 'x') {
-        transform.rotationX = angle - (config.angle ?? 180);
+        transform.rotationX = currentAngle;
       } else if (axis === 'y') {
-        transform.rotationY = angle - (config.angle ?? 180);
+        transform.rotationY = currentAngle;
       } else {
-        transform.rotationZ = angle - (config.angle ?? 180);
+        transform.rotationZ = currentAngle;
       }
       
       toImage.set({
