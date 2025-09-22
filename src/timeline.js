@@ -187,13 +187,21 @@ export class Timeline {
   async renderTransitionFrame(time, canvas, transition) {
     const progress = (time - transition.startTime) / transition.duration;
     
-    // 获取过渡前的帧
-    const fromTime = transition.startTime - 0.1; // 稍微提前一点获取前一帧
+    // 获取过渡前的帧（场景A的最后一帧）
+    const fromTime = transition.startTime;
     const fromFrame = await this.getFrameWithoutTransition(fromTime, canvas);
     
-    // 获取过渡后的帧
-    const toTime = transition.endTime + 0.1; // 稍微延后一点获取后一帧
+    // 获取过渡后的帧（场景B的第一帧）
+    const toTime = transition.endTime;
     const toFrame = await this.getFrameWithoutTransition(toTime, canvas);
+    
+    console.log(`[Timeline] 渲染过渡帧:`, {
+      time: time.toFixed(3),
+      progress: progress.toFixed(3),
+      fromTime: fromTime.toFixed(3),
+      toTime: toTime.toFixed(3),
+      transitionType: transition.type
+    });
     
     // 应用过渡效果
     const transitionResult = await this.transitionApplier.applyTransition(

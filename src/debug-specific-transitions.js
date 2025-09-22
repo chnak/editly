@@ -48,127 +48,128 @@ async function debugSpecificTransitions() {
       width: 1280,
       height: 720,
       fps: 30,
-      elements: [
-        // 场景 1 - 淡入淡出测试
-        {
-          type: "shape",
-          shape: "rect",
-          width: '100%',
-          height: '100%',
-          x: '50%',
-          y: '50%',
-          fillColor: "#e74c3c",
-          duration: 4,
-          startTime: 0
-        },
-        {
-          type: "title",
-          text: "淡入淡出测试",
-          textColor: "#ffffff",
-          fontSize: 48,
-          duration: 4,
-          startTime: 0,
-          x: '50%',
-          y: '50%',
-          textAlign: "center",
-          width: '100%',
-          height: '100%'
-        },
-        
-        // 场景 2 - 旋转测试
-        {
-          type: "shape",
-          shape: "rect",
-          width: '100%',
-          height: '100%',
-          x: '50%',
-          y: '50%',
-          fillColor: "#3498db",
-          duration: 4,
-          startTime: 4
-        },
-        {
-          type: "title",
-          text: "旋转测试",
-          textColor: "#ffffff",
-          fontSize: 48,
-          duration: 4,
-          startTime: 8,
-          x: '50%',
-          y: '50%',
-          textAlign: "center",
-          width: '100%',
-          height: '100%'
-        },
-        
-        // 场景 3 - 3D翻转测试
-        {
-          type: "shape",
-          shape: "rect",
-          width: '100%',
-          height: '100%',
-          x: '50%',
-          y: '50%',
-          fillColor: "#2ecc71",
-          duration: 4,
-          startTime: 8
-        },
-        {
-          type: "title",
-          text: "3D翻转测试",
-          textColor: "#ffffff",
-          fontSize: 48,
-          duration: 4,
-          startTime: 8,
-          x: '50%',
-          y: '50%',
-          textAlign: "center",
-          width: '100%',
-          height: '100%'
-        },
-         // 场景 3 - 3D翻转测试
+       elements: [
+         // 场景 1 - 红色场景
          {
-            type: "shape",
-            shape: "rect",
-            width: '100%',
-            height: '100%',
-            x: '50%',
-            y: '50%',
-            fillColor: "#2ecc71",
-            duration: 4,
-            startTime: 12
-          },
-          {
-            type: "title",
-            text: "场景4",
-            textColor: "#ffffff",
-            fontSize: 48,
-            duration: 4,
-            startTime: 12,
-            x: '50%',
-            y: '50%',
-            textAlign: "center",
-            width: '100%',
-            height: '100%'
-          }
-      ],
-      transitions: [
-        {
-          type: "fadeTest",
-          startTime: 3.5,
-          duration: 1.0
-        },
-        {
-          type: "rotationTest",
-          startTime: 7.5,
-          duration: 1.0
-        },
-        {
-          type: "flip3DTest",
-          startTime: 11.5,
-          duration: 1.0
-        }
-      ]
+           type: "shape",
+           shape: "rect",
+           width: '100%',
+           height: '100%',
+           x: '50%',
+           y: '50%',
+           fillColor: "#e74c3c",
+           duration: 3,
+           startTime: 0
+         },
+         {
+           type: "title",
+           text: "场景1 - 红色",
+           textColor: "#ffffff",
+           fontSize: 48,
+           duration: 3,
+           startTime: 0,
+           x: '50%',
+           y: '50%',
+           textAlign: "center",
+           width: '100%',
+           height: '100%'
+         },
+         
+         // 场景 2 - 蓝色场景
+         {
+           type: "shape",
+           shape: "rect",
+           width: '100%',
+           height: '100%',
+           x: '50%',
+           y: '50%',
+           fillColor: "#3498db",
+           duration: 3,
+           startTime: 4
+         },
+         {
+           type: "title",
+           text: "场景2 - 蓝色",
+           textColor: "#ffffff",
+           fontSize: 48,
+           duration: 3,
+           startTime: 4,
+           x: '50%',
+           y: '50%',
+           textAlign: "center",
+           width: '100%',
+           height: '100%'
+         },
+         
+         // 场景 3 - 绿色场景
+         {
+           type: "shape",
+           shape: "rect",
+           width: '100%',
+           height: '100%',
+           x: '50%',
+           y: '50%',
+           fillColor: "#2ecc71",
+           duration: 3,
+           startTime: 8
+         },
+         {
+           type: "title",
+           text: "场景3 - 绿色",
+           textColor: "#ffffff",
+           fontSize: 48,
+           duration: 3,
+           startTime: 8,
+           x: '50%',
+           y: '50%',
+           textAlign: "center",
+           width: '100%',
+           height: '100%'
+         },
+         
+         // 场景 4 - 紫色场景
+         {
+           type: "shape",
+           shape: "rect",
+           width: '100%',
+           height: '100%',
+           x: '50%',
+           y: '50%',
+           fillColor: "#9b59b6",
+           duration: 3,
+           startTime: 12
+         },
+         {
+           type: "title",
+           text: "场景4 - 紫色",
+           textColor: "#ffffff",
+           fontSize: 48,
+           duration: 3,
+           startTime: 12,
+           x: '50%',
+           y: '50%',
+           textAlign: "center",
+           width: '100%',
+           height: '100%'
+         }
+       ],
+       transitions: [
+         {
+           type: "fadeTest",
+           startTime: 3.0,  // 场景1结束时开始过渡
+           duration: 1.0    // 过渡到场景2开始
+         },
+         {
+           type: "rotationTest",
+           startTime: 7.0,  // 场景2结束时开始过渡
+           duration: 1.0    // 过渡到场景3开始
+         },
+         {
+           type: "flip3DTest",
+           startTime: 11.0, // 场景3结束时开始过渡
+           duration: 1.0    // 过渡到场景4开始
+         }
+       ]
     });
 
     const outputPath = await videoMaker.start();
