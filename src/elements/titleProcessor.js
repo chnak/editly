@@ -78,7 +78,7 @@ function processPresetAnimations(animations) {
       // 字符串格式: "fadeIn"
       const preset = animationManager.presets.get(anim);
       if (preset) {
-        // 检查是否为多属性动画
+       // 检查是否为多属性动画
         if (preset.type === 'multi' && preset.properties) {
           // 处理多属性动画
           for (const prop of preset.properties) {
@@ -90,6 +90,7 @@ function processPresetAnimations(animations) {
               ],
               duration: prop.duration || 1,
               easing: prop.easing || 'easeOut',
+              delay: prop.delay || 0, // 传递 delay 参数
               type: anim,
               isOffset: prop.isOffset || false
             });
@@ -104,6 +105,7 @@ function processPresetAnimations(animations) {
             ],
             duration: preset.duration || 1,
             easing: preset.easing || 'easeOut',
+            delay: preset.delay || 0, // 传递 delay 参数
             type: anim, // 保存原始类型用于特殊处理
             isOffset: preset.isOffset || false // 传递 isOffset 属性
           });
@@ -118,6 +120,7 @@ function processPresetAnimations(animations) {
               ],
               duration: preset.duration || 1,
               easing: preset.easing || 'easeOut',
+              delay: preset.delay || 0, // 传递 delay 参数
               type: anim
             });
           }
@@ -139,6 +142,7 @@ function processPresetAnimations(animations) {
               ],
               duration: anim.duration || prop.duration || 1,
               easing: anim.easing || prop.easing || 'easeOut',
+              delay: anim.delay || prop.delay || 0, // 传递 delay 参数
               type: anim.type,
               isOffset: prop.isOffset || false
             });
@@ -153,6 +157,7 @@ function processPresetAnimations(animations) {
             ],
             duration: anim.duration || preset.duration || 1,
             easing: anim.easing || preset.easing || 'easeOut',
+            delay: anim.delay || preset.delay || 0, // 传递 delay 参数
             type: anim.type,
             isOffset: preset.isOffset || false // 传递 isOffset 属性
           });
@@ -167,6 +172,7 @@ function processPresetAnimations(animations) {
               ],
               duration: anim.duration || preset.duration || 1,
               easing: anim.easing || preset.easing || 'easeOut',
+              delay: anim.delay || preset.delay || 0, // 传递 delay 参数
               type: anim.type
             });
           }
@@ -382,13 +388,10 @@ export async function createTitleElement(config) {
             if (animations && animations.length > 0) {
               // 直接处理 Animation 对象
               for (const anim of animations) {
-                const animProgress = Math.max(0, Math.min(1, segmentProgress));
-                
-                // 从 Animation 对象计算当前值
-                let animValue = 0;
-                if (anim.from !== undefined && anim.to !== undefined) {
-                  animValue = anim.from + (anim.to - anim.from) * animProgress;
-                }
+                // 使用 Animation 对象的 getValueAtTime 方法，正确处理 delay
+                // 将分割进度转换为绝对时间
+                const absoluteTime = time || (progress * duration);
+                const animValue = anim.getValueAtTime(absoluteTime);
                 
                 
                 

@@ -1,4 +1,4 @@
-import { Animation } from './animation.js';
+import { Animation } from './Animation.js';
 
 /**
  * 关键帧动画类 - 支持多个关键帧的复杂动画
@@ -235,7 +235,8 @@ export class AnimationManager {
       from: 1,
       to: 0,
       duration: 0.6,
-      easing: 'easeIn'
+      easing: 'easeIn',
+      delay: -0.6  // 在元素结束前0.6秒开始
     });
 
     // 缩放动画
@@ -252,7 +253,8 @@ export class AnimationManager {
       from: 1,
       to: 0,
       duration: 0.6,
-      easing: 'easeIn'
+      easing: 'easeIn',
+      delay: -0.6  // 在元素结束前0.6秒开始
     });
 
     // 旋转动画
@@ -262,6 +264,15 @@ export class AnimationManager {
       to: 0,
       duration: 0.8,
       easing: 'easeOut'
+    });
+
+    this.addPreset('rotateOut', {
+      property: 'rotation',
+      from: 0,
+      to: 180,
+      duration: 0.8,
+      easing: 'easeIn',
+      delay: -0.8  // 在元素结束前0.8秒开始
     });
 
     // 滑动动画
@@ -299,6 +310,47 @@ export class AnimationManager {
       duration: 0.6,
       easing: 'easeOut',
       isOffset: true
+    });
+
+    // 滑出动画
+    this.addPreset('slideOutLeft', {
+      property: 'x',
+      from: 0,
+      to: -300,
+      duration: 0.6,
+      easing: 'easeIn',
+      isOffset: true,
+      delay: -0.6  // 在元素结束前0.6秒开始
+    });
+
+    this.addPreset('slideOutRight', {
+      property: 'x',
+      from: 0,
+      to: 300,
+      duration: 0.6,
+      easing: 'easeIn',
+      isOffset: true,
+      delay: -0.6  // 在元素结束前0.6秒开始
+    });
+
+    this.addPreset('slideOutTop', {
+      property: 'y',
+      from: 0,
+      to: -200,
+      duration: 0.6,
+      easing: 'easeIn',
+      isOffset: true,
+      delay: -0.6  // 在元素结束前0.6秒开始
+    });
+
+    this.addPreset('slideOutBottom', {
+      property: 'y',
+      from: 0,
+      to: 200,
+      duration: 0.6,
+      easing: 'easeIn',
+      isOffset: true,
+      delay: -0.6  // 在元素结束前0.6秒开始
     });
 
     // ========== 现代特效动画 ==========
@@ -409,6 +461,28 @@ export class AnimationManager {
       { property: 'scaleX', from: 0, to: 1, duration: 0.8, easing: 'spring' },
       { property: 'scaleY', from: 0, to: 1, duration: 0.8, easing: 'spring' },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
+
+    // 弹簧退出效果
+    this.addPreset('springOut', [
+      { property: 'scaleX', from: 1, to: 0, duration: 0.8, easing: 'spring', delay: -0.8 },
+      { property: 'scaleY', from: 1, to: 0, duration: 0.8, easing: 'spring', delay: -0.8 },
+      { property: 'opacity', from: 1, to: 0, duration: 0.4, easing: 'easeIn', delay: -0.4 }
+    ]);
+
+    // 爆炸退出效果
+    this.addPreset('explodeOut', [
+      { property: 'scaleX', from: 1, to: 1.5, duration: 0.3, easing: 'easeIn', delay: -0.5 },
+      { property: 'scaleY', from: 1, to: 1.5, duration: 0.3, easing: 'easeIn', delay: -0.5 },
+      { property: 'rotation', from: 0, to: 360, duration: 0.5, easing: 'easeIn', delay: -0.5 },
+      { property: 'opacity', from: 1, to: 0, duration: 0.5, easing: 'easeIn', delay: -0.5 }
+    ]);
+
+    // 溶解退出效果
+    this.addPreset('dissolveOut', [
+      { property: 'opacity', from: 1, to: 0, duration: 0.8, easing: 'easeIn', delay: -0.8 },
+      { property: 'scaleX', from: 1, to: 0.9, duration: 0.8, easing: 'easeIn', delay: -0.8 },
+      { property: 'scaleY', from: 1, to: 0.9, duration: 0.8, easing: 'easeIn', delay: -0.8 }
     ]);
 
     // ========== 现代多属性动画 ==========

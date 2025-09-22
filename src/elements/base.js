@@ -94,9 +94,16 @@ export class BaseElement {
       // 处理动画结果（可能是单个动画或多个动画）
       const animationsToAdd = Array.isArray(animationResult) ? animationResult : [animationResult];
       
-      animationsToAdd.forEach(animation => {
-        // 设置动画的开始时间为元素的开始时间
-        animation.startTime = this.startTime;
+      animationsToAdd.forEach((animation, index) => {
+        // 设置动画的开始时间
+        if (animation.startTime === undefined || animation.startTime === 0) {
+          // 对于 Out 动画（delay < 0），应该在元素结束时间开始
+          if (animation.delay < 0) {
+            animation.startTime = this.startTime + this.duration;
+          } else {
+            animation.startTime = this.startTime;
+          }
+        }
         this.animations.push(animation);
       });
       
@@ -110,6 +117,7 @@ export class BaseElement {
           to: animationResult.to,
           duration: animationResult.duration,
           easing: animationResult.easing,
+          delay: animationResult.delay || 0,
           startTime: animationResult.startTime
         });
         this.animations.push(yAnimation);
