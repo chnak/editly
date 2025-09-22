@@ -1,5 +1,7 @@
 import { BaseElement } from "./base.js";
 import { ConfigParser } from "../configParser.js";
+import { parsePositionValue } from "../utils/positionUtils.js";
+import { createFabricCanvas, renderFabricCanvas } from "../canvas/fabric.js";
 
 /**
  * 组合元素 - 包含多个子元素的容器
@@ -10,16 +12,20 @@ export class CompositionElement extends BaseElement {
     this.elements = config.elements || [];
     this.subElements = [];
     this.configParser = null;
+    
+    // 解析 width 和 height，支持百分比单位
+    this.width = config.width ? parsePositionValue(config.width, this.canvasWidth) : this.canvasWidth;
+    this.height = config.height ? parsePositionValue(config.height, this.canvasHeight) : this.canvasHeight;
   }
 
   async initialize() {
     await super.initialize();
     
-    // 解析子元素
+    // 解析子元素，使用 Composition 的宽高作为子元素的画布尺寸
     this.configParser = new ConfigParser({
       elements: this.elements,
-      canvasWidth: this.canvasWidth,
-      canvasHeight: this.canvasHeight,
+      canvasWidth: this.width,  // 使用 Composition 的宽度
+      canvasHeight: this.height, // 使用 Composition 的高度
       fps: this.fps,
       defaults: this.config?.defaults || {}
     });
@@ -29,8 +35,8 @@ export class CompositionElement extends BaseElement {
     
     // 为每个子元素设置正确的画布尺寸和 FPS
     for (const element of this.subElements) {
-      element.canvasWidth = this.canvasWidth;
-      element.canvasHeight = this.canvasHeight;
+      element.canvasWidth = this.width;   // 使用 Composition 的宽度
+      element.canvasHeight = this.height; // 使用 Composition 的高度
       element.fps = this.fps;
     }
   }
@@ -52,7 +58,13 @@ export class CompositionElement extends BaseElement {
     // 按 zIndex 排序子元素
     const sortedElements = [...this.subElements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
     
-    // 渲染所有子元素
+    // 创建一个临时的画布来渲染子元素
+    const tempCanvas = createFabricCanvas({
+      width: this.width,
+      height: this.height
+    });
+    
+    // 渲染所有子元素到临时画布
     for (const element of sortedElements) {
       try {
         // 检查子元素是否在当前时间范围内
@@ -65,36 +77,35 @@ export class CompositionElement extends BaseElement {
             await element.initialize();
           }
           
-          // 创建子元素的画布上下文
-          const ctx = canvas.getContext('2d');
-          
-          // 保存当前画布状态
-          ctx.save();
-          
-          // 应用 Composition 的变换
-          ctx.translate(transform.x, transform.y);
-          ctx.rotate(transform.rotation * Math.PI / 180);
-          ctx.scale(transform.scaleX, transform.scaleY);
-          ctx.globalAlpha = transform.opacity;
-          
           // 调用子元素的 readNextFrame 方法
-          const frameData = await element.readNextFrame(elementRelativeTime, canvas);
+          const frameData = await element.readNextFrame(elementRelativeTime, tempCanvas);
           
-          // 如果子元素返回了帧数据，需要将其渲染到画布上
+          // 如果子元素返回了帧数据，需要将其渲染到临时画布上
           if (frameData) {
-            await this.renderFrameDataToCanvas(canvas, frameData);
+            await this.renderFrameDataToCanvas(tempCanvas, frameData);
           }
-          
-          // 恢复画布状态
-          ctx.restore();
         }
       } catch (error) {
         console.warn(`渲染子元素失败: ${element.type}`, error);
       }
     }
     
-    return null; // 组合元素不直接返回帧数据，而是通过子元素渲染到画布
+    // 将临时画布转换为帧数据
+    const rgba = await renderFabricCanvas(tempCanvas);
+    const frameData = {
+      data: rgba,
+      width: this.width,
+      height: this.height
+    };
+    
+    if (frameData) {
+      // 创建完整的帧数据，包含所有变换信息
+      return this.createCompleteFrameData(frameData, transform);
+    }
+    
+    return null;
   }
+
 
   /**
    * 将帧数据渲染到画布
