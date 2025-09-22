@@ -67,16 +67,16 @@ export class CompositionElement extends BaseElement {
     // 渲染所有子元素到临时画布
     for (const element of sortedElements) {
       try {
-        // 检查子元素是否在当前时间范围内
+        // 检查子元素是否在当前时间范围内（使用相对时间）
         if (relativeTime >= element.startTime && relativeTime <= element.endTime) {
           // 确保子元素已初始化
           if (!element.isInitialized) {
             await element.initialize();
           }
           
-          // 调用子元素的 readNextFrame 方法，使用全局时间
-          // 这样子元素的动画时间系统与 Composition 保持一致
-          const frameData = await element.readNextFrame(time, tempCanvas);
+          // 调用子元素的 readNextFrame 方法，使用相对时间
+          // 这样子元素的时间系统相对于 Composition 本身
+          const frameData = await element.readNextFrame(relativeTime, tempCanvas);
           
           // 如果子元素返回了帧数据，需要将其渲染到临时画布上
           if (frameData) {
