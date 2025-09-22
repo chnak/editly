@@ -18,7 +18,7 @@ export const basicTransitions = {
     type: 'opacity',
     from: { opacity: 1 },
     to: { opacity: 0 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 弹跳淡入淡出
@@ -26,7 +26,23 @@ export const basicTransitions = {
     type: 'opacity',
     from: { opacity: 1 },
     to: { opacity: 0 },
-    easing: 'bounce'
+    easing: 'easeOutBounce'
+  },
+  
+  // 弹性淡入淡出
+  elasticFade: {
+    type: 'opacity',
+    from: { opacity: 1 },
+    to: { opacity: 0 },
+    easing: 'easeOutElastic'
+  },
+  
+  // 回弹淡入淡出
+  backFade: {
+    type: 'opacity',
+    from: { opacity: 1 },
+    to: { opacity: 0 },
+    easing: 'easeOutBack'
   }
 };
 
@@ -37,7 +53,7 @@ export const slideTransitions = {
     type: 'position',
     from: { x: 0 },
     to: { x: -1 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 右滑
@@ -45,7 +61,7 @@ export const slideTransitions = {
     type: 'position',
     from: { x: 0 },
     to: { x: 1 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 上滑
@@ -53,7 +69,7 @@ export const slideTransitions = {
     type: 'position',
     from: { y: 0 },
     to: { y: -1 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 下滑
@@ -61,7 +77,7 @@ export const slideTransitions = {
     type: 'position',
     from: { y: 0 },
     to: { y: 1 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 对角线滑动
@@ -69,7 +85,23 @@ export const slideTransitions = {
     type: 'position',
     from: { x: 0, y: 0 },
     to: { x: 1, y: -1 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
+  },
+  
+  // 弹性滑动
+  elasticSlide: {
+    type: 'position',
+    from: { x: 0 },
+    to: { x: -1 },
+    easing: 'easeOutElastic'
+  },
+  
+  // 回弹滑动
+  backSlide: {
+    type: 'position',
+    from: { x: 0 },
+    to: { x: -1 },
+    easing: 'easeOutBack'
   }
 };
 
@@ -80,7 +112,7 @@ export const scaleTransitions = {
     type: 'scale',
     from: { scale: 1 },
     to: { scale: 2 },
-    easing: 'easeOut'
+    easing: 'easeOutQuad'
   },
   
   // 缩小
@@ -88,7 +120,7 @@ export const scaleTransitions = {
     type: 'scale',
     from: { scale: 1 },
     to: { scale: 0.5 },
-    easing: 'easeIn'
+    easing: 'easeInQuad'
   },
   
   // 弹性缩放
@@ -96,7 +128,23 @@ export const scaleTransitions = {
     type: 'scale',
     from: { scale: 1 },
     to: { scale: 1.5 },
-    easing: 'elastic'
+    easing: 'easeOutElastic'
+  },
+  
+  // 回弹缩放
+  backZoom: {
+    type: 'scale',
+    from: { scale: 1 },
+    to: { scale: 1.8 },
+    easing: 'easeOutBack'
+  },
+  
+  // 弹跳缩放
+  bounceZoom: {
+    type: 'scale',
+    from: { scale: 1 },
+    to: { scale: 1.5 },
+    easing: 'easeOutBounce'
   }
 };
 
@@ -107,7 +155,7 @@ export const rotationTransitions = {
     type: 'rotation',
     from: { angle: 0 },
     to: { angle: 360 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 逆时针旋转
@@ -115,7 +163,7 @@ export const rotationTransitions = {
     type: 'rotation',
     from: { angle: 0 },
     to: { angle: -360 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 半圈旋转
@@ -123,7 +171,23 @@ export const rotationTransitions = {
     type: 'rotation',
     from: { angle: 0 },
     to: { angle: 180 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
+  },
+  
+  // 弹性旋转
+  elasticRotate: {
+    type: 'rotation',
+    from: { angle: 0 },
+    to: { angle: 360 },
+    easing: 'easeOutElastic'
+  },
+  
+  // 回弹旋转
+  backRotate: {
+    type: 'rotation',
+    from: { angle: 0 },
+    to: { angle: 360 },
+    easing: 'easeOutBack'
   }
 };
 
@@ -155,6 +219,20 @@ export const wipeTransitions = {
     type: 'wipe',
     direction: 'down',
     easing: 'linear'
+  },
+  
+  // 弹性擦除
+  elasticWipe: {
+    type: 'wipe',
+    direction: 'left',
+    easing: 'easeOutElastic'
+  },
+  
+  // 回弹擦除
+  backWipe: {
+    type: 'wipe',
+    direction: 'left',
+    easing: 'easeOutBack'
   }
 };
 
@@ -165,7 +243,7 @@ export const threeDTransitions = {
     type: '3d',
     axis: 'y',
     angle: 180,
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // X轴翻转
@@ -173,7 +251,7 @@ export const threeDTransitions = {
     type: '3d',
     axis: 'x',
     angle: 180,
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // Z轴翻转
@@ -181,7 +259,23 @@ export const threeDTransitions = {
     type: '3d',
     axis: 'z',
     angle: 180,
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
+  },
+  
+  // 弹性翻转
+  elasticFlip: {
+    type: '3d',
+    axis: 'y',
+    angle: 180,
+    easing: 'easeOutElastic'
+  },
+  
+  // 回弹翻转
+  backFlip: {
+    type: '3d',
+    axis: 'y',
+    angle: 180,
+    easing: 'easeOutBack'
   }
 };
 
@@ -199,7 +293,7 @@ export const specialTransitions = {
     type: 'blur',
     from: { blur: 0 },
     to: { blur: 10 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 像素化效果
@@ -207,7 +301,22 @@ export const specialTransitions = {
     type: 'pixelate',
     from: { pixelSize: 1 },
     to: { pixelSize: 20 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
+  },
+  
+  // 弹性溶解
+  elasticDissolve: {
+    type: 'dissolve',
+    pattern: 'random',
+    easing: 'easeOutElastic'
+  },
+  
+  // 回弹模糊
+  backBlur: {
+    type: 'blur',
+    from: { blur: 0 },
+    to: { blur: 10 },
+    easing: 'easeOutBack'
   }
 };
 
@@ -218,7 +327,7 @@ export const combinedTransitions = {
     type: 'position',
     from: { x: 0, opacity: 1 },
     to: { x: -1, opacity: 0 },
-    easing: 'easeInOut'
+    easing: 'easeInOutQuad'
   },
   
   // 缩放 + 旋转
@@ -226,7 +335,23 @@ export const combinedTransitions = {
     type: 'scale',
     from: { scale: 1, angle: 0 },
     to: { scale: 2, angle: 360 },
-    easing: 'easeOut'
+    easing: 'easeOutQuad'
+  },
+  
+  // 弹性滑动 + 淡入淡出
+  elasticSlideFade: {
+    type: 'position',
+    from: { x: 0, opacity: 1 },
+    to: { x: -1, opacity: 0 },
+    easing: 'easeOutElastic'
+  },
+  
+  // 回弹缩放 + 旋转
+  backZoomRotate: {
+    type: 'scale',
+    from: { scale: 1, angle: 0 },
+    to: { scale: 2, angle: 360 },
+    easing: 'easeOutBack'
   }
 };
 

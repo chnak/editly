@@ -168,8 +168,16 @@ export class TransitionManager {
    * 应用过渡效果
    */
   async applyTransition(progress, fromFrame, toFrame, canvas, config) {
+    console.log(`[TransitionManager] 应用过渡效果:`, {
+      type: config.type,
+      easing: config.easing || 'linear',
+      progress: progress.toFixed(3),
+      config: config
+    });
+    
     // 应用缓动函数
-    const easedProgress = this.applyEasing(progress, config.easing || 'linear');
+    const easedProgress = await this.applyEasing(progress, config.easing || 'linear');
+    console.log(`[TransitionManager] 缓动后进度: ${easedProgress.toFixed(3)}`);
     
     switch (config.type) {
       case 'opacity':
@@ -198,48 +206,10 @@ export class TransitionManager {
   /**
    * 应用缓动函数
    */
-  applyEasing(progress, easing) {
-    switch (easing) {
-      case 'linear':
-        return progress;
-      case 'easeIn':
-        return progress * progress;
-      case 'easeOut':
-        return 1 - Math.pow(1 - progress, 2);
-      case 'easeInOut':
-        return progress < 0.5 
-          ? 2 * progress * progress 
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-      case 'bounce':
-        return this.bounceEasing(progress);
-      case 'elastic':
-        return this.elasticEasing(progress);
-      default:
-        return progress;
-    }
-  }
-
-  /**
-   * 弹跳缓动
-   */
-  bounceEasing(progress) {
-    if (progress < 1 / 2.75) {
-      return 7.5625 * progress * progress;
-    } else if (progress < 2 / 2.75) {
-      return 7.5625 * (progress -= 1.5 / 2.75) * progress + 0.75;
-    } else if (progress < 2.5 / 2.75) {
-      return 7.5625 * (progress -= 2.25 / 2.75) * progress + 0.9375;
-    } else {
-      return 7.5625 * (progress -= 2.625 / 2.75) * progress + 0.984375;
-    }
-  }
-
-  /**
-   * 弹性缓动
-   */
-  elasticEasing(progress) {
-    if (progress === 0 || progress === 1) return progress;
-    return Math.pow(2, -10 * progress) * Math.sin((progress - 0.1) * 5 * Math.PI) + 1;
+  async applyEasing(progress, easing) {
+    const { getEasingFunction } = await import('../utils/easings.js');
+    const easingFunction = getEasingFunction(easing);
+    return easingFunction(progress);
   }
 
   /**
@@ -258,11 +228,25 @@ export class TransitionManager {
     });
 
     // 计算透明度
-    const fromOpacity = config.from?.opacity ?? (1 - progress);
-    const toOpacity = config.to?.opacity ?? progress;
+    const fromOpacity = config.from?.opacity ?? 1;
+    const toOpacity = config.to?.opacity ?? 0;
+    
+    // 根据进度插值计算实际透明度
+    const actualFromOpacity = fromOpacity + (toOpacity - fromOpacity) * (1 - progress);
+    const actualToOpacity = fromOpacity + (toOpacity - fromOpacity) * progress;
+
+    console.log(`[TransitionManager] 应用透明度过渡:`, {
+      progress,
+      fromOpacity,
+      toOpacity,
+      actualFromOpacity,
+      actualToOpacity,
+      fromFrame: !!fromFrame,
+      toFrame: !!toFrame
+    });
 
     // 添加 fromFrame
-    if (fromFrame && fromOpacity > 0) {
+    if (fromFrame && actualFromOpacity > 0) {
       const fromImage = await rgbaToFabricImage({
         width: fromFrame.width,
         height: fromFrame.height,
@@ -273,13 +257,14 @@ export class TransitionManager {
         top: canvasHeight / 2,
         originX: 'center',
         originY: 'center',
-        opacity: fromOpacity
+        opacity: actualFromOpacity
       });
       transitionCanvas.add(fromImage);
+      console.log(`[TransitionManager] 添加 fromFrame, 透明度: ${actualFromOpacity}`);
     }
 
     // 添加 toFrame
-    if (toFrame && toOpacity > 0) {
+    if (toFrame && actualToOpacity > 0) {
       const toImage = await rgbaToFabricImage({
         width: toFrame.width,
         height: toFrame.height,
@@ -290,9 +275,10 @@ export class TransitionManager {
         top: canvasHeight / 2,
         originX: 'center',
         originY: 'center',
-        opacity: toOpacity
+        opacity: actualToOpacity
       });
       transitionCanvas.add(toImage);
+      console.log(`[TransitionManager] 添加 toFrame, 透明度: ${actualToOpacity}`);
     }
 
     return await renderFabricCanvas(transitionCanvas);
@@ -302,6 +288,14 @@ export class TransitionManager {
    * 应用位置过渡
    */
   async applyPositionTransition(progress, fromFrame, toFrame, canvas, config) {
+    console.log(`[TransitionManager] 应用位置过渡:`, {
+      progress,
+      from: config.from,
+      to: config.to,
+      fromFrame: !!fromFrame,
+      toFrame: !!toFrame
+    });
+    
     const { createFabricCanvas, renderFabricCanvas } = await import('../canvas/fabric.js');
     const { rgbaToFabricImage } = await import('../utils/fabricUtils.js');
     
@@ -324,6 +318,11 @@ export class TransitionManager {
     const toOffsetX = fromX + (toX - fromX) * progress;
     const toOffsetY = fromY + (toY - fromY) * progress;
 
+    console.log(`[TransitionManager] 位置计算:`, {
+      fromX, fromY, toX, toY,
+      fromOffsetX, fromOffsetY, toOffsetX, toOffsetY
+    });
+
     // 添加 fromFrame
     if (fromFrame) {
       const fromImage = await rgbaToFabricImage({
@@ -338,6 +337,7 @@ export class TransitionManager {
         originY: 'center'
       });
       transitionCanvas.add(fromImage);
+      console.log(`[TransitionManager] 添加 fromFrame, 位置: (${fromOffsetX}, ${fromOffsetY})`);
     }
 
     // 添加 toFrame
@@ -354,6 +354,7 @@ export class TransitionManager {
         originY: 'center'
       });
       transitionCanvas.add(toImage);
+      console.log(`[TransitionManager] 添加 toFrame, 位置: (${toOffsetX}, ${toOffsetY})`);
     }
 
     return await renderFabricCanvas(transitionCanvas);
@@ -363,6 +364,14 @@ export class TransitionManager {
    * 应用缩放过渡
    */
   async applyScaleTransition(progress, fromFrame, toFrame, canvas, config) {
+    console.log(`[TransitionManager] 应用缩放过渡:`, {
+      progress,
+      from: config.from,
+      to: config.to,
+      fromFrame: !!fromFrame,
+      toFrame: !!toFrame
+    });
+    
     const { createFabricCanvas, renderFabricCanvas } = await import('../canvas/fabric.js');
     const { rgbaToFabricImage } = await import('../utils/fabricUtils.js');
     
@@ -375,11 +384,19 @@ export class TransitionManager {
     });
 
     // 计算缩放比例
-    const fromScale = config.from?.scale ?? (1 - progress);
-    const toScale = config.to?.scale ?? progress;
+    const fromScale = config.from?.scale ?? 1;
+    const toScale = config.to?.scale ?? 1;
+    
+    // 根据进度插值计算实际缩放值
+    const actualFromScale = fromScale + (toScale - fromScale) * (1 - progress);
+    const actualToScale = fromScale + (toScale - fromScale) * progress;
+
+    console.log(`[TransitionManager] 缩放计算:`, {
+      fromScale, toScale, actualFromScale, actualToScale
+    });
 
     // 添加 fromFrame
-    if (fromFrame && fromScale > 0) {
+    if (fromFrame && actualFromScale > 0) {
       const fromImage = await rgbaToFabricImage({
         width: fromFrame.width,
         height: fromFrame.height,
@@ -390,14 +407,15 @@ export class TransitionManager {
         top: canvasHeight / 2,
         originX: 'center',
         originY: 'center',
-        scaleX: fromScale,
-        scaleY: fromScale
+        scaleX: actualFromScale,
+        scaleY: actualFromScale
       });
       transitionCanvas.add(fromImage);
+      console.log(`[TransitionManager] 添加 fromFrame, 缩放: ${actualFromScale}`);
     }
 
     // 添加 toFrame
-    if (toFrame && toScale > 0) {
+    if (toFrame && actualToScale > 0) {
       const toImage = await rgbaToFabricImage({
         width: toFrame.width,
         height: toFrame.height,
@@ -408,10 +426,11 @@ export class TransitionManager {
         top: canvasHeight / 2,
         originX: 'center',
         originY: 'center',
-        scaleX: toScale,
-        scaleY: toScale
+        scaleX: actualToScale,
+        scaleY: actualToScale
       });
       transitionCanvas.add(toImage);
+      console.log(`[TransitionManager] 添加 toFrame, 缩放: ${actualToScale}`);
     }
 
     return await renderFabricCanvas(transitionCanvas);
@@ -421,6 +440,14 @@ export class TransitionManager {
    * 应用旋转过渡
    */
   async applyRotationTransition(progress, fromFrame, toFrame, canvas, config) {
+    console.log(`[TransitionManager] 应用旋转过渡:`, {
+      progress,
+      from: config.from,
+      to: config.to,
+      fromFrame: !!fromFrame,
+      toFrame: !!toFrame
+    });
+    
     const { createFabricCanvas, renderFabricCanvas } = await import('../canvas/fabric.js');
     const { rgbaToFabricImage } = await import('../utils/fabricUtils.js');
     
@@ -433,8 +460,16 @@ export class TransitionManager {
     });
 
     // 计算旋转角度
-    const fromAngle = (config.from?.angle ?? 0) + (config.to?.angle ?? 360) * (1 - progress);
-    const toAngle = (config.from?.angle ?? 0) + (config.to?.angle ?? 360) * progress;
+    const fromAngle = config.from?.angle ?? 0;
+    const toAngle = config.to?.angle ?? 360;
+    
+    // 根据进度插值计算实际角度
+    const actualFromAngle = fromAngle + (toAngle - fromAngle) * progress;
+    const actualToAngle = fromAngle + (toAngle - fromAngle) * progress;
+
+    console.log(`[TransitionManager] 旋转计算:`, {
+      fromAngle, toAngle, actualFromAngle, actualToAngle
+    });
 
     // 添加 fromFrame
     if (fromFrame) {
@@ -448,9 +483,10 @@ export class TransitionManager {
         top: canvasHeight / 2,
         originX: 'center',
         originY: 'center',
-        angle: fromAngle
+        angle: actualFromAngle
       });
       transitionCanvas.add(fromImage);
+      console.log(`[TransitionManager] 添加 fromFrame, 角度: ${actualFromAngle}`);
     }
 
     // 添加 toFrame
@@ -465,9 +501,10 @@ export class TransitionManager {
         top: canvasHeight / 2,
         originX: 'center',
         originY: 'center',
-        angle: toAngle
+        angle: actualToAngle
       });
       transitionCanvas.add(toImage);
+      console.log(`[TransitionManager] 添加 toFrame, 角度: ${actualToAngle}`);
     }
 
     return await renderFabricCanvas(transitionCanvas);
@@ -550,7 +587,7 @@ export class TransitionManager {
    * 应用擦除裁剪
    */
   async applyWipeClip(image, direction, position, canvasWidth, canvasHeight, isToFrame = false) {
-    const { fabric } = await import('fabric');
+    const fabric = await import('fabric/node');
     
     let clipRect;
     switch (direction) {
@@ -608,6 +645,14 @@ export class TransitionManager {
    * 应用 3D 过渡
    */
   async apply3DTransition(progress, fromFrame, toFrame, canvas, config) {
+    console.log(`[TransitionManager] 应用3D过渡:`, {
+      progress,
+      axis: config.axis ?? 'y',
+      angle: config.angle ?? 180,
+      fromFrame: !!fromFrame,
+      toFrame: !!toFrame
+    });
+    
     const { createFabricCanvas, renderFabricCanvas } = await import('../canvas/fabric.js');
     const { rgbaToFabricImage } = await import('../utils/fabricUtils.js');
     
@@ -622,6 +667,10 @@ export class TransitionManager {
     // 计算 3D 变换
     const angle = (config.angle ?? 180) * progress;
     const axis = config.axis ?? 'y';
+
+    console.log(`[TransitionManager] 3D变换计算:`, {
+      angle, axis, progress
+    });
 
     // 添加 fromFrame
     if (fromFrame && progress < 0.5) {
@@ -648,6 +697,7 @@ export class TransitionManager {
         ...transform
       });
       transitionCanvas.add(fromImage);
+      console.log(`[TransitionManager] 添加 fromFrame, 3D变换:`, transform);
     }
 
     // 添加 toFrame
@@ -675,6 +725,7 @@ export class TransitionManager {
         ...transform
       });
       transitionCanvas.add(toImage);
+      console.log(`[TransitionManager] 添加 toFrame, 3D变换:`, transform);
     }
 
     return await renderFabricCanvas(transitionCanvas);

@@ -88,9 +88,45 @@ export class TransitionBuilder {
   }
 
   /**
+   * 创建弹跳淡入淡出效果
+   */
+  static bounceFade(easing = 'easeOutBounce') {
+    return new TransitionBuilder()
+      .type('opacity')
+      .from({ opacity: 1 })
+      .to({ opacity: 0 })
+      .easing(easing)
+      .build();
+  }
+
+  /**
+   * 创建弹性淡入淡出效果
+   */
+  static elasticFade(easing = 'easeOutElastic') {
+    return new TransitionBuilder()
+      .type('opacity')
+      .from({ opacity: 1 })
+      .to({ opacity: 0 })
+      .easing(easing)
+      .build();
+  }
+
+  /**
+   * 创建回弹淡入淡出效果
+   */
+  static backFade(easing = 'easeOutBack') {
+    return new TransitionBuilder()
+      .type('opacity')
+      .from({ opacity: 1 })
+      .to({ opacity: 0 })
+      .easing(easing)
+      .build();
+  }
+
+  /**
    * 创建滑动效果
    */
-  static slide(direction = 'left', easing = 'easeInOut') {
+  static slide(direction = 'left', easing = 'easeInOutQuad') {
     const directions = {
       left: { x: -1 },
       right: { x: 1 },
@@ -107,9 +143,23 @@ export class TransitionBuilder {
   }
 
   /**
+   * 创建弹性滑动效果
+   */
+  static elasticSlide(direction = 'left', easing = 'easeOutElastic') {
+    return TransitionBuilder.slide(direction, easing);
+  }
+
+  /**
+   * 创建回弹滑动效果
+   */
+  static backSlide(direction = 'left', easing = 'easeOutBack') {
+    return TransitionBuilder.slide(direction, easing);
+  }
+
+  /**
    * 创建缩放效果
    */
-  static zoom(type = 'in', easing = 'easeOut') {
+  static zoom(type = 'in', easing = 'easeOutQuad') {
     const scales = {
       in: { scale: 2 },
       out: { scale: 0.5 }
@@ -124,15 +174,43 @@ export class TransitionBuilder {
   }
 
   /**
+   * 创建弹性缩放效果
+   */
+  static elasticZoom(type = 'in', easing = 'easeOutElastic') {
+    return TransitionBuilder.zoom(type, easing);
+  }
+
+  /**
+   * 创建回弹缩放效果
+   */
+  static backZoom(type = 'in', easing = 'easeOutBack') {
+    return TransitionBuilder.zoom(type, easing);
+  }
+
+  /**
    * 创建旋转效果
    */
-  static rotate(angle = 360, easing = 'easeInOut') {
+  static rotate(angle = 360, easing = 'easeInOutQuad') {
     return new TransitionBuilder()
       .type('rotation')
       .from({ angle: 0 })
       .to({ angle })
       .easing(easing)
       .build();
+  }
+
+  /**
+   * 创建弹性旋转效果
+   */
+  static elasticRotate(angle = 360, easing = 'easeOutElastic') {
+    return TransitionBuilder.rotate(angle, easing);
+  }
+
+  /**
+   * 创建回弹旋转效果
+   */
+  static backRotate(angle = 360, easing = 'easeOutBack') {
+    return TransitionBuilder.rotate(angle, easing);
   }
 
   /**
@@ -149,13 +227,27 @@ export class TransitionBuilder {
   /**
    * 创建3D翻转效果
    */
-  static flip3D(axis = 'y', angle = 180, easing = 'easeInOut') {
+  static flip3D(axis = 'y', angle = 180, easing = 'easeInOutQuad') {
     return new TransitionBuilder()
       .type('3d')
       .axis(axis)
       .angle(angle)
       .easing(easing)
       .build();
+  }
+
+  /**
+   * 创建弹性3D翻转效果
+   */
+  static elasticFlip3D(axis = 'y', angle = 180, easing = 'easeOutElastic') {
+    return TransitionBuilder.flip3D(axis, angle, easing);
+  }
+
+  /**
+   * 创建回弹3D翻转效果
+   */
+  static backFlip3D(axis = 'y', angle = 180, easing = 'easeOutBack') {
+    return TransitionBuilder.flip3D(axis, angle, easing);
   }
 
   /**
