@@ -44,7 +44,8 @@ export class ConfigParser {
       duration: totalDuration,
       canvasWidth: this.canvasWidth,
       canvasHeight: this.canvasHeight,
-      fps: this.config.fps
+      fps: this.config.fps,
+      transitions: this.config.transitions || []
     };
   }
 

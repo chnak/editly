@@ -27,6 +27,9 @@ export class VideoMaker extends EventEmitter {
       // Creatomate 风格的元素配置
       elements: config.elements || [],
       
+      // 过渡效果配置
+      transitions: config.transitions || [],
+      
       // 全局默认值
       defaults: {
         duration: 4,

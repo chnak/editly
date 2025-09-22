@@ -1,4 +1,5 @@
 import { createFabricCanvas, renderFabricCanvas, rgbaToFabricImage } from "./canvas/fabric.js";
+import { transitionApplier } from "./transitions/TransitionApplier.js";
 
 /**
  * 时间线管理类 - 管理所有元素的时间轴和渲染
@@ -11,7 +12,10 @@ export class Timeline {
     this.canvasHeight = parsedConfig.canvasHeight;
     this.fps = parsedConfig.fps;
     this.globalConfig = globalConfig;
-
+    this.transitionApplier = transitionApplier;
+    
+    // 处理过渡效果配置
+    this.transitions = this.processTransitions(parsedConfig.transitions || []);
   }
 
   /**
@@ -23,6 +27,12 @@ export class Timeline {
         width: this.canvasWidth, 
         height: this.canvasHeight 
       });
+    }
+
+    // 检查是否有过渡效果需要应用
+    const activeTransition = this.getActiveTransitionAtTime(time);
+    if (activeTransition) {
+      return await this.renderTransitionFrame(time, canvas, activeTransition);
     }
 
     // 按层级顺序渲染元素
@@ -148,6 +158,83 @@ export class Timeline {
         fabricObject.set(fabricProp, transformData[prop]);
       }
     });
+  }
+
+  /**
+   * 处理过渡效果配置
+   */
+  processTransitions(transitions) {
+    return transitions.map(transition => ({
+      ...transition,
+      startTime: transition.startTime || 0,
+      duration: transition.duration || 1,
+      endTime: (transition.startTime || 0) + (transition.duration || 1)
+    }));
+  }
+
+  /**
+   * 获取指定时间活跃的过渡效果
+   */
+  getActiveTransitionAtTime(time) {
+    return this.transitions.find(transition => {
+      return time >= transition.startTime && time < transition.endTime;
+    });
+  }
+
+  /**
+   * 渲染过渡效果帧
+   */
+  async renderTransitionFrame(time, canvas, transition) {
+    const progress = (time - transition.startTime) / transition.duration;
+    
+    // 获取过渡前的帧
+    const fromTime = transition.startTime - 0.1; // 稍微提前一点获取前一帧
+    const fromFrame = await this.getFrameWithoutTransition(fromTime, canvas);
+    
+    // 获取过渡后的帧
+    const toTime = transition.endTime + 0.1; // 稍微延后一点获取后一帧
+    const toFrame = await this.getFrameWithoutTransition(toTime, canvas);
+    
+    // 应用过渡效果
+    const transitionResult = await this.transitionApplier.applyTransition(
+      transition.type,
+      progress,
+      fromFrame,
+      toFrame,
+      canvas
+    );
+    
+    return transitionResult;
+  }
+
+  /**
+   * 获取不包含过渡效果的帧
+   */
+  async getFrameWithoutTransition(time, canvas) {
+    const tempCanvas = createFabricCanvas({
+      width: this.canvasWidth,
+      height: this.canvasHeight
+    });
+    
+    const activeElements = this.getActiveElementsAtTime(time);
+    
+    for (const element of activeElements) {
+      try {
+        const frameData = await element.readNextFrame(time, tempCanvas);
+        if (frameData) {
+          await this.addFrameToCanvas(tempCanvas, frameData, element);
+        }
+      } catch (error) {
+        console.warn(`渲染元素失败: ${element.type}`, error);
+      }
+    }
+    
+    const rgba = await renderFabricCanvas(tempCanvas);
+    return {
+      data: rgba,
+      width: this.canvasWidth,
+      height: this.canvasHeight
+    };
   }
 
   /**
