@@ -252,6 +252,10 @@ export const easingMap = {
   'easeInBounce': easeInBounce,
   'easeOutBounce': easeOutBounce,
   'easeInOutBounce': easeInOutBounce,
+  
+  // 特殊缓动（保持向后兼容）
+  'spring': easeOutElastic,  // spring 映射到弹性缓动
+  'swing': easeInOutSine,    // swing 映射到正弦缓动
 };
 
 // 获取缓动函数
