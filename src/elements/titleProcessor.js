@@ -385,61 +385,91 @@ export async function createTitleElement(config) {
             let scaleX = 1, scaleY = 1, angle = 0, translateX = 0, translateY = 0;
             let rotationX = 0, rotationY = 0, rotationZ = 0, translateZ = 0;
             let opacity = segmentProgress; // 默认使用分割进度作为透明度
-            
+            let hasOpacityAnimation = false; // 标记是否有透明度动画
             
             if (animations && animations.length > 0) {
-              // 直接处理 Animation 对象
+              // 处理多个动画的组合
+              let scaleXAnimations = [];
+              let scaleYAnimations = [];
+              let rotationAnimations = [];
+              let opacityAnimations = [];
+              let translateXAnimations = [];
+              let translateYAnimations = [];
+              
+              // 收集所有动画值
               for (const anim of animations) {
-                // 使用 Animation 对象的 getValueAtTime 方法，正确处理 delay
-                // 将分割进度转换为绝对时间
                 const absoluteTime = time || (progress * duration);
                 const animValue = anim.getValueAtTime(absoluteTime);
                 
-                
-                
-                
                 switch (anim.property) {
                   case 'scaleX':
-                    scaleX = animValue;
+                    scaleXAnimations.push(animValue);
                     break;
                   case 'scaleY':
-                    scaleY = animValue;
+                    scaleYAnimations.push(animValue);
                     break;
                   case 'rotation':
                   case 'rotationZ':
-                    angle = animValue;
-                    rotationZ = animValue;
+                    rotationAnimations.push(animValue);
                     break;
                   case 'rotationX':
-                    rotationX = animValue;
+                    rotationAnimations.push(animValue);
                     break;
                   case 'rotationY':
-                    rotationY = animValue;
+                    rotationAnimations.push(animValue);
                     break;
                   case 'x':
-                    // 检查是否为偏移量动画
                     if (anim.isOffset) {
-                      translateX += animValue; // 累加偏移量
+                      translateXAnimations.push(animValue);
                     } else {
-                      translateX = animValue; // 直接设置位置
+                      translateX = animValue;
                     }
                     break;
                   case 'y':
-                    // 检查是否为偏移量动画
                     if (anim.isOffset) {
-                      translateY += animValue; // 累加偏移量
+                      translateYAnimations.push(animValue);
                     } else {
-                      translateY = animValue; // 直接设置位置
+                      translateY = animValue;
                     }
                     break;
                   case 'translateZ':
                     translateZ = animValue;
                     break;
                   case 'opacity':
-                    opacity = animValue;
+                    opacityAnimations.push(animValue);
+                    hasOpacityAnimation = true;
                     break;
                 }
               }
+              
+              // 应用动画组合
+              if (scaleXAnimations.length > 0) {
+                // 对于缩放，使用乘法组合（bounceIn: 0→1, explodeOut: 1→1.5）
+                scaleX = scaleXAnimations.reduce((acc, val) => acc * val, 1);
+              }
+              if (scaleYAnimations.length > 0) {
+                scaleY = scaleYAnimations.reduce((acc, val) => acc * val, 1);
+              }
+              if (rotationAnimations.length > 0) {
+                // 对于旋转，使用加法组合
+                angle = rotationAnimations.reduce((acc, val) => acc + val, 0);
+                rotationZ = angle;
+              }
+              if (opacityAnimations.length > 0) {
+                // 对于透明度，使用乘法组合
+                opacity = opacityAnimations.reduce((acc, val) => acc * val, 1);
+              }
+              if (translateXAnimations.length > 0) {
+                translateX += translateXAnimations.reduce((acc, val) => acc + val, 0);
+              }
+              if (translateYAnimations.length > 0) {
+                translateY += translateYAnimations.reduce((acc, val) => acc + val, 0);
+              }
+            }
+            
+            // 如果没有透明度动画，使用分割进度作为透明度
+            if (!hasOpacityAnimation) {
+              opacity = segmentProgress;
             }
             
             // 创建Fabric.js Text对象渲染分割文本片段

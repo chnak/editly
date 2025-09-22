@@ -374,7 +374,7 @@ export class AnimationManager {
     this.addPreset('bounceIn', [
       { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
       { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
-      { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
+      { property: 'opacity', from: 0, to: 1, duration: 0.6, easing: 'easeOut' }
     ]);
 
     // 弹性效果
@@ -472,10 +472,10 @@ export class AnimationManager {
 
     // 爆炸退出效果
     this.addPreset('explodeOut', [
-      { property: 'scaleX', from: 1, to: 1.5, duration: 0.3, easing: 'easeIn', delay: -0.5 },
-      { property: 'scaleY', from: 1, to: 1.5, duration: 0.3, easing: 'easeIn', delay: -0.5 },
-      { property: 'rotation', from: 0, to: 360, duration: 0.5, easing: 'easeIn', delay: -0.5 },
-      { property: 'opacity', from: 1, to: 0, duration: 0.5, easing: 'easeIn', delay: -0.5 }
+      { property: 'scaleX', from: 1, to: 1.5, duration: 0.4, easing: 'easeIn', delay: -0.6 },
+      { property: 'scaleY', from: 1, to: 1.5, duration: 0.4, easing: 'easeIn', delay: -0.6 },
+      { property: 'rotation', from: 0, to: 360, duration: 0.6, easing: 'easeIn', delay: -0.6 },
+      { property: 'opacity', from: 1, to: 0, duration: 0.6, easing: 'easeIn', delay: -0.6 }
     ]);
 
     // 溶解退出效果
