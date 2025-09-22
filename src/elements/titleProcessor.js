@@ -2,7 +2,7 @@ import * as fabric from "fabric/node";
 import { registerFont, createCanvas } from "canvas";
 import { basename, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { getPositionProps, parsePositionValue } from "../utils/positionUtils.js";
+import { parsePositionValue } from "../utils/positionUtils.js";
 import { createSplitText } from "../utils/fabricSplitText.js";
 import { animationManager } from "../animations/AnimationManager.js";
 import { createFabricCanvas, renderFabricCanvas } from "../utils/fabricUtils.js";
@@ -308,7 +308,7 @@ export async function createTitleElement(config) {
       
       // 动画效果由 BaseElement 处理，这里不需要处理
       
-      const { left, top, originX, originY } = getPositionProps({ position, width, height, x, y });
+      // 位置解析现在由 BaseElement 统一处理，这里不需要解析
       
       if (split && textSegments.length > 0) {
         // 处理分割动画
@@ -345,9 +345,9 @@ export async function createTitleElement(config) {
         }
         
         // 计算文本的起始位置（左上角）
-        // left 和 top 是中心坐标，需要转换为起始位置
-        let currentX = left - totalWidth / 2;
-        let currentY = top - totalHeight / 2;
+        // 使用画布中心作为基准点，让 BaseElement 处理最终位置
+        let currentX = (width - totalWidth) / 2;
+        let currentY = (height - totalHeight) / 2;
         
         // 创建主Fabric Canvas用于合成所有分割文本片段
         const mainCanvas = createFabricCanvas({ width, height });
@@ -502,30 +502,43 @@ export async function createTitleElement(config) {
         const rgba = await renderFabricCanvas(mainCanvas);
         return {
           data: rgba,
-          width: width,  // 使用传入的 width 参数
-          height: height,  // 使用传入的 height 参数
-          x: left,  // 返回中心坐标，让 BaseElement 处理
-          y: top,
-          originX: originX,  // 传递原点信息
-          originY: originY
+          width: width,
+          height: height
         };
       } else {
         // 处理普通文本动画 - 使用Fabric Canvas
-        const textCanvas = createFabricCanvas({ width, height });
+        // 先创建一个临时文本对象来计算实际尺寸
+        const tempTextObj = new fabric.Text(text, {
+          fontSize: finalFontSize,
+          fontFamily: finalFontFamily,
+          fill: textColor
+        });
         
-        // 创建Fabric.js Text对象
+        // 获取文本的实际尺寸
+        const textWidth = tempTextObj.getScaledWidth();
+        const textHeight = tempTextObj.getScaledHeight();
+        
+        // 添加一些边距
+        const padding = 20;
+        const actualWidth = Math.ceil(textWidth) + padding * 2;
+        const actualHeight = Math.ceil(textHeight) + padding * 2;
+        
+        // 创建实际尺寸的画布
+        const textCanvas = createFabricCanvas({ width: actualWidth, height: actualHeight });
+        
+        // 创建Fabric.js Text对象，放在画布中心
         const textObj = new fabric.Text(text, {
           fontSize: finalFontSize,
           fontFamily: finalFontFamily,
           fill: textColor,
-          left: left,
-          top: top,
+          left: actualWidth / 2,   // 画布中心
+          top: actualHeight / 2,   // 画布中心
           scaleX: 1,
           scaleY: 1,
           angle: 0,
           opacity: 1,
-          originX: 'center',
-          originY: 'center'
+          originX: 'center', // 使用 center 作为原点
+          originY: 'center'  // 使用 center 作为原点
         });
         
         // 将文本对象添加到Canvas
@@ -535,12 +548,8 @@ export async function createTitleElement(config) {
         const rgba = await renderFabricCanvas(textCanvas);
         return {
           data: rgba,
-          width: width,
-          height: height,
-          x: left,  // 返回中心坐标，让 BaseElement 处理
-          y: top,
-          originX: originX,  // 传递原点信息
-          originY: originY
+          width: actualWidth,
+          height: actualHeight
         };
       }
       

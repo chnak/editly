@@ -29,12 +29,7 @@ export class ImageElement extends BaseElement {
         height: this.imageHeight,
         fit: this.fit,
         containerWidth: this.canvasWidth,
-        containerHeight: this.canvasHeight,
-        position: this.position,
-        x: this.x,
-        y: this.y,
-        originX: this.originX,
-        originY: this.originY
+        containerHeight: this.canvasHeight
       });
     }
   }

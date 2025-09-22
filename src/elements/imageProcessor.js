@@ -1,24 +1,13 @@
 import { readFile } from "fs/promises";
 import { createCanvas, loadImage } from "canvas";
-import { parsePositionValue, getPositionProps } from "../utils/positionUtils.js";
+import { parsePositionValue } from "../utils/positionUtils.js";
 import { boxBlurImage } from "../utils/BoxBlur.js";
 
 /**
  * 图像处理器 - 处理图像文件的加载和渲染
  */
 export async function createImageElement(config) {
-  const { source, width, height, fit = 'cover', containerWidth, containerHeight, position = 'center', x = 0, y = 0, originX = 'center', originY = 'center' } = config;
-  
-  // 使用 getPositionProps 解析位置
-  const positionProps = getPositionProps({
-    position,
-    x,
-    y,
-    width: containerWidth,
-    height: containerHeight,
-    originX,
-    originY
-  });
+  const { source, width, height, fit = 'cover', containerWidth, containerHeight } = config;
   
 
   // 宽度和高度已经在 ImageElement 中解析过了，直接使用
@@ -96,21 +85,11 @@ export async function createImageElement(config) {
         const foregroundImageData = foregroundCtx.getImageData(0, 0, finalWidth, finalHeight);
         
         return {
-          background: {
-            ...blurredImage,
-            x: positionProps.left,
-            y: positionProps.top,
-            originX: positionProps.originX,
-            originY: positionProps.originY
-          },
+          background: blurredImage,
           foreground: {
             data: Buffer.from(foregroundImageData.data),
             width: finalWidth,
-            height: finalHeight,
-            x: positionProps.left,
-            y: positionProps.top,
-            originX: positionProps.originX,
-            originY: positionProps.originY
+            height: finalHeight
           },
           width: finalWidth,
           height: finalHeight
@@ -181,11 +160,7 @@ export async function createImageElement(config) {
       return {
         data: Buffer.from(imageData.data),
         width: finalWidth,
-        height: finalHeight,
-        x: positionProps.left,
-        y: positionProps.top,
-        originX: positionProps.originX,
-        originY: positionProps.originY
+        height: finalHeight
       };
     },
     

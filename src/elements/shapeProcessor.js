@@ -1,5 +1,4 @@
 import { createCanvas } from "canvas";
-import { getPositionProps } from "../utils/positionUtils.js";
 
 /**
  * 形状处理器 - 处理各种形状的渲染
@@ -13,24 +12,8 @@ export async function createShapeElement(config) {
     shapeWidth, 
     shapeHeight, 
     width, 
-    height,
-    position = 'center',
-    x = 0,
-    y = 0,
-    originX = 'center',
-    originY = 'center'
+    height
   } = config;
-  
-  // 使用 getPositionProps 解析位置
-  const positionProps = getPositionProps({
-    position,
-    x,
-    y,
-    width: width,
-    height: height,
-    originX,
-    originY
-  });
   
   return {
     async readNextFrame(progress, canvas) {
@@ -45,9 +28,9 @@ export async function createShapeElement(config) {
         ctx.lineWidth = strokeWidth;
       }
       
-      // 使用解析后的位置
-      const x = positionProps.left;
-      const y = positionProps.top;
+      // 计算形状位置（居中）
+      const x = (width - shapeWidth) / 2;
+      const y = (height - shapeHeight) / 2;
       
       // 绘制形状
       ctx.beginPath();
@@ -87,11 +70,7 @@ export async function createShapeElement(config) {
       return {
         data: Buffer.from(imageData.data),
         width: width,
-        height: height,
-        x: positionProps.left,
-        y: positionProps.top,
-        originX: positionProps.originX,
-        originY: positionProps.originY
+        height: height
       };
     },
     
