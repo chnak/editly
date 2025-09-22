@@ -29,7 +29,7 @@ async function compositionSimpleTest() {
             {
               type: "image",
               source: "../assets/img1.jpg",
-              duration: 4,
+              duration: 5,
               x: '50%',
               y: '50%',
               width: '100%',
@@ -63,7 +63,7 @@ async function compositionSimpleTest() {
             {
               type: "image",
               source: "../assets/img1.jpg",
-              duration: 4,
+              duration: 5,
               x: '50%',
               y: '50%',
               width: '100%',
