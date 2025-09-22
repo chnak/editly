@@ -318,10 +318,9 @@ export class BaseElement {
 
     // 获取位置属性
     const positionProps = this.getPositionProps();
-    
-    // 使用变换后的位置信息（包含动画效果）
-    const finalX = transform.x !== undefined ? transform.x : (frameData.x !== undefined ? frameData.x : positionProps.left);
-    const finalY = transform.y !== undefined ? transform.y : (frameData.y !== undefined ? frameData.y : positionProps.top);
+
+    const finalX = frameData.x !== undefined ? frameData.x : positionProps.left;
+    const finalY = frameData.y !== undefined ? frameData.y : positionProps.top;
     const finalOriginX = frameData.originX !== undefined ? frameData.originX : positionProps.originX;
     const finalOriginY = frameData.originY !== undefined ? frameData.originY : positionProps.originY;
     
@@ -338,7 +337,7 @@ export class BaseElement {
       rotationY: transform.rotationY,
       translateZ: transform.translateZ,
       originX: finalOriginX,
-      originY: finalOriginY
+      originY: finalOriginY,
     };
   }
 
