@@ -318,7 +318,6 @@ export class BaseElement {
 
     // 获取位置属性
     const positionProps = this.getPositionProps();
-
     const finalX = frameData.x !== undefined ? frameData.x : positionProps.left;
     const finalY = frameData.y !== undefined ? frameData.y : positionProps.top;
     const finalOriginX = frameData.originX !== undefined ? frameData.originX : positionProps.originX;

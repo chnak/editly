@@ -207,6 +207,7 @@ export async function createTitleElement(config) {
     split = null, // 分割参数：'letter'、'word' 或 'line'
     splitDelay = 0.1, // 分割动画延迟
     splitDuration = 0.3, // 分割动画持续时间
+    duration = 4, // 元素持续时间
     width, 
     height 
   } = config;
@@ -354,9 +355,10 @@ export async function createTitleElement(config) {
         for (let i = 0; i < textSegments.length; i++) {
           const segment = textSegments[i];
           // 计算分割动画进度
-          // segment.startTime 和 segment.endTime 是相对于分割动画的延迟时间
-          // 使用元素进度来计算分割动画进度
-          const segmentProgress = Math.max(0, Math.min(1, (progress - segment.startTime) / (segment.endTime - segment.startTime)));
+          // segment.startTime 和 segment.endTime 是相对于分割动画的延迟时间（秒）
+          // 使用绝对时间来计算分割动画进度
+          const absoluteTime = time || (progress * duration);
+          const segmentProgress = Math.max(0, Math.min(1, (absoluteTime - segment.startTime) / (segment.endTime - segment.startTime)));
           
           if (segmentProgress > 0) {
             let segmentLeft = currentX;
@@ -512,17 +514,6 @@ export async function createTitleElement(config) {
         };
       }
       
-      // 渲染画布并返回帧数据
-      canvas.renderAll();
-      const canvasElement = canvas.getElement();
-      const imageData = canvasElement.getContext('2d').getImageData(0, 0, width, height);
-      
-      
-      return {
-        data: Buffer.from(imageData.data),
-        width: width,
-        height: height
-      };
     },
     
     async close() {

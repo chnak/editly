@@ -45,6 +45,7 @@ export class TitleElement extends BaseElement {
         split: this.split,
         splitDelay: this.splitDelay,
         splitDuration: this.splitDuration,
+        duration: this.duration,
         width: this.canvasWidth,
         height: this.canvasHeight
       });
