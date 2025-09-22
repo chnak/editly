@@ -168,7 +168,15 @@ export class BaseElement {
     let translateX = 0;
     let translateY = 0;
 
-    // 应用动画
+    // 处理多个动画的组合
+    let scaleXAnimations = [];
+    let scaleYAnimations = [];
+    let rotationAnimations = [];
+    let opacityAnimations = [];
+    let translateXAnimations = [];
+    let translateYAnimations = [];
+    
+    // 收集所有动画值
     for (const animation of this.animations) {
       const animValue = animation.getValueAtTime(time);
       
@@ -176,42 +184,66 @@ export class BaseElement {
         switch (animation.property) {
           case 'x':
             if (animation.isOffset) {
-              translateX += animValue; // 累加偏移量
+              translateXAnimations.push(animValue);
             } else {
               x = animValue; // 直接设置位置
             }
             break;
           case 'y':
             if (animation.isOffset) {
-              translateY += animValue; // 累加偏移量
+              translateYAnimations.push(animValue);
             } else {
               y = animValue; // 直接设置位置
             }
             break;
           case 'scaleX':
-            scaleX = animValue;
+            scaleXAnimations.push(animValue);
             break;
           case 'scaleY':
-            scaleY = animValue;
+            scaleYAnimations.push(animValue);
             break;
           case 'rotation':
           case 'rotationZ':
-            rotation = rotationZ = animValue;
+            rotationAnimations.push(animValue);
             break;
           case 'rotationX':
-            rotationX = animValue;
+            rotationAnimations.push(animValue);
             break;
           case 'rotationY':
-            rotationY = animValue;
+            rotationAnimations.push(animValue);
             break;
           case 'opacity':
-            opacity = animValue;
+            opacityAnimations.push(animValue);
             break;
           case 'translateZ':
             translateZ = animValue;
             break;
         }
       }
+    }
+    
+    // 应用动画组合
+    if (scaleXAnimations.length > 0) {
+      // 对于缩放，使用乘法组合（bounceIn: 0→1, explodeOut: 1→1.5）
+      scaleX = scaleXAnimations.reduce((acc, val) => acc * val, 1);
+    }
+    if (scaleYAnimations.length > 0) {
+      scaleY = scaleYAnimations.reduce((acc, val) => acc * val, 1);
+    }
+    if (rotationAnimations.length > 0) {
+      // 对于旋转，使用加法组合
+      rotation = rotationAnimations.reduce((acc, val) => acc + val, 0);
+      rotationZ = rotation;
+    }
+    if (opacityAnimations.length > 0) {
+      // 对于透明度，使用乘法组合
+      opacity = opacityAnimations.reduce((acc, val) => acc * val, 1);
+    }
+    if (translateXAnimations.length > 0) {
+      translateX = translateXAnimations.reduce((acc, val) => acc + val, 0);
+    }
+    if (translateYAnimations.length > 0) {
+      translateY = translateYAnimations.reduce((acc, val) => acc + val, 0);
     }
 
     // 应用偏移量到最终位置

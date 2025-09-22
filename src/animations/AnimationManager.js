@@ -372,8 +372,8 @@ export class AnimationManager {
 
     // 现代弹跳效果
     this.addPreset('bounceIn', [
-      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
-      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
+      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'easeInBounce' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'easeInBounce' },
       { property: 'opacity', from: 0, to: 1, duration: 0.6, easing: 'easeOut' }
     ]);
 
@@ -528,8 +528,8 @@ export class AnimationManager {
 
     // 超级弹跳进入
     this.addPreset('superBounceIn', [
-      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
-      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
+      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'easeInBounce' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'easeInBounce' },
       { property: 'rotation', from: -10, to: 0, duration: 0.6, easing: 'easeOut' },
       { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
     ]);
