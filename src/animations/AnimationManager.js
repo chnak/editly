@@ -216,467 +216,237 @@ export class AnimationManager {
   }
 
   /**
-   * 初始化预设动画
+   * 初始化预设动画 - 现代主流动画效果
    */
   initializePresets() {
-    // ========== 基础动画 ==========
+    // ========== 现代基础动画 ==========
     
-    // 淡入动画
+    // 淡入淡出
     this.addPreset('fadeIn', {
       property: 'opacity',
       from: 0,
       to: 1,
-      duration: 0.5,
+      duration: 0.6,
       easing: 'easeOut'
     });
 
-    // 淡出动画
     this.addPreset('fadeOut', {
       property: 'opacity',
       from: 1,
       to: 0,
-      duration: 0.5,
+      duration: 0.6,
       easing: 'easeIn'
     });
 
-    // 缩放进入
+    // 缩放动画
     this.addPreset('zoomIn', {
       property: 'scaleX',
       from: 0,
       to: 1,
-      duration: 0.5,
+      duration: 0.6,
       easing: 'easeOut'
     });
 
-    // 缩放进入 - Y轴
-    this.addPreset('zoomInY', {
-      property: 'scaleY',
-      from: 0,
-      to: 1,
-      duration: 0.5,
-      easing: 'easeOut'
-    });
-
-    // 缩放退出
     this.addPreset('zoomOut', {
       property: 'scaleX',
       from: 1,
       to: 0,
-      duration: 0.5,
+      duration: 0.6,
       easing: 'easeIn'
     });
 
-    // 缩放退出 - Y轴
-    this.addPreset('zoomOutY', {
-      property: 'scaleY',
-      from: 1,
-      to: 0,
-      duration: 0.5,
-      easing: 'easeIn'
-    });
-
-    // 旋转进入
+    // 旋转动画
     this.addPreset('rotateIn', {
       property: 'rotation',
       from: -180,
       to: 0,
-      duration: 0.6,
+      duration: 0.8,
       easing: 'easeOut'
     });
 
-    // 弹跳进入
-    this.addPreset('bounceIn', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'bounce'
-    });
-
-    // 弹跳进入 - Y轴
-    this.addPreset('bounceInY', {
-      property: 'scaleY',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'bounce'
-    });
-
-    // 弹性进入
-    this.addPreset('elasticIn', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'elastic'
-    });
-
-    // 弹性进入 - Y轴
-    this.addPreset('elasticInY', {
-      property: 'scaleY',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'elastic'
-    });
-
-    // ========== 滑动动画 ==========
-
-    // 从左侧滑入
+    // 滑动动画
     this.addPreset('slideInLeft', {
       property: 'x',
       from: -300,
       to: 0,
-      duration: 0.5,
+      duration: 0.6,
       easing: 'easeOut',
-      isOffset: true // 标记为偏移量动画
+      isOffset: true
     });
 
-    // 从右侧滑入
     this.addPreset('slideInRight', {
       property: 'x',
       from: 300,
       to: 0,
-      duration: 0.5,
+      duration: 0.6,
       easing: 'easeOut',
-      isOffset: true // 标记为偏移量动画
+      isOffset: true
     });
 
-    // 从上方滑入
     this.addPreset('slideInTop', {
       property: 'y',
       from: -200,
       to: 0,
-      duration: 0.5,
+      duration: 0.6,
       easing: 'easeOut',
-      isOffset: true // 标记为偏移量动画
+      isOffset: true
     });
 
-    // 从下方滑入
     this.addPreset('slideInBottom', {
       property: 'y',
       from: 200,
       to: 0,
-      duration: 0.5,
+      duration: 0.6,
       easing: 'easeOut',
-      isOffset: true // 标记为偏移量动画
+      isOffset: true
     });
 
-    // ========== 3D效果 ==========
+    // ========== 现代特效动画 ==========
 
-    // 3D翻转
-    this.addPreset('flip3D', {
-      property: 'rotation',
-      from: -180,
-      to: 0,
-      duration: 0.5,
-      easing: 'easeOut'
-    });
+    // Material Design 风格
+    this.addPreset('materialRipple', [
+      { property: 'scaleX', from: 0, to: 1, duration: 0.4, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.4, easing: 'easeOut' },
+      { property: 'opacity', from: 0.3, to: 0, duration: 0.4, easing: 'easeOut' }
+    ]);
 
-    // 3D缩放
-    this.addPreset('scale3D', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 0.5,
-      easing: 'easeOut'
-    });
+    // iOS 风格弹性动画
+    this.addPreset('iosBounce', [
+      { property: 'scaleX', from: 0, to: 1.1, duration: 0.3, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1.1, duration: 0.3, easing: 'easeOut' },
+      { property: 'scaleX', from: 1.1, to: 1, duration: 0.2, easing: 'easeIn', delay: 0.3 },
+      { property: 'scaleY', from: 1.1, to: 1, duration: 0.2, easing: 'easeIn', delay: 0.3 }
+    ]);
 
-    // 透视变换
-    this.addPreset('perspective', {
-      property: 'rotation',
-      from: -45,
-      to: 0,
-      duration: 0.5,
-      easing: 'easeOut'
-    });
+    // 现代弹跳效果
+    this.addPreset('bounceIn', [
+      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
+    ]);
 
-    // 翻转进入X轴
-    this.addPreset('flipInX', {
-      property: 'rotation',
-      from: -90,
-      to: 0,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
+    // 弹性效果
+    this.addPreset('elasticIn', [
+      { property: 'scaleX', from: 0, to: 1, duration: 0.8, easing: 'elastic' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.8, easing: 'elastic' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
 
-    // 翻转进入Y轴
-    this.addPreset('flipInY', {
-      property: 'rotation',
-      from: 90,
-      to: 0,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // ========== 特效动画 ==========
-
-    // 爆炸效果
-    this.addPreset('explode', {
-      property: 'scaleX',
-      from: 0,
-      to: 1.5,
-      duration: 0.4,
-      easing: 'easeOut'
-    });
-
-    // 溶解效果
-    this.addPreset('dissolve', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 0.5,
-      easing: 'easeInOut'
-    });
-
-    // 螺旋效果
-    this.addPreset('spiral', {
-      property: 'rotation',
-      from: 0,
-      to: 360,
-      duration: 0.5,
-      easing: 'easeInOut'
-    });
-
-    // 摇摆进入
-    this.addPreset('swingIn', {
-      property: 'rotation',
-      from: -15,
-      to: 0,
-      duration: 0.6,
-      easing: 'swing'
-    });
-
-    // 摇摆动画
-    this.addPreset('wobble', {
-      property: 'rotation',
-      from: -10,
-      to: 10,
-      duration: 0.6,
-      easing: 'easeInOut'
-    });
+    // 3D 翻转效果
+    this.addPreset('flip3D', [
+      { property: 'rotation', from: -180, to: 0, duration: 0.8, easing: 'easeOut' },
+      { property: 'scaleX', from: 0.8, to: 1, duration: 0.8, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
 
     // 脉冲效果
-    this.addPreset('pulse', {
-      property: 'scaleX',
-      from: 1,
-      to: 1.2,
-      duration: 0.5,
-      easing: 'easeInOut'
-    });
+    this.addPreset('pulse', [
+      { property: 'scaleX', from: 1, to: 1.1, duration: 0.5, easing: 'easeInOut' },
+      { property: 'scaleY', from: 1, to: 1.1, duration: 0.5, easing: 'easeInOut' },
+      { property: 'opacity', from: 1, to: 0.7, duration: 0.5, easing: 'easeInOut' }
+    ]);
 
-    // 闪烁动画
-    this.addPreset('blink', {
-      property: 'opacity',
-      from: 1,
-      to: 0,
-      duration: 0.3,
-      easing: 'linear'
-    });
-
-    // 弹簧效果
-    this.addPreset('spring', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'spring'
-    });
-
-    // ========== 文本特效 ==========
-
-    // 打字机效果
-    this.addPreset('typewriter', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'linear'
-    });
-
-    // 逐字显示
-    this.addPreset('reveal', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // 擦除效果
-    this.addPreset('wipe', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'easeInOut'
-    });
-
-    // 分割效果
-    this.addPreset('split', {
-      property: 'scaleX',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // 模糊到清晰
-    this.addPreset('blurIn', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 0.6,
-      easing: 'easeOut'
-    });
-
-    // 故障效果
-    this.addPreset('glitch', {
-      property: 'x',
-      from: -5,
-      to: 5,
-      duration: 0.5,
-      easing: 'linear'
-    });
+    // 摇摆效果
+    this.addPreset('swing', [
+      { property: 'rotation', from: -15, to: 15, duration: 0.6, easing: 'easeInOut' },
+      { property: 'x', from: -5, to: 5, duration: 0.6, easing: 'easeInOut', isOffset: true }
+    ]);
 
     // 震动效果
-    this.addPreset('shake', {
-      property: 'x',
-      from: -3,
-      to: 3,
-      duration: 0.6,
-      easing: 'linear'
-    });
+    this.addPreset('shake', [
+      { property: 'x', from: -10, to: 10, duration: 0.1, easing: 'linear' },
+      { property: 'x', from: 10, to: -10, duration: 0.1, easing: 'linear', delay: 0.1 },
+      { property: 'x', from: -10, to: 10, duration: 0.1, easing: 'linear', delay: 0.2 },
+      { property: 'x', from: 10, to: 0, duration: 0.1, easing: 'linear', delay: 0.3 }
+    ]);
 
     // 波浪效果
-    this.addPreset('wave', {
-      property: 'y',
-      from: -10,
-      to: 10,
-      duration: 1.0,
-      easing: 'easeInOut'
-    });
+    this.addPreset('wave', [
+      { property: 'y', from: 0, to: -10, duration: 0.5, easing: 'easeInOut' },
+      { property: 'y', from: -10, to: 0, duration: 0.5, easing: 'easeInOut', delay: 0.5 }
+    ]);
 
-    // ========== 文本专用动画 ==========
+    // 故障效果
+    this.addPreset('glitch', [
+      { property: 'x', from: 0, to: -5, duration: 0.1, easing: 'linear' },
+      { property: 'x', from: -5, to: 5, duration: 0.1, easing: 'linear', delay: 0.1 },
+      { property: 'x', from: 5, to: 0, duration: 0.1, easing: 'linear', delay: 0.2 },
+      { property: 'opacity', from: 1, to: 0.8, duration: 0.1, easing: 'linear', delay: 0.1 },
+      { property: 'opacity', from: 0.8, to: 1, duration: 0.1, easing: 'linear', delay: 0.2 }
+    ]);
 
-    // 文本缩放进入
-    this.addPreset('textZoomIn', {
-      property: 'scaleX',
-      from: 0.8,
-      to: 1.2,
-      duration: 1.0,
-      easing: 'easeOut'
-    });
+    // 螺旋效果
+    this.addPreset('spiral', [
+      { property: 'rotation', from: 0, to: 360, duration: 1.0, easing: 'easeInOut' },
+      { property: 'scaleX', from: 0, to: 1, duration: 1.0, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1, duration: 1.0, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.6, easing: 'easeOut' }
+    ]);
 
-    // 文本缩放退出
-    this.addPreset('textZoomOut', {
-      property: 'scaleX',
-      from: 1.2,
-      to: 0.8,
-      duration: 1.0,
-      easing: 'easeIn'
-    });
+    // 爆炸效果
+    this.addPreset('explode', [
+      { property: 'scaleX', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
+      { property: 'rotation', from: 0, to: 180, duration: 0.4, easing: 'easeOut' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
+    ]);
 
-    // 文本位移动画进入
-    this.addPreset('textTranslateIn', {
-      property: 'x',
-      from: -50,
-      to: 0,
-      duration: 1.0,
-      easing: 'easeOut'
-    });
+    // 溶解效果
+    this.addPreset('dissolve', [
+      { property: 'opacity', from: 0, to: 1, duration: 0.8, easing: 'easeInOut' },
+      { property: 'scaleX', from: 0.9, to: 1, duration: 0.8, easing: 'easeOut' },
+      { property: 'scaleY', from: 0.9, to: 1, duration: 0.8, easing: 'easeOut' }
+    ]);
 
-    // 文本位移动画退出
-    this.addPreset('textTranslateOut', {
-      property: 'x',
-      from: 0,
-      to: 50,
-      duration: 1.0,
-      easing: 'easeIn'
-    });
+    // 弹簧效果
+    this.addPreset('spring', [
+      { property: 'scaleX', from: 0, to: 1, duration: 0.8, easing: 'spring' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.8, easing: 'spring' },
+      { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
+    ]);
 
-    // 文本分割动画 - 逐字显示
-    this.addPreset('textSplitWord', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 0.3,
-      easing: 'easeOut'
-    });
+    // ========== 现代多属性动画 ==========
 
-    // 文本分割动画 - 逐行显示
-    this.addPreset('textSplitLine', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 0.3,
-      easing: 'easeOut'
-    });
-
-    // 文本打字机效果
-    this.addPreset('textTypewriter', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 2.0,
-      easing: 'linear'
-    });
-
-    // 文本擦除效果
-    this.addPreset('textWipe', {
-      property: 'opacity',
-      from: 0,
-      to: 1,
-      duration: 1.0,
-      easing: 'easeInOut'
-    });
-
-    // ========== 多属性酷炫动画 ==========
-
-    // 超级缩放进入 - 同时缩放X、Y和透明度
+    // 超级缩放进入
     this.addPreset('superZoomIn', [
       { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'easeOut' },
       { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'easeOut' },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
-    // 超级缩放退出 - 同时缩放X、Y和透明度
-    this.addPreset('superZoomOut', [
-      { property: 'scaleX', from: 1, to: 0, duration: 0.6, easing: 'easeIn' },
-      { property: 'scaleY', from: 1, to: 0, duration: 0.6, easing: 'easeIn' },
-      { property: 'opacity', from: 1, to: 0, duration: 0.4, easing: 'easeIn' }
-    ]);
-
-    // 超级滑入 - 同时移动和淡入
+    // 超级滑入左侧
     this.addPreset('superSlideInLeft', [
-      { property: 'x', from: -300, to: 0, duration: 0.5, easing: 'easeOut', isOffset: true },
+      { property: 'x', from: -300, to: 0, duration: 0.6, easing: 'easeOut', isOffset: true },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
+    // 超级滑入右侧
     this.addPreset('superSlideInRight', [
-      { property: 'x', from: 300, to: 0, duration: 0.5, easing: 'easeOut', isOffset: true },
+      { property: 'x', from: 300, to: 0, duration: 0.6, easing: 'easeOut', isOffset: true },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
+    // 超级滑入上方
     this.addPreset('superSlideInTop', [
-      { property: 'y', from: -200, to: 0, duration: 0.5, easing: 'easeOut', isOffset: true },
+      { property: 'y', from: -200, to: 0, duration: 0.6, easing: 'easeOut', isOffset: true },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
+    // 超级滑入下方
     this.addPreset('superSlideInBottom', [
-      { property: 'y', from: 200, to: 0, duration: 0.5, easing: 'easeOut', isOffset: true },
+      { property: 'y', from: 200, to: 0, duration: 0.6, easing: 'easeOut', isOffset: true },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
-    // 超级旋转进入 - 同时旋转和缩放
+    // 超级旋转进入
     this.addPreset('superRotateIn', [
-      { property: 'rotation', from: -180, to: 0, duration: 0.6, easing: 'easeOut' },
-      { property: 'scaleX', from: 0.5, to: 1, duration: 0.6, easing: 'easeOut' },
-      { property: 'scaleY', from: 0.5, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'rotation', from: -180, to: 0, duration: 0.8, easing: 'easeOut' },
+      { property: 'scaleX', from: 0.5, to: 1, duration: 0.8, easing: 'easeOut' },
+      { property: 'scaleY', from: 0.5, to: 1, duration: 0.8, easing: 'easeOut' },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
-    // 超级弹跳进入 - 同时弹跳和旋转
+    // 超级弹跳进入
     this.addPreset('superBounceIn', [
       { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
       { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'bounce' },
@@ -684,22 +454,22 @@ export class AnimationManager {
       { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
     ]);
 
-    // 超级弹性进入 - 同时弹性和缩放
+    // 超级弹性进入
     this.addPreset('superElasticIn', [
-      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'elastic' },
-      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'elastic' },
+      { property: 'scaleX', from: 0, to: 1, duration: 0.8, easing: 'elastic' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.8, easing: 'elastic' },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
-    // 超级3D翻转 - 同时旋转和缩放
+    // 超级3D翻转
     this.addPreset('superFlip3D', [
-      { property: 'rotation', from: -180, to: 0, duration: 0.6, easing: 'easeOut' },
-      { property: 'scaleX', from: 0.8, to: 1, duration: 0.6, easing: 'easeOut' },
-      { property: 'scaleY', from: 0.8, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'rotation', from: -180, to: 0, duration: 0.8, easing: 'easeOut' },
+      { property: 'scaleX', from: 0.8, to: 1, duration: 0.8, easing: 'easeOut' },
+      { property: 'scaleY', from: 0.8, to: 1, duration: 0.8, easing: 'easeOut' },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
-    // 超级爆炸效果 - 同时缩放、旋转和透明度
+    // 超级爆炸效果
     this.addPreset('superExplode', [
       { property: 'scaleX', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
       { property: 'scaleY', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
@@ -707,21 +477,21 @@ export class AnimationManager {
       { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
     ]);
 
-    // 超级脉冲效果 - 同时缩放和透明度变化
+    // 超级脉冲效果
     this.addPreset('superPulse', [
       { property: 'scaleX', from: 1, to: 1.2, duration: 0.5, easing: 'easeInOut' },
       { property: 'scaleY', from: 1, to: 1.2, duration: 0.5, easing: 'easeInOut' },
       { property: 'opacity', from: 1, to: 0.8, duration: 0.5, easing: 'easeInOut' }
     ]);
 
-    // 超级摇摆效果 - 同时旋转和位移
+    // 超级摇摆效果
     this.addPreset('superSwing', [
       { property: 'rotation', from: -15, to: 15, duration: 0.6, easing: 'easeInOut' },
       { property: 'x', from: -10, to: 10, duration: 0.6, easing: 'easeInOut', isOffset: true },
       { property: 'y', from: -5, to: 5, duration: 0.6, easing: 'easeInOut', isOffset: true }
     ]);
 
-    // 超级故障效果 - 同时位移、旋转和透明度
+    // 超级故障效果
     this.addPreset('superGlitch', [
       { property: 'x', from: -5, to: 5, duration: 0.5, easing: 'linear' },
       { property: 'y', from: -3, to: 3, duration: 0.5, easing: 'linear' },
@@ -729,33 +499,33 @@ export class AnimationManager {
       { property: 'opacity', from: 0.8, to: 1, duration: 0.5, easing: 'linear' }
     ]);
 
-    // 超级波浪效果 - 同时Y轴位移和旋转
+    // 超级波浪效果
     this.addPreset('superWave', [
       { property: 'y', from: -10, to: 10, duration: 1.0, easing: 'easeInOut' },
       { property: 'rotation', from: -5, to: 5, duration: 1.0, easing: 'easeInOut' },
       { property: 'scaleX', from: 0.95, to: 1.05, duration: 1.0, easing: 'easeInOut' }
     ]);
 
-    // 超级螺旋效果 - 同时旋转、缩放和透明度
+    // 超级螺旋效果
     this.addPreset('superSpiral', [
-      { property: 'rotation', from: 0, to: 360, duration: 0.6, easing: 'easeInOut' },
-      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'easeOut' },
-      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'easeOut' },
+      { property: 'rotation', from: 0, to: 360, duration: 0.8, easing: 'easeInOut' },
+      { property: 'scaleX', from: 0, to: 1, duration: 0.8, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.8, easing: 'easeOut' },
       { property: 'opacity', from: 0, to: 1, duration: 0.4, easing: 'easeOut' }
     ]);
 
-    // 超级溶解效果 - 同时透明度和缩放
+    // 超级溶解效果
     this.addPreset('superDissolve', [
-      { property: 'opacity', from: 0, to: 1, duration: 0.6, easing: 'easeInOut' },
-      { property: 'scaleX', from: 0.8, to: 1, duration: 0.6, easing: 'easeOut' },
-      { property: 'scaleY', from: 0.8, to: 1, duration: 0.6, easing: 'easeOut' }
+      { property: 'opacity', from: 0, to: 1, duration: 0.8, easing: 'easeInOut' },
+      { property: 'scaleX', from: 0.8, to: 1, duration: 0.8, easing: 'easeOut' },
+      { property: 'scaleY', from: 0.8, to: 1, duration: 0.8, easing: 'easeOut' }
     ]);
 
-    // 超级弹簧效果 - 同时缩放和旋转
+    // 超级弹簧效果
     this.addPreset('superSpring', [
-      { property: 'scaleX', from: 0, to: 1, duration: 0.6, easing: 'spring' },
-      { property: 'scaleY', from: 0, to: 1, duration: 0.6, easing: 'spring' },
-      { property: 'rotation', from: -10, to: 0, duration: 0.6, easing: 'easeOut' },
+      { property: 'scaleX', from: 0, to: 1, duration: 0.8, easing: 'spring' },
+      { property: 'scaleY', from: 0, to: 1, duration: 0.8, easing: 'spring' },
+      { property: 'rotation', from: -10, to: 0, duration: 0.8, easing: 'easeOut' },
       { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
     ]);
   }
