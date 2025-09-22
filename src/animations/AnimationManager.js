@@ -343,7 +343,10 @@ export class AnimationManager {
     this.addPreset('pulse', [
       { property: 'scaleX', from: 1, to: 1.1, duration: 0.5, easing: 'easeInOut' },
       { property: 'scaleY', from: 1, to: 1.1, duration: 0.5, easing: 'easeInOut' },
-      { property: 'opacity', from: 1, to: 0.7, duration: 0.5, easing: 'easeInOut' }
+      { property: 'opacity', from: 1, to: 0.7, duration: 0.5, easing: 'easeInOut' },
+      { property: 'scaleX', from: 1.1, to: 1, duration: 0.5, easing: 'easeInOut', delay: 0.5 },
+      { property: 'scaleY', from: 1.1, to: 1, duration: 0.5, easing: 'easeInOut', delay: 0.5 },
+      { property: 'opacity', from: 0.7, to: 1, duration: 0.5, easing: 'easeInOut', delay: 0.5 }
     ]);
 
     // 摇摆效果
@@ -386,9 +389,11 @@ export class AnimationManager {
 
     // 爆炸效果
     this.addPreset('explode', [
-      { property: 'scaleX', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
-      { property: 'scaleY', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
-      { property: 'rotation', from: 0, to: 180, duration: 0.4, easing: 'easeOut' },
+      { property: 'scaleX', from: 0, to: 1.2, duration: 0.3, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1.2, duration: 0.3, easing: 'easeOut' },
+      { property: 'scaleX', from: 1.2, to: 1, duration: 0.2, easing: 'easeIn', delay: 0.3 },
+      { property: 'scaleY', from: 1.2, to: 1, duration: 0.2, easing: 'easeIn', delay: 0.3 },
+      { property: 'rotation', from: 0, to: 360, duration: 0.5, easing: 'easeOut' },
       { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
     ]);
 
@@ -472,9 +477,11 @@ export class AnimationManager {
 
     // 超级爆炸效果
     this.addPreset('superExplode', [
-      { property: 'scaleX', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
-      { property: 'scaleY', from: 0, to: 1.5, duration: 0.4, easing: 'easeOut' },
-      { property: 'rotation', from: 0, to: 360, duration: 0.4, easing: 'easeOut' },
+      { property: 'scaleX', from: 0, to: 1.2, duration: 0.3, easing: 'easeOut' },
+      { property: 'scaleY', from: 0, to: 1.2, duration: 0.3, easing: 'easeOut' },
+      { property: 'scaleX', from: 1.2, to: 1, duration: 0.2, easing: 'easeIn', delay: 0.3 },
+      { property: 'scaleY', from: 1.2, to: 1, duration: 0.2, easing: 'easeIn', delay: 0.3 },
+      { property: 'rotation', from: 0, to: 360, duration: 0.5, easing: 'easeOut' },
       { property: 'opacity', from: 0, to: 1, duration: 0.3, easing: 'easeOut' }
     ]);
 
@@ -482,7 +489,10 @@ export class AnimationManager {
     this.addPreset('superPulse', [
       { property: 'scaleX', from: 1, to: 1.2, duration: 0.5, easing: 'easeInOut' },
       { property: 'scaleY', from: 1, to: 1.2, duration: 0.5, easing: 'easeInOut' },
-      { property: 'opacity', from: 1, to: 0.8, duration: 0.5, easing: 'easeInOut' }
+      { property: 'opacity', from: 1, to: 0.8, duration: 0.5, easing: 'easeInOut' },
+      { property: 'scaleX', from: 1.2, to: 1, duration: 0.5, easing: 'easeInOut', delay: 0.5 },
+      { property: 'scaleY', from: 1.2, to: 1, duration: 0.5, easing: 'easeInOut', delay: 0.5 },
+      { property: 'opacity', from: 0.8, to: 1, duration: 0.5, easing: 'easeInOut', delay: 0.5 }
     ]);
 
     // 超级摇摆效果
@@ -495,19 +505,29 @@ export class AnimationManager {
 
     // 超级故障效果
     this.addPreset('superGlitch', [
-      { property: 'x', from: -5, to: 5, duration: 0.5, easing: 'linear' },
-      { property: 'y', from: -3, to: 3, duration: 0.5, easing: 'linear' },
-      { property: 'rotation', from: -2, to: 2, duration: 0.25, easing: 'linear' },
-      { property: 'rotation', from: 2, to: 0, duration: 0.25, easing: 'linear', delay: 0.25 },
-      { property: 'opacity', from: 0.8, to: 1, duration: 0.5, easing: 'linear' }
+      { property: 'x', from: 0, to: -5, duration: 0.1, easing: 'linear' },
+      { property: 'x', from: -5, to: 5, duration: 0.1, easing: 'linear', delay: 0.1 },
+      { property: 'x', from: 5, to: 0, duration: 0.1, easing: 'linear', delay: 0.2 },
+      { property: 'y', from: 0, to: -3, duration: 0.1, easing: 'linear' },
+      { property: 'y', from: -3, to: 3, duration: 0.1, easing: 'linear', delay: 0.1 },
+      { property: 'y', from: 3, to: 0, duration: 0.1, easing: 'linear', delay: 0.2 },
+      { property: 'rotation', from: 0, to: -2, duration: 0.1, easing: 'linear' },
+      { property: 'rotation', from: -2, to: 2, duration: 0.1, easing: 'linear', delay: 0.1 },
+      { property: 'rotation', from: 2, to: 0, duration: 0.1, easing: 'linear', delay: 0.2 },
+      { property: 'opacity', from: 1, to: 0.8, duration: 0.1, easing: 'linear' },
+      { property: 'opacity', from: 0.8, to: 1, duration: 0.1, easing: 'linear', delay: 0.1 }
     ]);
 
     // 超级波浪效果
     this.addPreset('superWave', [
-      { property: 'y', from: -10, to: 10, duration: 1.0, easing: 'easeInOut' },
+      { property: 'y', from: 0, to: -10, duration: 0.5, easing: 'easeInOut' },
+      { property: 'y', from: -10, to: 10, duration: 0.5, easing: 'easeInOut', delay: 0.5 },
+      { property: 'y', from: 10, to: 0, duration: 0.5, easing: 'easeInOut', delay: 1.0 },
       { property: 'rotation', from: -5, to: 5, duration: 0.5, easing: 'easeInOut' },
       { property: 'rotation', from: 5, to: 0, duration: 0.5, easing: 'easeInOut', delay: 0.5 },
-      { property: 'scaleX', from: 0.95, to: 1.05, duration: 1.0, easing: 'easeInOut' }
+      { property: 'scaleX', from: 0.95, to: 1.05, duration: 0.5, easing: 'easeInOut' },
+      { property: 'scaleX', from: 1.05, to: 0.95, duration: 0.5, easing: 'easeInOut', delay: 0.5 },
+      { property: 'scaleX', from: 0.95, to: 1, duration: 0.5, easing: 'easeInOut', delay: 1.0 }
     ]);
 
     // 超级螺旋效果
