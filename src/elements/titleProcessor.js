@@ -59,6 +59,24 @@ function parseFontSize(value, width, height) {
 }
 
 /**
+ * 打字机效果 - 逐字显示文字
+ * @param {string} text - 原始文字
+ * @param {number} progress - 进度 (0-1)
+ * @param {number} speed - 打字速度 (毫秒/字符)
+ * @returns {string} 显示的文字
+ */
+function getTypewriterText(text, progress, speed = 100) {
+  if (progress <= 0) return '';
+  
+  // 计算应该显示的字符数
+  const totalChars = text.length;
+  const visibleChars = Math.floor(progress * totalChars);
+  
+  return text.substring(0, visibleChars);
+}
+
+
+/**
  * 创建渐变填充
  * @param {string} type - 渐变类型 'linear' 或 'radial'
  * @param {Array} colors - 颜色数组
@@ -301,7 +319,11 @@ export async function createTitleElement(config) {
     pathData = null,
     // 文字遮罩效果
     textMask = null,
-    maskImage = null
+    maskImage = null,
+    // 打字机效果
+    typewriter = null,
+    typewriterSpeed = 100, // 毫秒/字符
+    typewriterDelay = 0 // 开始延迟
   } = config;
   
   // 处理字体注册
@@ -759,56 +781,61 @@ export async function createTitleElement(config) {
           }
         }
         
-        // 创建Fabric.js Text对象，放在画布中心，应用动画
-        const textObj = new fabric.Text(text, {
-          fontSize: finalFontSize,
-          fontFamily: finalFontFamily,
-          fill: fillColor,
-          left: actualWidth / 2 + translateX,   // 画布中心 + 动画偏移
-          top: actualHeight / 2 + translateY,   // 画布中心 + 动画偏移
-          scaleX: scaleX,
-          scaleY: scaleY,
-          angle: angle,
-          opacity: opacity,
-          originX: 'center', // 使用 center 作为原点
-          originY: 'center',  // 使用 center 作为原点
-          // 3D 变换属性（Fabric.js 可能不完全支持，但保留以备将来扩展）
-          rotationX: rotationX,
-          rotationY: rotationY,
-          rotationZ: rotationZ,
-          translateZ: translateZ,
-          // 阴影配置
-          shadow: shadow ? new fabric.Shadow({
-            color: shadowColor,
-            blur: shadowBlur,
-            offsetX: shadowOffsetX,
-            offsetY: shadowOffsetY
-          }) : null,
-          // 边框配置
-          stroke: stroke ? strokeColor : null,
-          strokeWidth: stroke ? strokeWidth : 0,
-          // 文字装饰配置
-          underline: underline,
-          linethrough: linethrough,
-          overline: overline,
-          // 文字变形配置
-          skewX: skewX,
-          skewY: skewY
-        });
+        // 处理打字机效果
+        let displayText = text;
         
-        // 应用发光效果（通过多重阴影实现）
-        if (glow) {
-          const glowShadow = new fabric.Shadow({
-            color: glowColor,
-            blur: glowBlur,
-            offsetX: 0,
-            offsetY: 0
-          });
-          textObj.set('shadow', glowShadow);
+        // 打字机效果
+        if (typewriter) {
+          displayText = getTypewriterText(text, progress, typewriterSpeed);
         }
         
-        // 将文本对象添加到Canvas
-        textCanvas.add(textObj);
+        // 创建文字对象
+        if (displayText) {
+          const textObj = new fabric.Text(displayText, {
+            fontSize: finalFontSize,
+            fontFamily: finalFontFamily,
+            fill: fillColor,
+            left: actualWidth / 2 + translateX,
+            top: actualHeight / 2 + translateY,
+            scaleX: scaleX,
+            scaleY: scaleY,
+            angle: angle,
+            opacity: opacity,
+            originX: 'center',
+            originY: 'center',
+            rotationX: rotationX,
+            rotationY: rotationY,
+            rotationZ: rotationZ,
+            translateZ: translateZ,
+            shadow: shadow ? new fabric.Shadow({
+              color: shadowColor,
+              blur: shadowBlur,
+              offsetX: shadowOffsetX,
+              offsetY: shadowOffsetY
+            }) : null,
+            stroke: stroke ? strokeColor : null,
+            strokeWidth: stroke ? strokeWidth : 0,
+            underline: underline,
+            linethrough: linethrough,
+            overline: overline,
+            skewX: skewX,
+            skewY: skewY
+          });
+          
+          // 应用发光效果
+          if (glow) {
+            const glowShadow = new fabric.Shadow({
+              color: glowColor,
+              blur: glowBlur,
+              offsetX: 0,
+              offsetY: 0
+            });
+            textObj.set('shadow', glowShadow);
+          }
+          
+          // 将文字对象添加到Canvas
+          textCanvas.add(textObj);
+        }
         
         // 渲染Fabric Canvas并返回图像数据
         const rgba = await renderFabricCanvas(textCanvas);

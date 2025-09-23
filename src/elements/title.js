@@ -63,6 +63,11 @@ export class TitleElement extends BaseElement {
     // 文字遮罩效果
     this.textMask = config.textMask || null;
     this.maskImage = config.maskImage || null;
+    
+    // 打字机效果
+    this.typewriter = config.typewriter || null;
+    this.typewriterSpeed = config.typewriterSpeed || 100;
+    this.typewriterDelay = config.typewriterDelay || 0;
   }
 
   async initialize() {
@@ -119,7 +124,11 @@ export class TitleElement extends BaseElement {
         pathData: this.pathData,
         // 传递遮罩效果配置
         textMask: this.textMask,
-        maskImage: this.maskImage
+        maskImage: this.maskImage,
+        // 传递打字机效果配置
+        typewriter: this.typewriter,
+        typewriterSpeed: this.typewriterSpeed,
+        typewriterDelay: this.typewriterDelay
       });
     }
   }
