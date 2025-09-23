@@ -23,6 +23,18 @@ export class TitleElement extends BaseElement {
     this.titleElement = null;
     this.canvasWidth = config.canvasWidth;
     this.canvasHeight = config.canvasHeight;
+    
+    // 阴影配置
+    this.shadow = config.shadow || null;
+    this.shadowColor = config.shadowColor || '#000000';
+    this.shadowBlur = config.shadowBlur || 0;
+    this.shadowOffsetX = config.shadowOffsetX || 0;
+    this.shadowOffsetY = config.shadowOffsetY || 0;
+    
+    // 文本边框配置
+    this.stroke = config.stroke || null;
+    this.strokeColor = config.strokeColor || '#000000';
+    this.strokeWidth = config.strokeWidth || 1;
   }
 
   async initialize() {
@@ -47,7 +59,17 @@ export class TitleElement extends BaseElement {
         splitDuration: this.splitDuration,
         duration: this.duration,
         width: this.canvasWidth,
-        height: this.canvasHeight
+        height: this.canvasHeight,
+        // 传递阴影配置
+        shadow: this.shadow,
+        shadowColor: this.shadowColor,
+        shadowBlur: this.shadowBlur,
+        shadowOffsetX: this.shadowOffsetX,
+        shadowOffsetY: this.shadowOffsetY,
+        // 传递边框配置
+        stroke: this.stroke,
+        strokeColor: this.strokeColor,
+        strokeWidth: this.strokeWidth
       });
     }
   }

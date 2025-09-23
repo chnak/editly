@@ -209,7 +209,17 @@ export async function createTitleElement(config) {
     splitDuration = 0.3, // 分割动画持续时间
     duration = 4, // 元素持续时间
     width, 
-    height 
+    height,
+    // 阴影配置
+    shadow = null,
+    shadowColor = "#000000",
+    shadowBlur = 0,
+    shadowOffsetX = 0,
+    shadowOffsetY = 0,
+    // 边框配置
+    stroke = null,
+    strokeColor = "#000000",
+    strokeWidth = 1
   } = config;
   
   // 处理字体注册
@@ -490,7 +500,17 @@ export async function createTitleElement(config) {
               rotationX: rotationX,
               rotationY: rotationY,
               rotationZ: rotationZ,
-              translateZ: translateZ
+              translateZ: translateZ,
+              // 阴影配置
+              shadow: shadow ? new fabric.Shadow({
+                color: shadowColor,
+                blur: shadowBlur,
+                offsetX: shadowOffsetX,
+                offsetY: shadowOffsetY
+              }) : null,
+              // 边框配置
+              stroke: stroke ? strokeColor : null,
+              strokeWidth: stroke ? strokeWidth : 0
             });
             
             // 将文本对象添加到主Canvas
@@ -629,7 +649,17 @@ export async function createTitleElement(config) {
           rotationX: rotationX,
           rotationY: rotationY,
           rotationZ: rotationZ,
-          translateZ: translateZ
+          translateZ: translateZ,
+          // 阴影配置
+          shadow: shadow ? new fabric.Shadow({
+            color: shadowColor,
+            blur: shadowBlur,
+            offsetX: shadowOffsetX,
+            offsetY: shadowOffsetY
+          }) : null,
+          // 边框配置
+          stroke: stroke ? strokeColor : null,
+          strokeWidth: stroke ? strokeWidth : 0
         });
         
         // 将文本对象添加到Canvas
