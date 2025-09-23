@@ -36,6 +36,7 @@ export class VideoMaker extends EventEmitter {
         transition: {
           duration: 0.5,
           name: "fade",
+          easing: "linear"
         },
         ...config.defaults
       }

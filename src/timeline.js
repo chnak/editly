@@ -1,5 +1,5 @@
 import { createFabricCanvas, renderFabricCanvas, rgbaToFabricImage } from "./canvas/fabric.js";
-import { transitionApplier } from "./transitions/TransitionApplier.js";
+import { Transition } from "../core/transition.js";
 
 /**
  * 时间线管理类 - 管理所有元素的时间轴和渲染
@@ -12,7 +12,8 @@ export class Timeline {
     this.canvasHeight = parsedConfig.canvasHeight;
     this.fps = parsedConfig.fps;
     this.globalConfig = globalConfig;
-    this.transitionApplier = transitionApplier;
+    // 初始化过渡效果处理器
+    this.transitionProcessor = null;
     
     // 处理过渡效果配置
     this.transitions = this.processTransitions(parsedConfig.transitions || []);
@@ -164,12 +165,16 @@ export class Timeline {
    * 处理过渡效果配置
    */
   processTransitions(transitions) {
-    return transitions.map(transition => ({
-      ...transition,
-      startTime: transition.startTime || 0,
+    const processedTransitions = transitions.map(transition => ({
+      name: transition.name || transition.type || 'fade',
       duration: transition.duration || 1,
+      easing: transition.easing || 'linear',
+      params: transition.params || {},
+      startTime: transition.startTime || 0,
       endTime: (transition.startTime || 0) + (transition.duration || 1)
     }));
+    console.log(`[Timeline] 已配置 ${processedTransitions.length} 个过渡效果`);
+    return processedTransitions;
   }
 
   /**
@@ -195,24 +200,32 @@ export class Timeline {
     const toTime = transition.endTime;
     const toFrame = await this.getFrameWithoutTransition(toTime, canvas);
     
-    console.log(`[Timeline] 渲染过渡帧:`, {
-      time: time.toFixed(3),
-      progress: progress.toFixed(3),
-      fromTime: fromTime.toFixed(3),
-      toTime: toTime.toFixed(3),
-      transitionType: transition.type
+    // 使用core的Transition类
+    if (!this.transitionProcessor) {
+      this.transitionProcessor = new Transition({
+        name: transition.name || 'fade',
+        duration: transition.duration || 1,
+        easing: transition.easing || 'linear',
+        params: transition.params || {}
+      });
+    }
+    
+    // 创建过渡处理器
+    const transitionProcessor = this.transitionProcessor.create({
+      width: this.canvasWidth,
+      height: this.canvasHeight,
+      channels: 4
     });
     
     // 应用过渡效果
-    const transitionResult = await this.transitionApplier.applyTransition(
-      transition.type,
-      progress,
-      fromFrame,
-      toFrame,
-      canvas
-    );
+    const result = transitionProcessor({
+      fromFrame: fromFrame.data,
+      toFrame: toFrame.data,
+      progress: progress
+    });
     
-    return transitionResult;
+    // 直接返回过渡效果的结果数据，而不是包装在对象中
+    return result;
   }
 
   /**

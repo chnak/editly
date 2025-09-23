@@ -9,7 +9,7 @@ export class ShapeElement extends BaseElement {
   constructor(config) {
     super(config);
     this.shape = config.shape || 'rectangle'; // rectangle, circle, triangle, etc.
-    this.fillColor = config.fillColor || '#ffffff';
+    this.fillColor = config.fillColor || config.fill || '#ffffff';
     this.strokeColor = config.strokeColor;
     this.strokeWidth = config.strokeWidth || 0;
     // 解析尺寸值，支持百分比和像素单位
