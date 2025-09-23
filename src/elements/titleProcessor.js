@@ -59,6 +59,66 @@ function parseFontSize(value, width, height) {
 }
 
 /**
+ * 创建渐变填充
+ * @param {string} type - 渐变类型 'linear' 或 'radial'
+ * @param {Array} colors - 颜色数组
+ * @param {string} direction - 渐变方向
+ * @param {number} width - 文字宽度
+ * @param {number} height - 文字高度
+ * @returns {Object} Fabric.js 渐变对象
+ */
+function createGradient(type, colors, direction, width, height) {
+  if (!colors || colors.length < 2) {
+    return null;
+  }
+  
+  let coords = {};
+  
+  if (type === 'linear') {
+    switch (direction) {
+      case 'horizontal':
+        coords = { x1: 0, y1: 0, x2: width, y2: 0 };
+        break;
+      case 'vertical':
+        coords = { x1: 0, y1: 0, x2: 0, y2: height };
+        break;
+      case 'diagonal':
+        coords = { x1: 0, y1: 0, x2: width, y2: height };
+        break;
+      default:
+        coords = { x1: 0, y1: 0, x2: width, y2: 0 };
+    }
+    
+    return new fabric.Gradient({
+      type: 'linear',
+      coords: coords,
+      colorStops: colors.map((color, index) => ({
+        offset: index / (colors.length - 1),
+        color: color
+      }))
+    });
+  } else if (type === 'radial') {
+    return new fabric.Gradient({
+      type: 'radial',
+      coords: {
+        x1: width / 2,
+        y1: height / 2,
+        x2: width / 2,
+        y2: height / 2,
+        r1: 0,
+        r2: Math.max(width, height) / 2
+      },
+      colorStops: colors.map((color, index) => ({
+        offset: index / (colors.length - 1),
+        color: color
+      }))
+    });
+  }
+  
+  return null;
+}
+
+/**
  * 处理预设动画配置
  * 支持以下格式：
  * 1. 字符串数组: ["fadeIn", "zoomIn"]
@@ -219,7 +279,29 @@ export async function createTitleElement(config) {
     // 边框配置
     stroke = null,
     strokeColor = "#000000",
-    strokeWidth = 1
+    strokeWidth = 1,
+    // 渐变填充配置
+    gradient = null,
+    gradientType = 'linear',
+    gradientColors = ['#ff0000', '#0000ff'],
+    gradientDirection = 'horizontal',
+    // 文字装饰配置
+    underline = false,
+    linethrough = false,
+    overline = false,
+    // 文字发光效果
+    glow = null,
+    glowColor = '#ffffff',
+    glowBlur = 10,
+    // 文字变形效果
+    skewX = 0,
+    skewY = 0,
+    // 文字路径效果
+    textPath = null,
+    pathData = null,
+    // 文字遮罩效果
+    textMask = null,
+    maskImage = null
   } = config;
   
   // 处理字体注册
@@ -484,10 +566,28 @@ export async function createTitleElement(config) {
             
             // 创建Fabric.js Text对象渲染分割文本片段
             const textContent = segment.char || (segment.text && segment.text.text) || segment.text || '';
+            
+            // 计算文字尺寸用于渐变
+            const tempText = new fabric.Text(textContent, {
+              fontSize: finalFontSize,
+              fontFamily: finalFontFamily
+            });
+            const textWidth = tempText.getScaledWidth();
+            const textHeight = tempText.getScaledHeight();
+            
+            // 创建渐变填充
+            let fillColor = textColor;
+            if (gradient) {
+              const gradientObj = createGradient(gradientType, gradientColors, gradientDirection, textWidth, textHeight);
+              if (gradientObj) {
+                fillColor = gradientObj;
+              }
+            }
+            
             const textObj = new fabric.Text(textContent, {
               fontSize: finalFontSize,
               fontFamily: finalFontFamily,
-              fill: textColor,
+              fill: fillColor,
               left: segmentLeft + translateX,
               top: segmentTop + translateY,
               scaleX: scaleX,
@@ -510,8 +610,26 @@ export async function createTitleElement(config) {
               }) : null,
               // 边框配置
               stroke: stroke ? strokeColor : null,
-              strokeWidth: stroke ? strokeWidth : 0
+              strokeWidth: stroke ? strokeWidth : 0,
+              // 文字装饰配置
+              underline: underline,
+              linethrough: linethrough,
+              overline: overline,
+              // 文字变形配置
+              skewX: skewX,
+              skewY: skewY
             });
+            
+            // 应用发光效果（通过多重阴影实现）
+            if (glow) {
+              const glowShadow = new fabric.Shadow({
+                color: glowColor,
+                blur: glowBlur,
+                offsetX: 0,
+                offsetY: 0
+              });
+              textObj.set('shadow', glowShadow);
+            }
             
             // 将文本对象添加到主Canvas
             mainCanvas.add(textObj);
@@ -632,11 +750,20 @@ export async function createTitleElement(config) {
           }
         }
         
+        // 创建渐变填充
+        let fillColor = textColor;
+        if (gradient) {
+          const gradientObj = createGradient(gradientType, gradientColors, gradientDirection, actualWidth, actualHeight);
+          if (gradientObj) {
+            fillColor = gradientObj;
+          }
+        }
+        
         // 创建Fabric.js Text对象，放在画布中心，应用动画
         const textObj = new fabric.Text(text, {
           fontSize: finalFontSize,
           fontFamily: finalFontFamily,
-          fill: textColor,
+          fill: fillColor,
           left: actualWidth / 2 + translateX,   // 画布中心 + 动画偏移
           top: actualHeight / 2 + translateY,   // 画布中心 + 动画偏移
           scaleX: scaleX,
@@ -659,8 +786,26 @@ export async function createTitleElement(config) {
           }) : null,
           // 边框配置
           stroke: stroke ? strokeColor : null,
-          strokeWidth: stroke ? strokeWidth : 0
+          strokeWidth: stroke ? strokeWidth : 0,
+          // 文字装饰配置
+          underline: underline,
+          linethrough: linethrough,
+          overline: overline,
+          // 文字变形配置
+          skewX: skewX,
+          skewY: skewY
         });
+        
+        // 应用发光效果（通过多重阴影实现）
+        if (glow) {
+          const glowShadow = new fabric.Shadow({
+            color: glowColor,
+            blur: glowBlur,
+            offsetX: 0,
+            offsetY: 0
+          });
+          textObj.set('shadow', glowShadow);
+        }
         
         // 将文本对象添加到Canvas
         textCanvas.add(textObj);

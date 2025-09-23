@@ -35,6 +35,34 @@ export class TitleElement extends BaseElement {
     this.stroke = config.stroke || null;
     this.strokeColor = config.strokeColor || '#000000';
     this.strokeWidth = config.strokeWidth || 1;
+    
+    // 渐变填充配置
+    this.gradient = config.gradient || null;
+    this.gradientType = config.gradientType || 'linear'; // 'linear' 或 'radial'
+    this.gradientColors = config.gradientColors || ['#ff0000', '#0000ff'];
+    this.gradientDirection = config.gradientDirection || 'horizontal'; // 'horizontal', 'vertical', 'diagonal'
+    
+    // 文字装饰配置
+    this.underline = config.underline || false;
+    this.linethrough = config.linethrough || false;
+    this.overline = config.overline || false;
+    
+    // 文字发光效果
+    this.glow = config.glow || null;
+    this.glowColor = config.glowColor || '#ffffff';
+    this.glowBlur = config.glowBlur || 10;
+    
+    // 文字变形效果
+    this.skewX = config.skewX || 0;
+    this.skewY = config.skewY || 0;
+    
+    // 文字路径效果
+    this.textPath = config.textPath || null;
+    this.pathData = config.pathData || null;
+    
+    // 文字遮罩效果
+    this.textMask = config.textMask || null;
+    this.maskImage = config.maskImage || null;
   }
 
   async initialize() {
@@ -69,7 +97,29 @@ export class TitleElement extends BaseElement {
         // 传递边框配置
         stroke: this.stroke,
         strokeColor: this.strokeColor,
-        strokeWidth: this.strokeWidth
+        strokeWidth: this.strokeWidth,
+        // 传递渐变配置
+        gradient: this.gradient,
+        gradientType: this.gradientType,
+        gradientColors: this.gradientColors,
+        gradientDirection: this.gradientDirection,
+        // 传递文字装饰配置
+        underline: this.underline,
+        linethrough: this.linethrough,
+        overline: this.overline,
+        // 传递发光效果配置
+        glow: this.glow,
+        glowColor: this.glowColor,
+        glowBlur: this.glowBlur,
+        // 传递变形效果配置
+        skewX: this.skewX,
+        skewY: this.skewY,
+        // 传递路径效果配置
+        textPath: this.textPath,
+        pathData: this.pathData,
+        // 传递遮罩效果配置
+        textMask: this.textMask,
+        maskImage: this.maskImage
       });
     }
   }
