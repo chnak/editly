@@ -9,6 +9,7 @@ import * as easings from "../utils/easings.js";
 
 const { default: createTransition } = glTransition;
 const TransitionAliases = {
+    // 方向性过渡效果
     "directional-left": { name: "directional", easing: "easeOutExpo", params: { direction: [1, 0] } },
     "directional-right": {
         name: "directional",
@@ -17,6 +18,82 @@ const TransitionAliases = {
     },
     "directional-down": { name: "directional", easing: "easeOutExpo", params: { direction: [0, 1] } },
     "directional-up": { name: "directional", easing: "easeOutExpo", params: { direction: [0, -1] } },
+    
+    // 高级淡入淡出效果
+    "smooth-fade": { name: "fade", easing: "easeInOutCubic", params: {} },
+    "fast-fade": { name: "fade", easing: "easeOutExpo", params: {} },
+    "slow-fade": { name: "fade", easing: "easeInOutSine", params: {} },
+    "bounce-fade": { name: "fade", easing: "easeOutBounce", params: {} },
+    
+    // 高级缩放效果
+    "zoom-in": { name: "crosszoom", easing: "easeOutExpo", params: {} },
+    "zoom-out": { name: "crosszoom", easing: "easeInExpo", params: {} },
+    "smooth-zoom": { name: "crosszoom", easing: "easeInOutCubic", params: {} },
+    "bounce-zoom": { name: "crosszoom", easing: "easeOutBounce", params: {} },
+    
+    // 高级扭曲效果
+    "warp-left": { name: "crosswarp", easing: "easeOutExpo", params: {} },
+    "warp-right": { name: "crosswarp", easing: "easeInExpo", params: {} },
+    "smooth-warp": { name: "crosswarp", easing: "easeInOutSine", params: {} },
+    
+    // 高级圆形效果
+    "circle-in": { name: "circle", easing: "easeOutExpo", params: {} },
+    "circle-out": { name: "circle", easing: "easeInExpo", params: {} },
+    "smooth-circle": { name: "circle", easing: "easeInOutCubic", params: {} },
+    
+    // 高级立方体效果
+    "cube-left": { name: "cube", easing: "easeOutExpo", params: {} },
+    "cube-right": { name: "cube", easing: "easeInExpo", params: {} },
+    "smooth-cube": { name: "cube", easing: "easeInOutSine", params: {} },
+    
+    // 高级擦除效果
+    "wipe-left-smooth": { name: "wipeLeft", easing: "easeInOutCubic", params: {} },
+    "wipe-right-smooth": { name: "wipeRight", easing: "easeInOutCubic", params: {} },
+    "wipe-up-smooth": { name: "wipeUp", easing: "easeInOutCubic", params: {} },
+    "wipe-down-smooth": { name: "wipeDown", easing: "easeInOutCubic", params: {} },
+    
+    // 高级交换效果
+    "swap-smooth": { name: "swap", easing: "easeInOutSine", params: {} },
+    "swap-fast": { name: "swap", easing: "easeOutExpo", params: {} },
+    
+    // 高级挤压效果
+    "squeeze-in": { name: "squeeze", easing: "easeOutExpo", params: {} },
+    "squeeze-out": { name: "squeeze", easing: "easeInExpo", params: {} },
+    "squeeze-smooth": { name: "squeeze", easing: "easeInOutCubic", params: {} },
+    
+    // 高级波纹效果
+    "ripple-smooth": { name: "ripple", easing: "easeInOutSine", params: {} },
+    "ripple-fast": { name: "ripple", easing: "easeOutExpo", params: {} },
+    
+    // 高级像素化效果
+    "pixelize-smooth": { name: "pixelize", easing: "easeInOutCubic", params: {} },
+    "pixelize-fast": { name: "pixelize", easing: "easeOutExpo", params: {} },
+    
+    // 高级交叉阴影效果
+    "crosshatch-smooth": { name: "crosshatch", easing: "easeInOutSine", params: {} },
+    "crosshatch-fast": { name: "crosshatch", easing: "easeOutExpo", params: {} },
+    
+    // 高级弹跳效果
+    "bounce-in": { name: "circle", easing: "easeOutBounce", params: {} },
+    "bounce-out": { name: "circle", easing: "easeInBounce", params: {} },
+    
+    // 高级回弹效果
+    "back-in": { name: "crosszoom", easing: "easeOutBack", params: {} },
+    "back-out": { name: "crosszoom", easing: "easeInBack", params: {} },
+    
+    // 高级弹性效果
+    "elastic-in": { name: "crosswarp", easing: "easeOutElastic", params: {} },
+    "elastic-out": { name: "crosswarp", easing: "easeInElastic", params: {} },
+    
+    // 高级戏剧性效果
+    "dramatic-fade": { name: "fade", easing: "easeInOutBack", params: {} },
+    "dramatic-zoom": { name: "crosszoom", easing: "easeInOutBack", params: {} },
+    "dramatic-wipe": { name: "wipeLeft", easing: "easeInOutBack", params: {} },
+    
+    // 高级创意效果
+    "creative-fade": { name: "fade", easing: "easeInOutElastic", params: {} },
+    "creative-zoom": { name: "crosszoom", easing: "easeInOutElastic", params: {} },
+    "creative-warp": { name: "crosswarp", easing: "easeInOutElastic", params: {} },
 };
 const AllTransitions = [...glTransitions.map((t) => t.name), ...Object.keys(TransitionAliases)];
 function getRandomTransition() {

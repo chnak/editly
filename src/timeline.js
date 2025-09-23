@@ -1,5 +1,7 @@
 import { createFabricCanvas, renderFabricCanvas, rgbaToFabricImage } from "./canvas/fabric.js";
-import { Transition } from "../core/transition.js";
+import { Transition } from "./transitions/transition.js";
+import { CustomTransition } from "./transitions/CustomTransition.js";
+import { AdvancedCustomTransition } from "./transitions/AdvancedCustomTransition.js";
 
 /**
  * 时间线管理类 - 管理所有元素的时间轴和渲染
@@ -205,15 +207,33 @@ export class Timeline {
     const toFrame = await this.getFrameWithoutTransition(toTime, canvas);
     //console.log(`[Timeline] to帧数据: ${toFrame.data.length} bytes`);
     
-    // 使用core的Transition类
+    // 使用core的Transition类或自定义过渡效果
     if (!this.transitionProcessor) {
       //console.log(`[Timeline] 创建Transition处理器: ${transition.name}`);
-      this.transitionProcessor = new Transition({
-        name: transition.name || 'fade',
-        duration: transition.duration || 1,
-        easing: transition.easing || 'linear',
-        params: transition.params || {}
-      });
+      
+      // 检查是否为自定义过渡效果
+      if (CustomTransition.isCustomTransition(transition.name)) {
+        this.transitionProcessor = new CustomTransition({
+          name: transition.name || 'fade',
+          duration: transition.duration || 1,
+          easing: transition.easing || 'linear',
+          params: transition.params || {}
+        });
+      } else if (AdvancedCustomTransition.isAdvancedCustomTransition(transition.name)) {
+        this.transitionProcessor = new AdvancedCustomTransition({
+          name: transition.name || 'fade',
+          duration: transition.duration || 1,
+          easing: transition.easing || 'linear',
+          params: transition.params || {}
+        });
+      } else {
+        this.transitionProcessor = new Transition({
+          name: transition.name || 'fade',
+          duration: transition.duration || 1,
+          easing: transition.easing || 'linear',
+          params: transition.params || {}
+        });
+      }
     }
     
     // 创建过渡处理器
