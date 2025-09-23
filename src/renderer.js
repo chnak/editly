@@ -26,6 +26,15 @@ export class VideoRenderer {
 
       console.log(`开始渲染: ${timeline.canvasWidth}x${timeline.canvasHeight} ${timeline.fps}fps, 总帧数: ${totalFrames}`);
       
+      // 检查是否有音频元素
+      const audioElements = timeline.getAudioElements();
+      console.log(`[Renderer] 发现 ${audioElements.length} 个音频元素`);
+      
+      if (audioElements.length > 0) {
+        // 处理音频
+        await this.processAudio(timeline, audioElements);
+      }
+      
       // 启动 FFmpeg 进程
       this.startFfmpegProcess();
       
@@ -73,6 +82,99 @@ export class VideoRenderer {
   }
 
   /**
+   * 处理音频
+   */
+  async processAudio(timeline, audioElements) {
+    console.log(`[Renderer] 开始处理 ${audioElements.length} 个音频元素`);
+    
+    // 初始化所有音频元素
+    for (const audioElement of audioElements) {
+      console.log(`[Renderer] 初始化音频元素: ${audioElement.source}`);
+      await audioElement.initialize();
+    }
+    
+    // 收集音频流信息
+    const audioStreams = [];
+    for (const audioElement of audioElements) {
+      const stream = audioElement.getAudioStream();
+      if (stream) {
+        audioStreams.push(stream);
+        console.log(`[Renderer] 添加音频流: ${stream.path}`);
+      }
+    }
+    
+    if (audioStreams.length > 0) {
+      // 混合音频
+      this.mixedAudioPath = await this.mixAudioStreams(audioStreams);
+      console.log(`[Renderer] 音频混合完成: ${this.mixedAudioPath}`);
+    }
+  }
+
+  /**
+   * 混合音频流
+   */
+  async mixAudioStreams(audioStreams) {
+    const { ffmpeg } = await import('../core/ffmpeg.js');
+    const { join } = await import('path');
+    
+    const mixedAudioPath = join(this.tmpDir, 'mixed-audio.flac');
+    
+    if (audioStreams.length === 1) {
+      // 只有一个音频流，直接复制
+      const args = [
+        '-i', audioStreams[0].path,
+        '-c:a', 'flac',
+        '-y', mixedAudioPath
+      ];
+      await ffmpeg(args);
+    } else {
+      // 多个音频流，需要混合
+      const args = ['-nostdin'];
+      
+      // 添加所有输入文件
+      for (const stream of audioStreams) {
+        if (stream.loop > 0) {
+          args.push('-stream_loop', stream.loop.toString());
+        }
+        args.push('-i', stream.path);
+      }
+      
+      // 创建混合滤镜
+      const filterComplex = audioStreams.map((_, i) => {
+        const startTime = audioStreams[i].start || 0;
+        const cutFrom = audioStreams[i].cutFrom || 0;
+        const cutTo = audioStreams[i].cutTo;
+        
+        let filter = `[${i}:a]atrim=start=${cutFrom}${cutTo ? `:end=${cutTo}` : ''}`;
+        
+        if (startTime > 0) {
+          filter += `,adelay=delays=${Math.floor(startTime * 1000)}:all=1`;
+        }
+        
+        if (i > 0) {
+          filter += ',apad';
+        }
+        
+        return `${filter}[a${i}]`;
+      }).join(';');
+      
+      const mixFilter = audioStreams.map((_, i) => `[a${i}]`).join('') + 
+        `amix=inputs=${audioStreams.length}:duration=longest:weights=${audioStreams.map(s => s.mixVolume || 1).join(' ')}`;
+      
+      args.push(
+        '-filter_complex', `${filterComplex};${mixFilter}`,
+        '-c:a', 'flac',
+        '-y', mixedAudioPath
+      );
+      
+      console.log(`[Renderer] 混合音频命令:`, args);
+      await ffmpeg(args);
+    }
+    
+    return mixedAudioPath;
+  }
+
+  /**
    * 启动 FFmpeg 进程
    */
   startFfmpegProcess() {
@@ -82,15 +184,28 @@ export class VideoRenderer {
       '-pix_fmt', 'rgba',
       '-s', `${this.config.width}x${this.config.height}`,
       '-r', this.config.fps.toString(),
-      '-i', '-',
+      '-i', '-'
+    ];
+
+    // 如果有音频，添加音频输入
+    if (this.mixedAudioPath) {
+      args.push('-i', this.mixedAudioPath);
+    }
+
+    args.push(
       '-c:v', 'libx264',
       '-preset', this.config.fast ? 'ultrafast' : 'medium',
       '-crf', '23',
       '-pix_fmt', 'yuv420p',  // 使用更兼容的颜色格式
-      '-movflags', 'faststart',
-      '-y',
-      this.config.outPath
-    ];
+      '-movflags', 'faststart'
+    );
+
+    // 如果有音频，添加音频编码
+    if (this.mixedAudioPath) {
+      args.push('-c:a', 'aac', '-b:a', '128k');
+    }
+
+    args.push('-y', this.config.outPath);
 
     this.ffmpegProcess = spawn('ffmpeg', args, {
       stdio: ['pipe', 'pipe', 'pipe']

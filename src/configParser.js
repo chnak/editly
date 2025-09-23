@@ -4,6 +4,7 @@ import { TextElement } from "./elements/text.js";
 import { TitleElement } from "./elements/title.js";
 import { ShapeElement } from "./elements/shape.js";
 import { CompositionElement } from "./elements/composition.js";
+import { AudioElement } from "./elements/audio.js";
 
 /**
  * 配置解析器 - 将 Creatomate 风格的配置转换为内部格式
@@ -19,7 +20,8 @@ export class ConfigParser {
       text: TitleElement, // 将 text 类型映射到 TitleElement
       title: TitleElement,
       shape: ShapeElement,
-      composition: CompositionElement
+      composition: CompositionElement,
+      audio: AudioElement
     };
   }
 

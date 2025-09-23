@@ -195,6 +195,22 @@ export class Timeline {
   }
 
   /**
+   * 获取所有音频元素
+   */
+  getAudioElements() {
+    return this.elements.filter(element => element.type === 'audio');
+  }
+
+  /**
+   * 获取指定时间活跃的音频元素
+   */
+  getActiveAudioElementsAtTime(time) {
+    return this.getAudioElements().filter(audioElement => {
+      return time >= audioElement.startTime && time < audioElement.endTime;
+    });
+  }
+
+  /**
    * 渲染过渡效果帧
    */
   async renderTransitionFrame(time, canvas, transition) {
