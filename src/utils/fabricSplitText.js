@@ -99,6 +99,7 @@ export class FabricSplitText {
     for (let i = 0; i < chars.length; i++) {
       const char = chars[i];
       const isSpace = char.trim() === '';
+      const isSymbol = /[^\w\s\u4e00-\u9fff]/.test(char); // 检测符号字符
       
       // 创建 Fabric.js Text 对象
       const textObj = new fabric.Text(char, {
@@ -110,12 +111,23 @@ export class FabricSplitText {
         originY: 'top'
       });
 
+      // 对于空格字符，使用更准确的宽度计算
+      let charWidth = textObj.width;
+      if (isSpace) {
+        // 空格字符使用字体大小的1/4作为宽度，这是更准确的做法
+        charWidth = this.options.fontSize * 0.25;
+      } else if (isSymbol) {
+        // 符号字符可能需要特殊处理
+        charWidth = Math.max(textObj.width, this.options.fontSize * 0.3);
+      }
+
       this.characters.push({
         text: textObj,
         char: char,
         index: i,
         isSpace: isSpace,
-        width: textObj.width,
+        isSymbol: isSymbol,
+        width: charWidth,
         height: textObj.height,
         x: 0, // 将在 _calculateDimensions 中设置
         y: 0
@@ -144,12 +156,20 @@ export class FabricSplitText {
         originY: 'top'
       });
 
+      // 对于空格单词，使用更准确的宽度计算
+      let wordWidth = textObj.width;
+      if (isSpace) {
+        // 空格单词的宽度基于空格数量和字体大小
+        const spaceCount = word.length;
+        wordWidth = spaceCount * this.options.fontSize * 0.25;
+      }
+
       this.words.push({
         text: textObj,
         word: word,
         index: i,
         isSpace: isSpace,
-        width: textObj.width,
+        width: wordWidth,
         height: textObj.height,
         x: 0, // 将在 _calculateDimensions 中设置
         y: 0
@@ -233,24 +253,19 @@ export class FabricSplitText {
       // 计算下一个字符的位置
       currentX += char.width;
       
-      // 添加动态字符间距（除了空格）
-      if (!char.isSpace) {
-        const spacing = dynamicSpacing[i] || this.options.charSpacing;
-        currentX += spacing;
-      } else {
-        // 对于空格，添加较小的间距以保持自然感
-        currentX += this.options.charSpacing * 0.3;
-      }
-    }
-    
-    // 减去最后一个元素的间距
-    if (this.characters.length > 0) {
-      const lastChar = this.characters[this.characters.length - 1];
-      if (!lastChar.isSpace) {
-        const lastSpacing = dynamicSpacing[this.characters.length - 1] || this.options.charSpacing;
-        currentX -= lastSpacing;
-      } else {
-        currentX -= this.options.charSpacing * 0.3;
+      // 添加字符间距（除了最后一个字符）
+      if (i < this.characters.length - 1) {
+        if (char.isSpace) {
+          // 对于空格，添加较小的间距以保持自然感
+          currentX += this.options.charSpacing * 0.2;
+        } else if (char.isSymbol) {
+          // 对于符号，添加适中的间距
+          currentX += this.options.charSpacing * 0.8;
+        } else {
+          // 对于普通字符，添加正常间距
+          const spacing = dynamicSpacing[i] || this.options.charSpacing;
+          currentX += spacing;
+        }
       }
     }
     
@@ -303,8 +318,13 @@ export class FabricSplitText {
       // 计算基础间距
       let baseSpacing = this.options.charSpacing;
       
+      // 特殊处理符号字符
+      if (currentChar.isSymbol || nextChar.isSymbol) {
+        // 符号字符使用较小的间距
+        baseSpacing *= 0.6;
+      }
       // 如果两个字符都很窄，增加间距
-      if (currentWidthRatio < 0.7 && nextWidthRatio < 0.7) {
+      else if (currentWidthRatio < 0.7 && nextWidthRatio < 0.7) {
         baseSpacing *= 1.2;
       }
       // 如果两个字符都很宽，减少间距
@@ -317,7 +337,7 @@ export class FabricSplitText {
       }
       
       // 确保间距在合理范围内
-      const minSpacing = this.options.charSpacing * 0.3;
+      const minSpacing = this.options.charSpacing * 0.2;
       const maxSpacing = this.options.charSpacing * 1.5;
       baseSpacing = Math.max(minSpacing, Math.min(maxSpacing, baseSpacing));
       
@@ -346,26 +366,16 @@ export class FabricSplitText {
       // 计算下一个单词的位置
       currentX += word.width;
       
-      // 添加动态单词间距（除了空格）
-      if (!word.isSpace) {
-        const spacing = dynamicSpacing[i] || this.options.wordSpacing;
-        currentX += spacing;
-      } else {
-        // 对于空格，添加较小的间距以保持自然感
-        const spacing = this.options.wordSpacing * 0.5;
-        currentX += spacing;
-      }
-    }
-    
-    // 减去最后一个元素的间距
-    if (this.words.length > 0) {
-      const lastWord = this.words[this.words.length - 1];
-      if (!lastWord.isSpace) {
-        const lastSpacing = dynamicSpacing[this.words.length - 1] || this.options.wordSpacing;
-        currentX -= lastSpacing;
-      } else {
-        const lastSpacing = this.options.wordSpacing * 0.5;
-        currentX -= lastSpacing;
+      // 添加单词间距（除了最后一个单词）
+      if (i < this.words.length - 1) {
+        if (word.isSpace) {
+          // 对于空格，添加较小的间距以保持自然感
+          currentX += this.options.wordSpacing * 0.3;
+        } else {
+          // 对于普通单词，添加正常间距
+          const spacing = dynamicSpacing[i] || this.options.wordSpacing;
+          currentX += spacing;
+        }
       }
     }
     
