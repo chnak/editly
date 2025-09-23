@@ -14,8 +14,6 @@ export class Timeline {
     this.canvasHeight = parsedConfig.canvasHeight;
     this.fps = parsedConfig.fps;
     this.globalConfig = globalConfig;
-    // 初始化过渡效果处理器
-    this.transitionProcessor = null;
     
     // 处理过渡效果配置
     this.transitions = this.processTransitions(parsedConfig.transitions || []);
@@ -183,9 +181,17 @@ export class Timeline {
    * 获取指定时间活跃的过渡效果
    */
   getActiveTransitionAtTime(time) {
-    return this.transitions.find(transition => {
+    // 找到所有在指定时间活跃的过渡效果
+    const activeTransitions = this.transitions.filter(transition => {
       return time >= transition.startTime && time < transition.endTime;
     });
+    
+    // 如果有多个过渡效果，返回优先级最高的（按startTime排序，最新的优先）
+    if (activeTransitions.length > 0) {
+      return activeTransitions.sort((a, b) => b.startTime - a.startTime)[0];
+    }
+    
+    return null;
   }
 
   /**
@@ -207,42 +213,47 @@ export class Timeline {
     const toFrame = await this.getFrameWithoutTransition(toTime, canvas);
     //console.log(`[Timeline] to帧数据: ${toFrame.data.length} bytes`);
     
-    // 使用core的Transition类或自定义过渡效果
-    if (!this.transitionProcessor) {
-      //console.log(`[Timeline] 创建Transition处理器: ${transition.name}`);
-      
-      // 检查是否为自定义过渡效果
-      if (CustomTransition.isCustomTransition(transition.name)) {
-        this.transitionProcessor = new CustomTransition({
-          name: transition.name || 'fade',
-          duration: transition.duration || 1,
-          easing: transition.easing || 'linear',
-          params: transition.params || {}
-        });
-      } else if (AdvancedCustomTransition.isAdvancedCustomTransition(transition.name)) {
-        this.transitionProcessor = new AdvancedCustomTransition({
-          name: transition.name || 'fade',
-          duration: transition.duration || 1,
-          easing: transition.easing || 'linear',
-          params: transition.params || {}
-        });
-      } else {
-        this.transitionProcessor = new Transition({
-          name: transition.name || 'fade',
-          duration: transition.duration || 1,
-          easing: transition.easing || 'linear',
-          params: transition.params || {}
-        });
-      }
-    }
+    // 为每个过渡效果创建新的处理器
+    let transitionProcessor;
     
-    // 创建过渡处理器
-    //console.log(`[Timeline] 创建过渡处理器: ${this.canvasWidth}x${this.canvasHeight}`);
-    const transitionProcessor = this.transitionProcessor.create({
-      width: this.canvasWidth,
-      height: this.canvasHeight,
-      channels: 4
-    });
+    // 检查是否为自定义过渡效果
+    if (CustomTransition.isCustomTransition(transition.name)) {
+      const customTransition = new CustomTransition({
+        name: transition.name || 'fade',
+        duration: transition.duration || 1,
+        easing: transition.easing || 'linear',
+        params: transition.params || {}
+      });
+      transitionProcessor = customTransition.create({
+        width: this.canvasWidth,
+        height: this.canvasHeight,
+        channels: 4
+      });
+    } else if (AdvancedCustomTransition.isAdvancedCustomTransition(transition.name)) {
+      const advancedCustomTransition = new AdvancedCustomTransition({
+        name: transition.name || 'fade',
+        duration: transition.duration || 1,
+        easing: transition.easing || 'linear',
+        params: transition.params || {}
+      });
+      transitionProcessor = advancedCustomTransition.create({
+        width: this.canvasWidth,
+        height: this.canvasHeight,
+        channels: 4
+      });
+    } else {
+      const standardTransition = new Transition({
+        name: transition.name || 'fade',
+        duration: transition.duration || 1,
+        easing: transition.easing || 'linear',
+        params: transition.params || {}
+      });
+      transitionProcessor = standardTransition.create({
+        width: this.canvasWidth,
+        height: this.canvasHeight,
+        channels: 4
+      });
+    }
     
     // 应用过渡效果
     //console.log(`[Timeline] 应用过渡效果: progress=${progress.toFixed(3)}`);
