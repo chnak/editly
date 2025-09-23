@@ -191,17 +191,23 @@ export class Timeline {
    */
   async renderTransitionFrame(time, canvas, transition) {
     const progress = (time - transition.startTime) / transition.duration;
+    console.log(`[Timeline] 渲染过渡帧: ${transition.name} at ${time.toFixed(3)}s, progress=${progress.toFixed(3)}`);
     
     // 获取过渡前的帧（场景A的最后一帧）
     const fromTime = transition.startTime;
+    console.log(`[Timeline] 获取from帧: ${fromTime}s`);
     const fromFrame = await this.getFrameWithoutTransition(fromTime, canvas);
+    console.log(`[Timeline] from帧数据: ${fromFrame.data.length} bytes`);
     
     // 获取过渡后的帧（场景B的第一帧）
     const toTime = transition.endTime;
+    console.log(`[Timeline] 获取to帧: ${toTime}s`);
     const toFrame = await this.getFrameWithoutTransition(toTime, canvas);
+    console.log(`[Timeline] to帧数据: ${toFrame.data.length} bytes`);
     
     // 使用core的Transition类
     if (!this.transitionProcessor) {
+      console.log(`[Timeline] 创建Transition处理器: ${transition.name}`);
       this.transitionProcessor = new Transition({
         name: transition.name || 'fade',
         duration: transition.duration || 1,
@@ -211,6 +217,7 @@ export class Timeline {
     }
     
     // 创建过渡处理器
+    console.log(`[Timeline] 创建过渡处理器: ${this.canvasWidth}x${this.canvasHeight}`);
     const transitionProcessor = this.transitionProcessor.create({
       width: this.canvasWidth,
       height: this.canvasHeight,
@@ -218,11 +225,17 @@ export class Timeline {
     });
     
     // 应用过渡效果
+    console.log(`[Timeline] 应用过渡效果: progress=${progress.toFixed(3)}`);
+    console.log(`[Timeline] transitionProcessor类型:`, typeof transitionProcessor);
+    console.log(`[Timeline] transitionProcessor:`, transitionProcessor);
+    
     const result = transitionProcessor({
       fromFrame: fromFrame.data,
       toFrame: toFrame.data,
       progress: progress
     });
+    
+    console.log(`[Timeline] 过渡结果: ${result.length} bytes`);
     
     // 直接返回过渡效果的结果数据，而不是包装在对象中
     return result;
