@@ -3,7 +3,6 @@ import { getPositionProps, parsePositionValue } from '../utils/positionUtils.js'
 import { registerFont } from "canvas";
 import { basename, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import fontFinder from "font-finder";
 
 
 // 缓存已加载的字体
@@ -491,57 +490,6 @@ export class BaseElement {
     return this.applyTransformToFrameData(rawFrameData, transform);
   }
 
-  /**
-   * 使用 font-finder 查找并注册系统字体
-   * @param {string} fontFamily - 字体族名
-   * @returns {Promise<string>} 注册后的字体族名
-   */
-  static async findAndRegisterSystemFont(fontFamily) {
-    try {
-      // 检查是否已经注册过
-      if (loadedFonts.includes(fontFamily)) {
-        return fontFamily;
-      }
-      
-      // 中文字体名称映射
-      const chineseFontMap = {
-        '微软雅黑': 'DengXian',
-        '楷体': 'KaiTi', 
-        '宋体': 'SimSun-ExtB',
-        '黑体': 'SimHei',
-        '等线': 'DengXian'
-      };
-      
-      // 获取映射后的字体名称
-      const mappedFontName = chineseFontMap[fontFamily] || fontFamily;
-      
-      // 使用 font-finder 查找字体
-      const fontList = await fontFinder.list();
-      const fontInfo = fontList[mappedFontName];
-      
-      if (fontInfo && Array.isArray(fontInfo) && fontInfo.length > 0) {
-        // 选择第一个字体文件（通常是 regular 样式）
-        const fontFile = fontInfo[0];
-        const fontPath = fontFile.path;
-        
-        // 注册字体
-        registerFont(fontPath, { 
-          family: fontFamily, // 使用原始字体名称
-          weight: "normal", 
-          style: "normal" 
-        });
-        loadedFonts.push(fontFamily);
-        console.log(`✓ 系统字体已注册: ${fontFamily} -> ${fontPath}`);
-        return fontFamily;
-      } else {
-        console.warn(`未找到系统字体: ${fontFamily} (映射为: ${mappedFontName})`);
-        return 'Arial'; // 回退到默认字体
-      }
-    } catch (error) {
-      console.warn(`系统字体查找失败: ${fontFamily}`, error.message);
-      return 'Arial'; // 回退到默认字体
-    }
-  }
 
   /**
    * 解析字体大小，支持多种单位
@@ -622,8 +570,8 @@ export class BaseElement {
       }
       finalFontFamily = fontName;
     } else if (fontFamily) {
-      // 如果指定了 fontFamily，使用 font-finder 查找系统字体
-      finalFontFamily = await this.findAndRegisterSystemFont(fontFamily);
+      // 如果指定了 fontFamily，直接使用（不再查找系统字体）
+      finalFontFamily = fontFamily;
     } else {
       // 如果没有指定字体路径和字体族名，使用默认中文字体
       const __filename = fileURLToPath(import.meta.url);
