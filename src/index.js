@@ -23,6 +23,7 @@ export class VideoMaker extends EventEmitter {
       verbose: config.verbose || false,
       fast: config.fast || false,
       outPath: config.outPath || 'output.mp4',
+      playbackSpeed: config.playbackSpeed || 1.0, // 倍速播放，默认1.0倍速
       
       // Creatomate 风格的元素配置
       elements: config.elements || [],

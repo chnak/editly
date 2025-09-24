@@ -12,6 +12,8 @@ export class VideoRenderer {
     this.config = config;
     this.tmpDir = join(dirname(config.outPath), `video-maker-tmp-${nanoid()}`);
     this.ffmpegProcess = null;
+    this.mixedAudioPath = null; // 用于存储混合后的音频文件路径
+    this.playbackSpeed = config.playbackSpeed || 1.0; // 倍速播放，默认1.0倍速
   }
 
   /**
@@ -23,8 +25,9 @@ export class VideoRenderer {
       
       const totalFrames = Math.ceil(timeline.duration * timeline.fps);
       const frameSize = timeline.canvasWidth * timeline.canvasHeight * 4; // RGBA
+      const outputFps = timeline.fps * this.playbackSpeed; // 输出帧率 = 原始帧率 × 倍速
 
-      console.log(`开始渲染: ${timeline.canvasWidth}x${timeline.canvasHeight} ${timeline.fps}fps, 总帧数: ${totalFrames}`);
+      //  console.log(`开始渲染: ${timeline.canvasWidth}x${timeline.canvasHeight} ${timeline.fps}fps → ${outputFps.toFixed(2)}fps (${this.playbackSpeed}x倍速), 总帧数: ${totalFrames}`);
       
       // 检查是否有音频元素
       const audioElements = timeline.getAudioElements();
@@ -66,7 +69,7 @@ export class VideoRenderer {
       // 结束 FFmpeg 进程
       await this.finishFfmpegProcess();
       
-      console.log(`\n渲染完成: ${this.config.outPath}`);
+      // console.log(`\n渲染完成: ${this.config.outPath}`);
       return this.config.outPath;
       
     } catch (error) {
@@ -89,7 +92,7 @@ export class VideoRenderer {
     
     // 初始化所有音频元素
     for (const audioElement of audioElements) {
-      console.log(`[Renderer] 初始化音频元素: ${audioElement.source}`);
+      // console.log(`[Renderer] 初始化音频元素: ${audioElement.source}`);
       await audioElement.initialize();
     }
     
@@ -99,14 +102,14 @@ export class VideoRenderer {
       const stream = audioElement.getAudioStream();
       if (stream) {
         audioStreams.push(stream);
-        console.log(`[Renderer] 添加音频流: ${stream.path}`);
+        // console.log(`[Renderer] 添加音频流: ${stream.path}`);
       }
     }
     
     if (audioStreams.length > 0) {
       // 混合音频
       this.mixedAudioPath = await this.mixAudioStreams(audioStreams);
-      console.log(`[Renderer] 音频混合完成: ${this.mixedAudioPath}`);
+      // console.log(`[Renderer] 音频混合完成: ${this.mixedAudioPath}`);
     }
   }
 
@@ -167,7 +170,7 @@ export class VideoRenderer {
         '-y', mixedAudioPath
       );
       
-      console.log(`[Renderer] 混合音频命令:`, args);
+      // console.log(`[Renderer] 混合音频命令:`, args);
       await ffmpeg(args);
     }
     
@@ -178,12 +181,14 @@ export class VideoRenderer {
    * 启动 FFmpeg 进程
    */
   startFfmpegProcess() {
+    const outputFps = this.config.fps * this.playbackSpeed;
+    
     const args = [
       '-f', 'rawvideo',
       '-vcodec', 'rawvideo',
       '-pix_fmt', 'rgba',
       '-s', `${this.config.width}x${this.config.height}`,
-      '-r', this.config.fps.toString(),
+      '-r', this.config.fps.toString(), // 输入帧率保持原始帧率
       '-i', '-'
     ];
 
@@ -197,11 +202,16 @@ export class VideoRenderer {
       '-preset', this.config.fast ? 'ultrafast' : 'medium',
       '-crf', '23',
       '-pix_fmt', 'yuv420p',  // 使用更兼容的颜色格式
-      '-movflags', 'faststart'
+      '-movflags', 'faststart',
+      '-r', outputFps.toString() // 输出帧率 = 输入帧率 × 倍速
     );
 
-    // 如果有音频，添加音频编码
+    // 如果有音频，添加音频编码和倍速处理
     if (this.mixedAudioPath) {
+      if (this.playbackSpeed !== 1.0) {
+        // 使用atempo滤镜调整音频速度
+        args.push('-filter:a', `atempo=${this.playbackSpeed}`);
+      }
       args.push('-c:a', 'aac', '-b:a', '128k');
     }
 
@@ -277,7 +287,7 @@ export class VideoRenderer {
     if (await fsExtra.pathExists(this.tmpDir)) {
       try {
         await fsExtra.remove(this.tmpDir);
-        console.log(`✓ 临时目录已清理: ${this.tmpDir}`);
+        // console.log(`✓ 临时目录已清理: ${this.tmpDir}`);
       } catch (error) {
         console.warn(`⚠️ 清理临时目录失败: ${error.message}`);
       }

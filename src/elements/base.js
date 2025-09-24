@@ -1,10 +1,20 @@
 import { animationManager } from '../animations/AnimationManager.js';
 import { getPositionProps, parsePositionValue } from '../utils/positionUtils.js';
+import { registerFont } from "canvas";
+import { basename, resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+import fontFinder from "font-finder";
+
+
+// 缓存已加载的字体
+const loadedFonts = [];
 
 /**
  * 元素基类 - 所有视频元素的基类
  */
 export class BaseElement {
+  // 静态字体处理方法
+  static loadedFonts = loadedFonts;
   constructor(config) {
     this.type = config.type;
     this.startTime = config.startTime || 0;
@@ -479,5 +489,171 @@ export class BaseElement {
 
     // 普通帧数据
     return this.applyTransformToFrameData(rawFrameData, transform);
+  }
+
+  /**
+   * 使用 font-finder 查找并注册系统字体
+   * @param {string} fontFamily - 字体族名
+   * @returns {Promise<string>} 注册后的字体族名
+   */
+  static async findAndRegisterSystemFont(fontFamily) {
+    try {
+      // 检查是否已经注册过
+      if (loadedFonts.includes(fontFamily)) {
+        return fontFamily;
+      }
+      
+      // 中文字体名称映射
+      const chineseFontMap = {
+        '微软雅黑': 'DengXian',
+        '楷体': 'KaiTi', 
+        '宋体': 'SimSun-ExtB',
+        '黑体': 'SimHei',
+        '等线': 'DengXian'
+      };
+      
+      // 获取映射后的字体名称
+      const mappedFontName = chineseFontMap[fontFamily] || fontFamily;
+      
+      // 使用 font-finder 查找字体
+      const fontList = await fontFinder.list();
+      const fontInfo = fontList[mappedFontName];
+      
+      if (fontInfo && Array.isArray(fontInfo) && fontInfo.length > 0) {
+        // 选择第一个字体文件（通常是 regular 样式）
+        const fontFile = fontInfo[0];
+        const fontPath = fontFile.path;
+        
+        // 注册字体
+        registerFont(fontPath, { 
+          family: fontFamily, // 使用原始字体名称
+          weight: "normal", 
+          style: "normal" 
+        });
+        loadedFonts.push(fontFamily);
+        console.log(`✓ 系统字体已注册: ${fontFamily} -> ${fontPath}`);
+        return fontFamily;
+      } else {
+        console.warn(`未找到系统字体: ${fontFamily} (映射为: ${mappedFontName})`);
+        return 'Arial'; // 回退到默认字体
+      }
+    } catch (error) {
+      console.warn(`系统字体查找失败: ${fontFamily}`, error.message);
+      return 'Arial'; // 回退到默认字体
+    }
+  }
+
+  /**
+   * 解析字体大小，支持多种单位
+   * @param {string|number} value - 字体大小值
+   * @param {number} width - 容器宽度
+   * @param {number} height - 容器高度
+   * @returns {number} 解析后的像素值
+   */
+  static parseFontSize(value, width, height) {
+    if (typeof value === 'number') {
+      return value;
+    }
+    
+    if (typeof value === 'string') {
+      // 提取数值和单位
+      const match = value.match(/^([+-]?\d*\.?\d+)([a-zA-Z%]*)$/);
+      if (!match) {
+        return 72; // 默认字体大小
+      }
+      
+      const numValue = parseFloat(match[1]);
+      const valueUnit = match[2] || 'px';
+      
+      switch (valueUnit) {
+        case 'px':
+          return numValue;
+        case '%':
+          // 百分比基于最小尺寸
+          return (numValue / 100) * Math.min(width, height);
+        case 'vw':
+          // 视口宽度单位
+          return (numValue / 100) * width;
+        case 'vh':
+          // 视口高度单位
+          return (numValue / 100) * height;
+        case 'vmin':
+          // 视口最小单位
+          return (numValue / 100) * Math.min(width, height);
+        case 'vmax':
+          // 视口最大单位
+          return (numValue / 100) * Math.max(width, height);
+        default:
+          return numValue;
+      }
+    }
+    
+    return 72; // 默认字体大小
+  }
+
+  /**
+   * 处理字体注册
+   * @param {Object} config - 字体配置
+   * @param {number} width - 容器宽度
+   * @param {number} height - 容器高度
+   * @returns {Promise<Object>} 字体处理结果
+   */
+  static async processFont(config, width, height) {
+    const { fontPath, fontFamily, fontSize = 72 } = config;
+    
+    // 处理字体注册
+    let finalFontFamily = fontFamily || 'Arial';
+    
+    // 如果指定了字体路径，使用自定义字体文件
+    if (fontPath) {
+      const fontName = Buffer.from(basename(fontPath)).toString("base64");
+      if (!loadedFonts.includes(fontName)) {
+        try {
+          registerFont(fontPath, { 
+            family: fontName, 
+            weight: "regular", 
+            style: "normal" 
+          });
+          loadedFonts.push(fontName);
+          console.log(`✓ 字体已注册: ${fontPath} -> ${fontName}`);
+        } catch (error) {
+          console.warn(`字体注册失败: ${fontPath}`, error.message);
+        }
+      }
+      finalFontFamily = fontName;
+    } else if (fontFamily) {
+      // 如果指定了 fontFamily，使用 font-finder 查找系统字体
+      finalFontFamily = await this.findAndRegisterSystemFont(fontFamily);
+    } else {
+      // 如果没有指定字体路径和字体族名，使用默认中文字体
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      const defaultChineseFont = resolve(__dirname, '../fonts/PatuaOne-Regular.ttf');
+      try {
+        const fontName = Buffer.from(basename(defaultChineseFont)).toString("base64");
+        if (!loadedFonts.includes(fontName)) {
+          registerFont(defaultChineseFont, { 
+            family: fontName, 
+            weight: "normal", 
+            style: "normal" 
+          });
+          loadedFonts.push(fontName);
+          console.log(`✓ 默认中文字体已注册: ${defaultChineseFont} -> ${fontName}`);
+          finalFontFamily = fontName;
+        } else {
+          finalFontFamily = fontName;
+        }
+      } catch (error) {
+        console.warn(`默认中文字体注册失败: ${defaultChineseFont}`, error.message);
+      }
+    }
+    
+    // 处理字体大小，支持多种单位
+    const finalFontSize = Math.round(this.parseFontSize(fontSize, width, height));
+    
+    return {
+      fontFamily: finalFontFamily,
+      fontSize: finalFontSize
+    };
   }
 }

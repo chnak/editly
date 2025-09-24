@@ -1,62 +1,11 @@
 import * as fabric from "fabric/node";
-import { registerFont, createCanvas } from "canvas";
-import { basename, resolve, dirname } from "path";
-import { fileURLToPath } from "url";
+import { createCanvas } from "canvas";
 import { parsePositionValue } from "../utils/positionUtils.js";
 import { createSplitText } from "../utils/fabricSplitText.js";
 import { animationManager } from "../animations/AnimationManager.js";
 import { createFabricCanvas, renderFabricCanvas } from "../utils/fabricUtils.js";
+import { BaseElement } from "./base.js";
 
-// 缓存已加载的字体
-const loadedFonts = [];
-
-/**
- * 解析字体大小，支持多种单位
- * @param {string|number} value - 字体大小值
- * @param {number} width - 容器宽度
- * @param {number} height - 容器高度
- * @returns {number} 解析后的像素值
- */
-function parseFontSize(value, width, height) {
-  if (typeof value === 'number') {
-    return value;
-  }
-  
-  if (typeof value === 'string') {
-    // 提取数值和单位
-    const match = value.match(/^([+-]?\d*\.?\d+)([a-zA-Z%]*)$/);
-    if (!match) {
-      return 72; // 默认字体大小
-    }
-    
-    const numValue = parseFloat(match[1]);
-    const valueUnit = match[2] || 'px';
-    
-    switch (valueUnit) {
-      case 'px':
-        return numValue;
-      case '%':
-        // 百分比基于最小尺寸
-        return (numValue / 100) * Math.min(width, height);
-      case 'vw':
-        // 视口宽度单位
-        return (numValue / 100) * width;
-      case 'vh':
-        // 视口高度单位
-        return (numValue / 100) * height;
-      case 'vmin':
-        // 视口最小单位
-        return (numValue / 100) * Math.min(width, height);
-      case 'vmax':
-        // 视口最大单位
-        return (numValue / 100) * Math.max(width, height);
-      default:
-        return numValue;
-    }
-  }
-  
-  return 72; // 默认字体大小
-}
 
 /**
  * 打字机效果 - 逐字显示文字
@@ -326,51 +275,10 @@ export async function createTitleElement(config) {
     typewriterDelay = 0 // 开始延迟
   } = config;
   
-  // 处理字体注册
-  let finalFontFamily = fontFamily || 'Arial';
-  
-  // 如果没有指定字体路径，尝试使用默认中文字体
-  if (!fontPath) {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const defaultChineseFont = resolve(__dirname, '../fonts/PatuaOne-Regular.ttf');
-    try {
-      const fontName = Buffer.from(basename(defaultChineseFont)).toString("base64");
-      if (!loadedFonts.includes(fontName)) {
-        registerFont(defaultChineseFont, { 
-          family: fontName, 
-          weight: "normal", 
-          style: "normal" 
-        });
-        loadedFonts.push(fontName);
-        console.log(`✓ 默认中文字体已注册: ${defaultChineseFont} -> ${fontName}`);
-        finalFontFamily = fontName;
-      } else {
-        finalFontFamily = fontName;
-      }
-    } catch (error) {
-      console.warn(`默认中文字体注册失败: ${defaultChineseFont}`, error.message);
-    }
-  } else if (fontPath) {
-    const fontName = Buffer.from(basename(fontPath)).toString("base64");
-    if (!loadedFonts.includes(fontName)) {
-      try {
-        registerFont(fontPath, { 
-          family: fontName, 
-          weight: "regular", 
-          style: "normal" 
-        });
-        loadedFonts.push(fontName);
-        console.log(`✓ 字体已注册: ${fontPath} -> ${fontName}`);
-      } catch (error) {
-        console.warn(`字体注册失败: ${fontPath}`, error.message);
-      }
-    }
-    finalFontFamily = fontName;
-  }
-  
-  // 处理字体大小，支持多种单位
-  const finalFontSize = Math.round(parseFontSize(fontSize, width, height));
+  // 使用 BaseElement 的字体处理逻辑
+  const fontResult = await BaseElement.processFont({ fontPath, fontFamily, fontSize }, width, height);
+  const finalFontFamily = fontResult.fontFamily;
+  const finalFontSize = fontResult.fontSize;
   
   
   

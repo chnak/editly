@@ -1,10 +1,5 @@
 import { Textbox } from "fabric/node";
-import { registerFont } from "canvas";
-import { basename, resolve, dirname } from "path";
-import { fileURLToPath } from "url";
-
-// 缓存已加载的字体
-const loadedFonts = [];
+import { BaseElement } from "./base.js";
 
 /**
  * 文本处理器 - 参考 editly 的实现方式，使用 Fabric.js Textbox
@@ -26,48 +21,9 @@ export async function createTextElement(config) {
     height 
   } = config;
   
-  // 处理字体注册
-  let finalFontFamily = fontFamily || 'Arial';
-  
-  // 如果没有指定字体路径，尝试使用默认中文字体
-  if (!fontPath) {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const defaultChineseFont = resolve(__dirname, '../fonts/PatuaOne-Regular.ttf');
-    try {
-      const fontName = Buffer.from(basename(defaultChineseFont)).toString("base64");
-      if (!loadedFonts.includes(fontName)) {
-        registerFont(defaultChineseFont, { 
-          family: fontName, 
-          weight: "bold", 
-          style: "normal" 
-        });
-        loadedFonts.push(fontName);
-        console.log(`✓ 默认中文字体已注册: ${defaultChineseFont} -> ${fontName}`);
-        finalFontFamily = fontName;
-      } else {
-        finalFontFamily = fontName;
-      }
-    } catch (error) {
-      console.warn(`默认中文字体注册失败: ${defaultChineseFont}`, error.message);
-    }
-  } else if (fontPath) {
-    const fontName = Buffer.from(basename(fontPath)).toString("base64");
-    if (!loadedFonts.includes(fontName)) {
-      try {
-        registerFont(fontPath, { 
-          family: fontName, 
-          weight: "regular", 
-          style: "normal" 
-        });
-        loadedFonts.push(fontName);
-        console.log(`✓ 字体已注册: ${fontPath} -> ${fontName}`);
-      } catch (error) {
-        console.warn(`字体注册失败: ${fontPath}`, error.message);
-      }
-    }
-    finalFontFamily = fontName;
-  }
+  // 使用 BaseElement 的字体处理逻辑
+  const fontResult = await BaseElement.processFont({ fontPath, fontFamily }, width, height);
+  const finalFontFamily = fontResult.fontFamily;
   
   return {
     text: text, // 保存 text 变量到返回对象中
