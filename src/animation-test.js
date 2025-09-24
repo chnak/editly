@@ -30,6 +30,7 @@ async function testAnimationSystem() {
           type: "title",
           text: "预设动画测试",
           textColor: "#ffffff",
+          fontFamily: "微软雅黑",
           fontSize: 48,
           duration: 5,
           x: 640,
@@ -44,25 +45,10 @@ async function testAnimationSystem() {
           textColor: "#ff6b6b",
           fontSize: 48,
           duration: 5,
+          fontFamily: "楷体",
           x: 640,
           y: 300,
-          startTime: 1,
-          animations: [
-            {
-              property: 'x',
-              from: -200,
-              to: 640,
-              duration: 1,
-              easing: 'easeOut'
-            },
-            {
-              property: 'scaleX',
-              from: 0.5,
-              to: 1,
-              duration: 1,
-              easing: 'bounce'
-            }
-          ]
+          startTime: 1
         },
         
         // 测试快速预设
@@ -70,6 +56,7 @@ async function testAnimationSystem() {
           type: "title",
           text: "快速预设测试",
           textColor: "#4ecdc4",
+          fontFamily: "宋体",
           fontSize: 48,
           duration: 5,
           x: 640,
