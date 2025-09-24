@@ -380,7 +380,10 @@ export async function createTitleElement(config) {
           // segment.startTime 和 segment.endTime 是相对于分割动画的延迟时间（秒）
           // 使用绝对时间来计算分割动画进度
           const absoluteTime = time || (progress * duration);
-          const segmentProgress = Math.max(0, Math.min(1, (absoluteTime - segment.startTime) / (segment.endTime - segment.startTime)));
+          const segmentStartTime = segment.startTime;
+          const segmentEndTime = segment.endTime;
+          const segmentProgress = Math.max(0, Math.min(1, (absoluteTime - segmentStartTime) / (segmentEndTime - segmentStartTime)));
+          
           
           if (segmentProgress > 0) {
             let segmentLeft = currentX;
@@ -419,9 +422,10 @@ export async function createTitleElement(config) {
               let translateYAnimations = [];
               
               // 收集所有动画值
+              // 对于分割文本，使用片段进度来计算动画值
+              const animTime = segmentProgress;
               for (const anim of animations) {
-                const absoluteTime = time || (progress * duration);
-                const animValue = anim.getValueAtTime(absoluteTime);
+                const animValue = anim.getValueAtTime(animTime);
                 
                 switch (anim.property) {
                   case 'scaleX':

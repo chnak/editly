@@ -31,7 +31,7 @@ export class VideoRenderer {
       
       // 检查是否有音频元素
       const audioElements = timeline.getAudioElements();
-      console.log(`[Renderer] 发现 ${audioElements.length} 个音频元素`);
+      //console.log(`[Renderer] 发现 ${audioElements.length} 个音频元素`);
       
       if (audioElements.length > 0) {
         // 处理音频
