@@ -8,7 +8,7 @@ import { parseSizeValue } from "../utils/positionUtils.js";
 export class ImageElement extends BaseElement {
   constructor(config) {
     super(config);
-    this.source = config.source;
+    this.source = config.source||config.src;
     this.imageElement = null;
     this.canvasWidth = config.canvasWidth;
     this.canvasHeight = config.canvasHeight;

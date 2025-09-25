@@ -546,9 +546,10 @@ export class BaseElement {
         objectLeft = originalLeft;
         objectTop = originalTop;
       } else {
-        // 普通文本：对象位置相对于元素位置
-        objectLeft = positionProps.left + originalLeft;
-        objectTop = positionProps.top + originalTop;
+        // 普通文本：对象位置就是元素位置，不需要加上 originalLeft/originalTop
+        // 因为 originalLeft/originalTop 是相对于文本起始位置的偏移，而普通文本只有一个对象
+        objectLeft = positionProps.left;
+        objectTop = positionProps.top;
       }
       
       // 应用变换到 Fabric 对象

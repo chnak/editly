@@ -8,7 +8,7 @@ import { parseSizeValue } from "../utils/positionUtils.js";
 export class VideoElement extends BaseElement {
   constructor(config) {
     super(config);
-    this.source = config.source;
+    this.source = config.source||config.src;
     this.track = config.track || 1;
     this.transition = config.transition;
     this.videoElement = null;
