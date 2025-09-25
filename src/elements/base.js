@@ -541,9 +541,10 @@ export class BaseElement {
       let objectTop = originalTop;
       
       if (isSplitText) {
-        // 分割文本：对象位置相对于文本起始位置
-        objectLeft = textLeft + originalLeft;
-        objectTop = textTop + originalTop;
+        // 分割文本：对象位置已经是相对于文本起始位置的绝对位置
+        // originalLeft 和 originalTop 已经是正确的绝对位置，不需要再次计算
+        objectLeft = originalLeft;
+        objectTop = originalTop;
       } else {
         // 普通文本：对象位置相对于元素位置
         objectLeft = positionProps.left + originalLeft;
