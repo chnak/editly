@@ -2,6 +2,7 @@ import { VideoElement } from "./elements/video.js";
 import { ImageElement } from "./elements/image.js";
 import { TextElement } from "./elements/text.js";
 import { TitleElement } from "./elements/title.js";
+import { SubtitleElement } from "./elements/subtitle.js";
 import { ShapeElement } from "./elements/shape.js";
 import { CompositionElement } from "./elements/composition.js";
 import { AudioElement } from "./elements/audio.js";
@@ -19,6 +20,7 @@ export class ConfigParser {
       image: ImageElement,
       text: TitleElement, // 将 text 类型映射到 TitleElement
       title: TitleElement,
+      subtitle: SubtitleElement,
       shape: ShapeElement,
       composition: CompositionElement,
       audio: AudioElement

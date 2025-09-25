@@ -1,7 +1,7 @@
 import { animationManager } from '../animations/AnimationManager.js';
 import { getPositionProps, parsePositionValue } from '../utils/positionUtils.js';
 import { registerFont } from "canvas";
-import { basename, resolve, dirname } from "path";
+import { basename, resolve, dirname, extname } from "path";
 import { fileURLToPath } from "url";
 
 
@@ -657,7 +657,8 @@ export class BaseElement {
     
     // 如果指定了字体路径，使用自定义字体文件
     if (fontPath) {
-      const fontName = Buffer.from(basename(fontPath)).toString("base64");
+      // 使用文件名（不含扩展名）作为字体族名
+      const fontName = basename(fontPath, extname(fontPath));
       if (!loadedFonts.includes(fontName)) {
         try {
           registerFont(fontPath, { 
@@ -667,11 +668,32 @@ export class BaseElement {
           });
           loadedFonts.push(fontName);
           console.log(`✓ 字体已注册: ${fontPath} -> ${fontName}`);
+          finalFontFamily = fontName;
         } catch (error) {
-          console.warn(`字体注册失败: ${fontPath}`, error.message);
+          console.warn(`字体注册失败: ${fontPath}，使用默认字体`, error.message);
+          // 尝试使用默认中文字体作为回退
+          try {
+            const __filename = fileURLToPath(import.meta.url);
+            const __dirname = dirname(__filename);
+            const fallbackFont = resolve(__dirname, '../fonts/PatuaOne-Regular.ttf');
+            const fallbackFontName = basename(fallbackFont, extname(fallbackFont));
+            if (!loadedFonts.includes(fallbackFontName)) {
+              registerFont(fallbackFont, { 
+                family: fallbackFontName, 
+                weight: "normal", 
+                style: "normal" 
+              });
+              loadedFonts.push(fallbackFontName);
+            }
+            finalFontFamily = fallbackFontName;
+          } catch (fallbackError) {
+            console.warn(`默认字体也注册失败，使用系统默认字体`, fallbackError.message);
+            finalFontFamily = 'Arial';
+          }
         }
+      } else {
+        finalFontFamily = fontName;
       }
-      finalFontFamily = fontName;
     } else if (fontFamily) {
       // 如果指定了 fontFamily，直接使用（不再查找系统字体）
       finalFontFamily = fontFamily;
@@ -681,7 +703,7 @@ export class BaseElement {
       const __dirname = dirname(__filename);
       const defaultChineseFont = resolve(__dirname, '../fonts/PatuaOne-Regular.ttf');
       try {
-        const fontName = Buffer.from(basename(defaultChineseFont)).toString("base64");
+        const fontName = basename(defaultChineseFont, extname(defaultChineseFont));
         if (!loadedFonts.includes(fontName)) {
           registerFont(defaultChineseFont, { 
             family: fontName, 
@@ -695,7 +717,8 @@ export class BaseElement {
           finalFontFamily = fontName;
         }
       } catch (error) {
-        console.warn(`默认中文字体注册失败: ${defaultChineseFont}`, error.message);
+        console.warn(`默认中文字体注册失败: ${defaultChineseFont}，使用系统默认字体`, error.message);
+        finalFontFamily = 'Arial'; // 最后回退到系统默认字体
       }
     }
     
