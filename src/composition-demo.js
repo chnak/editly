@@ -37,22 +37,21 @@ async function compositionSimpleTest() {
               elements:[
                 
                 {
-                  type: "shape",
-                  shape: "rect",
-                  width: '100%',
-                  height: '100%',
+                  type: "image",
+                  source: "../assets/img1.jpg",
+                  duration: 5,
                   x: '50%',
                   y: '50%',
-                  fillColor: "#3498db",
-                  duration: 5,
-                  startTime: 0
+                  width: '100%',
+                  height: '100%',
+                  fit: "cover"
                 },
                 {
                   type: "title",
-                  text: "场景一",
+                  text: "图片 + 文本组合",
                   textColor: "#ffffff",
-                  fontSize: 50,
-                  duration: 5,
+                  fontSize: 24,
+                  duration: 4,
                   x: '50%',
                   y: '50%',
                   textAlign: "center",
@@ -81,6 +80,23 @@ async function compositionSimpleTest() {
                   fillColor: "#ff6b6b",
                   duration: 5,
                   startTime: 0
+                },
+                {
+                  type: "title",
+                  text: "ZOOM IN + FADE OUT",
+                  fontSize: '20%',
+                  textColor: "#ffffff",
+                  x: "50%",
+                  y: "40%",
+                  originX: "center",
+                  originY: "center",
+                  startTime: 1,
+                  duration: 3,
+                  split: "word",
+                  splitDelay: 0.15,
+                  splitDuration: 0.4,
+                  zIndex: 1,
+                  animations: ["zoomIn", "fadeOut"]
                 },
                 {
                   type: "title",
@@ -189,7 +205,7 @@ async function compositionSimpleTest() {
           duration: 1.0   // 过渡持续 1 秒
         },
         {
-          name: "fade",
+          name: "directional-right",
           startTime: 9.5, // 在场景 1 结束前 0.5 秒开始
           duration: 1.0   // 过渡持续 1 秒
         }
