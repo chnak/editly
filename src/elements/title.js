@@ -84,6 +84,8 @@ export class TitleElement extends BaseElement {
         position: this.position,
         x: this.x,
         y: this.y,
+        originX: this.originX,
+        originY: this.originY,
         zoomDirection: this.zoomDirection,
         zoomAmount: this.zoomAmount,
         animations: this.animations, // 传递 animations 参数

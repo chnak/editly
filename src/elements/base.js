@@ -486,10 +486,111 @@ export class BaseElement {
       };
     }
 
+    // 如果是对象数组（新的架构）
+    if (rawFrameData.objects && Array.isArray(rawFrameData.objects)) {
+      return this.processObjectArray(rawFrameData, transform);
+    }
+
+    // 如果是分割文本，使用特殊的位置处理
+    if (rawFrameData.isSplitText) {
+      // 分割文本已经计算好了正确的位置，直接使用
+      // 不需要再次调用 this.getPositionProps()，因为那会覆盖分割文本的计算结果
+      
+      // 应用变换信息
+      const result = {
+        ...rawFrameData,
+        // 保持分割文本计算的位置，不覆盖
+        x: rawFrameData.textLeft || rawFrameData.x,
+        y: rawFrameData.textTop || rawFrameData.y,
+        scaleX: transform.scaleX,
+        scaleY: transform.scaleY,
+        rotation: transform.rotation,
+        opacity: transform.opacity,
+        rotationX: transform.rotationX,
+        rotationY: transform.rotationY,
+        translateZ: transform.translateZ,
+        originX: rawFrameData.splitOriginX, // 使用分割文本的原点
+        originY: rawFrameData.splitOriginY  // 使用分割文本的原点
+      };
+      
+      return result;
+    }
+
     // 普通帧数据
     return this.applyTransformToFrameData(rawFrameData, transform);
   }
 
+  /**
+   * 处理对象数组 - 统一处理位置动画和渲染
+   * @param {Object} rawFrameData - 包含对象数组的原始帧数据
+   * @param {Object} transform - 变换信息
+   * @returns {Object} 处理后的帧数据
+   */
+  processObjectArray(rawFrameData, transform) {
+    const { objects, width, height, isSplitText, textLeft, textTop, textWidth, textHeight } = rawFrameData;
+    
+    // 获取位置属性
+    const positionProps = this.getPositionProps();
+    
+    // 处理每个对象
+    const processedObjects = objects.map(obj => {
+      const { type, fabricObject, originalLeft, originalTop, originalOriginX, originalOriginY } = obj;
+      
+      // 计算对象相对于整体元素的位置
+      let objectLeft = originalLeft;
+      let objectTop = originalTop;
+      
+      if (isSplitText) {
+        // 分割文本：对象位置相对于文本起始位置
+        objectLeft = textLeft + originalLeft;
+        objectTop = textTop + originalTop;
+      } else {
+        // 普通文本：对象位置相对于元素位置
+        objectLeft = positionProps.left + originalLeft;
+        objectTop = positionProps.top + originalTop;
+      }
+      
+      // 应用变换到 Fabric 对象
+      fabricObject.set({
+        left: objectLeft,
+        top: objectTop,
+        scaleX: transform.scaleX,
+        scaleY: transform.scaleY,
+        angle: transform.rotation,
+        opacity: transform.opacity,
+        rotationX: transform.rotationX,
+        rotationY: transform.rotationY,
+        translateZ: transform.translateZ,
+        originX: originalOriginX,
+        originY: originalOriginY
+      });
+      
+      return {
+        type,
+        fabricObject,
+        left: objectLeft,
+        top: objectTop
+      };
+    });
+    
+    return {
+      objects: processedObjects,
+      width,
+      height,
+      x: positionProps.left,
+      y: positionProps.top,
+      scaleX: transform.scaleX,
+      scaleY: transform.scaleY,
+      rotation: transform.rotation,
+      opacity: transform.opacity,
+      rotationX: transform.rotationX,
+      rotationY: transform.rotationY,
+      translateZ: transform.translateZ,
+      originX: positionProps.originX,
+      originY: positionProps.originY,
+      isObjectArray: true // 标记为对象数组
+    };
+  }
 
   /**
    * 解析字体大小，支持多种单位

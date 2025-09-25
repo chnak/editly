@@ -76,6 +76,21 @@ export class Timeline {
   async addFrameToCanvas(canvas, frameData, element) {
     if (!frameData) return;
 
+    // 处理对象数组（新架构）
+    if (frameData.isObjectArray && frameData.objects && Array.isArray(frameData.objects)) {
+      // 添加所有对象到画布
+      for (const obj of frameData.objects) {
+        if (obj.fabricObject) {
+          // 确保对象从之前的画布中移除
+          if (obj.fabricObject.canvas) {
+            obj.fabricObject.canvas.remove(obj.fabricObject);
+          }
+          canvas.add(obj.fabricObject);
+        }
+      }
+      return;
+    }
+
     // 处理 contain-blur 效果
     if (frameData.isContainBlur && frameData.background && frameData.foreground) {
       // 添加背景图像

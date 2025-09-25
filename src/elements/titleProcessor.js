@@ -1,6 +1,6 @@
 import * as fabric from "fabric/node";
 import { createCanvas } from "canvas";
-import { parsePositionValue } from "../utils/positionUtils.js";
+import { parsePositionValue, getPositionProps } from "../utils/positionUtils.js";
 import { createSplitText } from "../utils/fabricSplitText.js";
 import { animationManager } from "../animations/AnimationManager.js";
 import { createFabricCanvas, renderFabricCanvas } from "../utils/fabricUtils.js";
@@ -22,6 +22,79 @@ function getTypewriterText(text, progress, speed = 100) {
   const visibleChars = Math.floor(progress * totalChars);
   
   return text.substring(0, visibleChars);
+}
+
+/**
+ * 计算文本位置 - 使用 BaseElement 的 getPositionProps 方法
+ * @param {Object} options - 位置选项
+ * @param {boolean} isSplitText - 是否为分割文本
+ * @returns {Object} 位置属性 { left, top, originX, originY }
+ */
+function calculateTextPosition(options, isSplitText = false) {
+  const {
+    position = "center",
+    x = 0,
+    y = 0,
+    originX = "center",
+    originY = "center",
+    width,
+    height,
+    textWidth = 0,
+    textHeight = 0
+  } = options;
+
+  // 对于分割文本，我们需要特殊处理
+  if (isSplitText) {
+    // 先按原始设置计算位置
+    const positionProps = getPositionProps({
+      position,
+      x,
+      y,
+      width,
+      height,
+      originX,
+      originY,
+      elementWidth: textWidth,
+      elementHeight: textHeight
+    });
+    
+    // 将中心点位置转换为左上角位置
+    let left = positionProps.left;
+    let top = positionProps.top;
+    
+    // 根据原始原点调整位置
+    if (originX === 'center') {
+      left -= textWidth / 2;
+    } else if (originX === 'right') {
+      left -= textWidth;
+    }
+    
+    if (originY === 'center') {
+      top -= textHeight / 2;
+    } else if (originY === 'bottom') {
+      top -= textHeight;
+    }
+    
+    return {
+      left,
+      top,
+      originX: 'left',  // 分割文本固定使用左上角原点
+      originY: 'top'    // 分割文本固定使用左上角原点
+    };
+  } else {
+    // 普通文本使用原始计算
+    return getPositionProps({
+      position,
+      x,
+      y,
+      width,
+      height,
+      originX,
+      originY,
+      elementWidth: textWidth,
+      elementHeight: textHeight
+    });
+  }
 }
 
 
@@ -228,6 +301,8 @@ export async function createTitleElement(config) {
     position = "center", 
     x, // 自定义 X 坐标
     y, // 自定义 Y 坐标
+    originX = "center", // 原点 X
+    originY = "center", // 原点 Y
     zoomDirection, // 不设置默认值，只有传入时才启用
     zoomAmount = 0.2, 
     animations = [], // 动画配置
@@ -366,10 +441,22 @@ export async function createTitleElement(config) {
           }
         }
         
+        // 使用 getPositionProps 计算文本位置（分割文本）
+        const positionProps = calculateTextPosition({
+          position,
+          x,
+          y,
+          originX,
+          originY,
+          width,
+          height,
+          textWidth: totalWidth,
+          textHeight: totalHeight
+        }, true); // 标记为分割文本
+        
         // 计算文本的起始位置（左上角）
-        // 使用画布中心作为基准点，让 BaseElement 处理最终位置
-        let currentX = (width - totalWidth) / 2;
-        let currentY = (height - totalHeight) / 2;
+        let currentX = positionProps.left;
+        let currentY = positionProps.top;
         
         // 创建主Fabric Canvas用于合成所有分割文本片段
         const mainCanvas = createFabricCanvas({ width, height });
@@ -525,8 +612,8 @@ export async function createTitleElement(config) {
               scaleY: scaleY,
               angle: angle,
               opacity: opacity,
-              originX: 'center',
-              originY: 'center',
+              originX: positionProps.originX,
+              originY: positionProps.originY,
               // 3D 变换属性（Fabric.js 可能不完全支持，但保留以备将来扩展）
               rotationX: rotationX,
               rotationY: rotationY,
@@ -567,12 +654,35 @@ export async function createTitleElement(config) {
           }
         }
         
-        // 渲染Fabric Canvas并返回图像数据
-        const rgba = await renderFabricCanvas(mainCanvas);
+        // 返回对象数组而不是渲染图像
+        // 让 BaseElement 统一处理位置动画和渲染
+        const objects = [];
+        
+        // 收集所有文本对象
+        mainCanvas.forEachObject((obj) => {
+          objects.push({
+            type: 'text',
+            fabricObject: obj,
+            // 保存原始位置信息，BaseElement 会处理位置动画
+            originalLeft: obj.left,
+            originalTop: obj.top,
+            originalOriginX: obj.originX,
+            originalOriginY: obj.originY
+          });
+        });
+        
         return {
-          data: rgba,
+          objects: objects,
           width: width,
-          height: height
+          height: height,
+          isSplitText: true, // 标记为分割文本
+          splitOriginX: positionProps.originX, // 保存分割文本的原点
+          splitOriginY: positionProps.originY,
+          // 整体文本的位置和尺寸
+          textLeft: positionProps.left,
+          textTop: positionProps.top,
+          textWidth: totalWidth,
+          textHeight: totalHeight
         };
       } else {
         // 处理普通文本动画 - 使用Fabric Canvas
@@ -698,14 +808,27 @@ export async function createTitleElement(config) {
           displayText = getTypewriterText(text, progress, typewriterSpeed);
         }
         
+        // 使用 getPositionProps 计算文本位置（普通文本）
+        const positionProps = calculateTextPosition({
+          position,
+          x,
+          y,
+          originX,
+          originY,
+          width,
+          height,
+          textWidth: actualWidth,
+          textHeight: actualHeight
+        }, false); // 标记为普通文本
+        
         // 创建文字对象
         if (displayText) {
           const textObj = new fabric.Text(displayText, {
             fontSize: finalFontSize,
             fontFamily: finalFontFamily,
             fill: fillColor,
-            left: actualWidth / 2 + translateX,
-            top: actualHeight / 2 + translateY,
+            left: positionProps.left + translateX,
+            top: positionProps.top + translateY,
             scaleX: scaleX,
             scaleY: scaleY,
             angle: angle,
@@ -746,12 +869,33 @@ export async function createTitleElement(config) {
           textCanvas.add(textObj);
         }
         
-        // 渲染Fabric Canvas并返回图像数据
-        const rgba = await renderFabricCanvas(textCanvas);
+        // 返回对象数组而不是渲染图像
+        // 让 BaseElement 统一处理位置动画和渲染
+        const objects = [];
+        
+        // 收集所有文本对象
+        textCanvas.forEachObject((obj) => {
+          objects.push({
+            type: 'text',
+            fabricObject: obj,
+            // 保存原始位置信息，BaseElement 会处理位置动画
+            originalLeft: obj.left,
+            originalTop: obj.top,
+            originalOriginX: obj.originX,
+            originalOriginY: obj.originY
+          });
+        });
+        
         return {
-          data: rgba,
+          objects: objects,
           width: actualWidth,
-          height: actualHeight
+          height: actualHeight,
+          isSplitText: false, // 标记为普通文本
+          // 整体文本的位置和尺寸
+          textLeft: positionProps.left,
+          textTop: positionProps.top,
+          textWidth: actualWidth,
+          textHeight: actualHeight
         };
       }
       
