@@ -114,6 +114,47 @@ export class CompositionElement extends BaseElement {
     // 导入必要的工具函数
     const { rgbaToFabricImage } = await import('../utils/fabricUtils.js');
     
+    // 处理对象数组（新的架构）
+    if (frameData.isObjectArray && frameData.objects && Array.isArray(frameData.objects)) {
+      // 添加所有对象到画布
+      for (const obj of frameData.objects) {
+        if (obj.fabricObject) {
+          // 确保对象从之前的画布中移除
+          if (obj.fabricObject.canvas) {
+            obj.fabricObject.canvas.remove(obj.fabricObject);
+          }
+          canvas.add(obj.fabricObject);
+        }
+      }
+      return;
+    }
+    
+    // 处理 contain-blur 效果
+    if (frameData.isContainBlur && frameData.background && frameData.foreground) {
+      // 添加背景图像
+      const backgroundImage = await rgbaToFabricImage({
+        width: frameData.background.width,
+        height: frameData.background.height,
+        rgba: frameData.background.data
+      });
+      
+      // 应用背景的变换信息
+      this.applyFabricTransform(backgroundImage, frameData.background);
+      canvas.add(backgroundImage);
+      
+      // 添加前景图像
+      const foregroundImage = await rgbaToFabricImage({
+        width: frameData.foreground.width,
+        height: frameData.foreground.height,
+        rgba: frameData.foreground.data
+      });
+      
+      // 应用前景的变换信息
+      this.applyFabricTransform(foregroundImage, frameData.foreground);
+      canvas.add(foregroundImage);
+      return;
+    }
+    
     // 处理不同的帧数据格式
     if (frameData.data && frameData.width && frameData.height) {
       // 新格式 RGBA 数据
@@ -160,6 +201,36 @@ export class CompositionElement extends BaseElement {
       const ctx = canvas.getContext('2d');
       ctx.putImageData(frameData.imageData, 0, 0);
     }
+  }
+
+  /**
+   * 将变换信息应用到 Fabric 对象
+   * @param {Object} fabricObject - Fabric 对象
+   * @param {Object} transformData - 变换数据
+   */
+  applyFabricTransform(fabricObject, transformData) {
+    if (!fabricObject || !fabricObject.set) return;
+
+    // 处理位置属性
+    if (transformData.x !== undefined) {
+      fabricObject.set('left', transformData.x);
+    }
+    if (transformData.y !== undefined) {
+      fabricObject.set('top', transformData.y);
+    }
+
+    // 处理其他属性
+    const properties = [
+      'originX', 'originY', 'scaleX', 'scaleY', 
+      'rotation', 'opacity', 'rotationX', 'rotationY', 'translateZ'
+    ];
+
+    properties.forEach(prop => {
+      if (transformData[prop] !== undefined) {
+        const fabricProp = prop === 'rotation' ? 'angle' : prop;
+        fabricObject.set(fabricProp, transformData[prop]);
+      }
+    });
   }
 
 
