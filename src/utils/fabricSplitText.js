@@ -1,4 +1,5 @@
 import * as fabric from "fabric/node";
+import { TextMetrics } from "./textMetrics.js";
 import { createCanvas } from "canvas";
 
 /**
@@ -25,6 +26,13 @@ export class FabricSplitText {
       maxWordSpacing: 0.5,  // 最大单词间距
       ...options
     };
+    
+    // 初始化 TextMetrics
+    this.textMetrics = new TextMetrics({
+      fontSize: this.options.fontSize,
+      fontFamily: this.options.fontFamily,
+      lineHeight: this.options.lineHeight
+    });
     
     this.characters = [];
     this.words = [];
@@ -94,11 +102,16 @@ export class FabricSplitText {
    */
   _createCharacters() {
     this.characters = [];
-    const chars = this.text.split('');
     
-    for (let i = 0; i < chars.length; i++) {
-      const char = chars[i];
+    // 使用 TextMetrics 计算所有字符的精确位置
+    const characterPositions = this.textMetrics.getCharacterPositions(this.text, this.options.fontSize);
+    
+    for (let i = 0; i < characterPositions.length; i++) {
+      const pos = characterPositions[i];
+      const char = pos.char;
       const isSpace = char.trim() === '';
+      const isPunctuation = this._isPunctuation(char);
+      const isChinese = /[\u4e00-\u9fff]/.test(char);
       
       // 创建 Fabric.js Text 对象
       const textObj = new fabric.Text(char, {
@@ -110,16 +123,20 @@ export class FabricSplitText {
         originY: 'top'
       });
 
-      this.characters.push({
+      const charInfo = {
         text: textObj,
         char: char,
         index: i,
         isSpace: isSpace,
-        width: textObj.width,
+        isPunctuation: isPunctuation,
+        isChinese: isChinese,
+        width: pos.width, // 使用 OpenType.js 计算的精确宽度
         height: textObj.height,
-        x: 0, // 将在 _calculateDimensions 中设置
+        x: pos.x, // 使用 OpenType.js 计算的精确位置
         y: 0
-      });
+      };
+      
+      this.characters.push(charInfo);
     }
   }
 
@@ -128,11 +145,18 @@ export class FabricSplitText {
    */
   _createWords() {
     this.words = [];
-    const words = this.text.split(/(\s+)/).filter(word => word.length > 0);
+    const tokens = this._splitTextIntoTokens();
     
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
+    // 使用 OpenType.js 计算精确的字符位置
+    const characterPositions = this.textMetrics.getCharacterPositions(this.text, this.options.fontSize);
+    
+    // 为每个单词找到对应的字符位置
+    let charIndex = 0;
+    
+    for (let i = 0; i < tokens.length; i++) {
+      const word = tokens[i];
       const isSpace = word.trim() === '';
+      const isPunctuation = this._isPunctuation(word);
       
       // 创建 Fabric.js Text 对象
       const textObj = new fabric.Text(word, {
@@ -144,16 +168,29 @@ export class FabricSplitText {
         originY: 'top'
       });
 
+      // 使用 TextMetrics 计算精确宽度
+      const actualWidth = this.textMetrics.getTextWidthWithFontSize(word, this.options.fontSize);
+      
+      // 找到这个单词在字符位置中的起始位置
+      let wordStartX = 0;
+      if (charIndex < characterPositions.length) {
+        wordStartX = characterPositions[charIndex].x;
+      }
+
       this.words.push({
         text: textObj,
         word: word,
         index: i,
         isSpace: isSpace,
-        width: textObj.width,
+        isPunctuation: isPunctuation,
+        width: actualWidth, // 使用计算出的精确宽度
         height: textObj.height,
-        x: 0, // 将在 _calculateDimensions 中设置
+        x: wordStartX, // 使用 OpenType.js 计算的精确位置
         y: 0
       });
+      
+      // 更新字符索引 - 跳过这个单词的所有字符
+      charIndex += word.length;
     }
   }
 
@@ -216,231 +253,80 @@ export class FabricSplitText {
 
   /**
    * 计算字符位置
+   * 注意：字符位置已经在 _createCharacters 中通过 OpenType.js 精确计算了
+   * 这里只需要设置 y 坐标和计算总尺寸
    */
   _calculateCharacterPositions() {
-    let currentX = 0;
     const lineHeight = this.options.fontSize * this.options.lineHeight;
     
-    // 计算动态字符间距
-    const dynamicSpacing = this._calculateDynamicCharSpacing();
-    
+    // 字符位置已经在 _createCharacters 中通过 OpenType.js 精确计算了
+    // 这里只需要设置 y 坐标
     for (let i = 0; i < this.characters.length; i++) {
       const char = this.characters[i];
-      
-      char.x = currentX;
-      char.y = 0;
-      
-      // 计算下一个字符的位置
-      currentX += char.width;
-      
-      // 添加动态字符间距（除了空格）
-      if (!char.isSpace) {
-        const spacing = dynamicSpacing[i] || this.options.charSpacing;
-        currentX += spacing;
-      } else {
-        // 对于空格，添加较小的间距以保持自然感
-        currentX += this.options.charSpacing * 0.3;
-      }
+      char.y = 0; // 设置 y 坐标
     }
     
-    // 减去最后一个元素的间距
+    // 计算总宽度（使用最后一个字符的位置 + 宽度）
     if (this.characters.length > 0) {
       const lastChar = this.characters[this.characters.length - 1];
-      if (!lastChar.isSpace) {
-        const lastSpacing = dynamicSpacing[this.characters.length - 1] || this.options.charSpacing;
-        currentX -= lastSpacing;
-      } else {
-        currentX -= this.options.charSpacing * 0.3;
-      }
+      this.totalWidth = lastChar.x + lastChar.width;
+    } else {
+      this.totalWidth = 0;
     }
     
-    this.totalWidth = currentX;
     this.totalHeight = lineHeight;
   }
 
   /**
    * 计算动态字符间距
-   * 根据字符宽度差异来调整间距，使显示更匀称
+   * 使用 TextMetrics 的智能间距计算
    */
   _calculateDynamicCharSpacing() {
-    const spacing = [];
-    
-    // 如果未启用动态间距，返回空数组
     if (!this.options.dynamicSpacing) {
-      return spacing;
+      return [];
     }
     
-    const chars = this.characters.filter(c => !c.isSpace);
-    
-    if (chars.length <= 1) {
-      return spacing;
-    }
-    
-    // 计算字符宽度统计
-    const widths = chars.map(c => c.width);
-    const avgWidth = widths.reduce((sum, w) => sum + w, 0) / widths.length;
-    const minWidth = Math.min(...widths);
-    const maxWidth = Math.max(...widths);
-    const widthRange = maxWidth - minWidth;
-    
-    // 如果宽度差异很小，使用固定间距
-    if (widthRange < avgWidth * 0.2) {
-      for (let i = 0; i < chars.length - 1; i++) {
-        spacing.push(this.options.charSpacing);
-      }
-      return spacing;
-    }
-    
-    // 计算动态间距
-    for (let i = 0; i < chars.length - 1; i++) {
-      const currentChar = chars[i];
-      const nextChar = chars[i + 1];
-      
-      // 基于当前字符和下一个字符的宽度计算间距
-      const currentWidthRatio = currentChar.width / avgWidth;
-      const nextWidthRatio = nextChar.width / avgWidth;
-      
-      // 计算基础间距
-      let baseSpacing = this.options.charSpacing;
-      
-      // 如果两个字符都很窄，增加间距
-      if (currentWidthRatio < 0.7 && nextWidthRatio < 0.7) {
-        baseSpacing *= 1.2;
-      }
-      // 如果两个字符都很宽，减少间距
-      else if (currentWidthRatio > 1.3 && nextWidthRatio > 1.3) {
-        baseSpacing *= 0.7;
-      }
-      // 如果宽度差异很大，使用中等间距
-      else if (Math.abs(currentWidthRatio - nextWidthRatio) > 0.6) {
-        baseSpacing *= 1.05;
-      }
-      
-      // 确保间距在合理范围内
-      const minSpacing = this.options.charSpacing * 0.3;
-      const maxSpacing = this.options.charSpacing * 1.5;
-      baseSpacing = Math.max(minSpacing, Math.min(maxSpacing, baseSpacing));
-      
-      spacing.push(baseSpacing);
-    }
-    
-    return spacing;
+    const tokens = this.characters.map(c => c.char);
+    return this.textMetrics.calculateSmartSpacing(tokens, this.options.fontSize);
   }
 
   /**
    * 计算单词位置
+   * 注意：单词位置已经在 _createWords 中通过 OpenType.js 精确计算了
+   * 这里只需要设置 y 坐标和计算总尺寸
    */
   _calculateWordPositions() {
-    let currentX = 0;
     const lineHeight = this.options.fontSize * this.options.lineHeight;
     
-    // 计算动态单词间距
-    const dynamicSpacing = this._calculateDynamicWordSpacing();
-    
+    // 单词位置已经在 _createWords 中通过 OpenType.js 精确计算了
+    // 这里只需要设置 y 坐标
     for (let i = 0; i < this.words.length; i++) {
       const word = this.words[i];
-      
-      word.x = currentX;
-      word.y = 0;
-      
-      // 计算下一个单词的位置
-      currentX += word.width;
-      
-      // 添加动态单词间距（除了空格）
-      if (!word.isSpace) {
-        const spacing = dynamicSpacing[i] || this.options.wordSpacing;
-        currentX += spacing;
-      } else {
-        // 对于空格，添加较小的间距以保持自然感
-        const spacing = this.options.wordSpacing * 0.5;
-        currentX += spacing;
-      }
+      word.y = 0; // 设置 y 坐标
     }
     
-    // 减去最后一个元素的间距
+    // 计算总宽度（使用最后一个单词的位置 + 宽度）
     if (this.words.length > 0) {
       const lastWord = this.words[this.words.length - 1];
-      if (!lastWord.isSpace) {
-        const lastSpacing = dynamicSpacing[this.words.length - 1] || this.options.wordSpacing;
-        currentX -= lastSpacing;
-      } else {
-        const lastSpacing = this.options.wordSpacing * 0.5;
-        currentX -= lastSpacing;
-      }
+      this._calculatedWordWidth = lastWord.x + lastWord.width;
+    } else {
+      this._calculatedWordWidth = 0;
     }
     
-    // 将计算出的最终宽度保存为实例变量，供 _calculateDimensions 使用
-    this._calculatedWordWidth = currentX;
     this.totalHeight = lineHeight;
   }
 
   /**
    * 计算动态单词间距
-   * 根据单词长度差异来调整间距，使显示更匀称
+   * 使用 TextMetrics 的智能间距计算
    */
   _calculateDynamicWordSpacing() {
-    const spacing = [];
-    
-    // 如果未启用动态间距，返回空数组
     if (!this.options.dynamicSpacing) {
-      return spacing;
+      return [];
     }
     
-    const words = this.words.filter(w => !w.isSpace);
-    
-    if (words.length <= 1) {
-      return spacing;
-    }
-    
-    // 计算单词宽度统计
-    const widths = words.map(w => w.width);
-    const avgWidth = widths.reduce((sum, w) => sum + w, 0) / widths.length;
-    const minWidth = Math.min(...widths);
-    const maxWidth = Math.max(...widths);
-    const widthRange = maxWidth - minWidth;
-    
-    // 如果宽度差异很小，使用固定间距
-    if (widthRange < avgWidth * 0.3) {
-      for (let i = 0; i < words.length - 1; i++) {
-        spacing.push(this.options.wordSpacing);
-      }
-      return spacing;
-    }
-    
-    // 计算动态间距
-    for (let i = 0; i < words.length - 1; i++) {
-      const currentWord = words[i];
-      const nextWord = words[i + 1];
-      
-      // 基于当前单词和下一个单词的长度计算间距
-      const currentWidthRatio = currentWord.width / avgWidth;
-      const nextWidthRatio = nextWord.width / avgWidth;
-      
-      // 计算基础间距
-      let baseSpacing = this.options.wordSpacing;
-      
-      // 如果两个单词都很短，增加间距
-      if (currentWidthRatio < 0.8 && nextWidthRatio < 0.8) {
-        baseSpacing *= 1.3;
-      }
-      // 如果两个单词都很长，减少间距
-      else if (currentWidthRatio > 1.2 && nextWidthRatio > 1.2) {
-        baseSpacing *= 0.8;
-      }
-      // 如果长度差异很大，使用中等间距
-      else if (Math.abs(currentWidthRatio - nextWidthRatio) > 0.5) {
-        baseSpacing *= 1.1;
-      }
-      
-      // 确保间距在合理范围内
-      const minSpacing = this.options.wordSpacing * 0.5;
-      const maxSpacing = this.options.wordSpacing * 1.8;
-      baseSpacing = Math.max(minSpacing, Math.min(maxSpacing, baseSpacing));
-      
-      spacing.push(baseSpacing);
-    }
-    
-    return spacing;
+    const tokens = this.words.map(w => w.word);
+    return this.textMetrics.calculateSmartSpacing(tokens, this.options.fontSize);
   }
 
   /**
@@ -635,6 +521,21 @@ export class FabricSplitText {
     this.words = [];
     this.lines = [];
   }
+
+  /**
+   * 智能分割文本为标记（单词、空格、标点符号）
+   */
+  _splitTextIntoTokens() {
+    return this.textMetrics.splitIntoTokens(this.text);
+  }
+
+  /**
+   * 判断字符是否为标点符号
+   */
+  _isPunctuation(char) {
+    return this.textMetrics.isPunctuation(char);
+  }
+
 }
 
 /**
