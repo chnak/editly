@@ -1,5 +1,101 @@
 import * as fabric from "fabric/node";
 import { createCanvas } from "canvas";
+const SIGN = '_$_';
+
+const MAX_LENGTH = 20; // 每段最大字数
+
+/**
+   * 计算混合中英文的语音时间
+   */
+function calculateSpeechTimeMixed(text, chineseSpeed = 200, englishSpeed = 150) {
+  if (!text || typeof text !== 'string') return 0;
+
+  // 统计中文字符数（Unicode中文范围）
+  const chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
+  const chineseCount = chineseChars.length;
+
+  // 统计英文单词数（按空格分割，过滤空值）
+  const englishWords = text
+      .replace(/[\u4e00-\u9fa5]/g, ' ') // 移除中文以准确统计英文单词
+      .trim()
+      .split(/\s+/)
+      .filter(word => word.length > 0);
+  const englishCount = englishWords.length;
+
+  // 计算两部分时间（秒）
+  const chineseTime = (chineseCount / chineseSpeed) * 60;
+  const englishTime = (englishCount / englishSpeed) * 60;
+
+  // 返回总时间（四舍五入）
+  return Math.round(chineseTime + englishTime);
+}
+
+/**
+* 同步文本段落时长与最小时长
+*/
+function syncDurationWithMinDuration(textSegments, totalDuration, minDuration = 0.2) {
+  const totalChars = textSegments.join("").length;
+  let remainingDuration = totalDuration;
+
+  // 先分配保底时长
+  const segments = textSegments.map(text => {
+    const duration = Math.max(
+      minDuration,
+      (text.length / totalChars) * totalDuration
+    );
+    remainingDuration -= duration;
+    return { text, duration };
+  });
+
+  // 如果剩余时间 > 0，按字数比例再分配
+  if (remainingDuration > 0) {
+    const extraPerChar = remainingDuration / totalChars;
+    segments.forEach(seg => {
+      seg.duration += seg.text.length * extraPerChar;
+    });
+  }
+
+  return segments;
+}
+export const parseSubtitles=function parseSubtitles(text,duration) {
+  const text_list_with_duration=calculateSpeechTimeMixed(text);
+  const text_list=splitText(text);
+  duration=duration||text_list_with_duration
+  return syncDurationWithMinDuration(text_list,duration);
+}
+/**
+* 分割文本
+*/
+function splitText(text,maxLength = MAX_LENGTH) {
+  // 1. 去除多余的引号和换行符
+  text = text.replace(/["“”'‘’\n\r]/g, '');
+
+  // 2. 替换标点为 SIGN + 标点（标点后插入 SIGN）
+  const regexp = /([。？！,!;；，,])/g;
+  text = text.replace(regexp, `$1${SIGN}`); // 标点后加 SIGN
+
+  // 3. 按 SIGN 分割，并过滤空字符串
+  let segments = text.split(SIGN).filter(seg => seg.trim());
+
+  // 4. 处理长句子（超过 MAX_LENGTH 的按字数分割）
+  segments = segments.flatMap(seg => {
+    if (seg.length <= maxLength) return seg;
+    const chunks = [];
+    let start = 0;
+    while (start < seg.length) {
+      let end = Math.min(start + maxLength, seg.length);
+      // 避免在标点中间切断
+      if (end < seg.length && /[，。！？、]/.test(seg[end])) {
+        end++;
+      }
+      chunks.push(seg.slice(start, end));
+      start = end;
+    }
+    return chunks;
+  });
+
+  return segments;
+}
 
 /**
  * 基于 Fabric.js 的 SplitText 实现
@@ -45,7 +141,7 @@ export class FabricSplitText {
     this._calculateSmartSpacing();
     this._calculateDimensions();
   }
-
+  
   /**
    * 计算智能间距
    */

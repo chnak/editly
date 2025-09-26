@@ -26,11 +26,11 @@ export class SubtitleElement extends BaseElement {
   async initialize() {
     await super.initialize();
     
-    console.log(`🔍 初始化文本元素:`, {
-      text: this.text,
-      font: this.font,
-      fillColor: this.fillColor
-    });
+    // console.log(`🔍 初始化文本元素:`, {
+    //   text: this.text,
+    //   font: this.font,
+    //   fillColor: this.fillColor
+    // });
     
     this.textElement = await createTextElement({
       text: this.text,
@@ -44,11 +44,12 @@ export class SubtitleElement extends BaseElement {
       textBaseline: this.textBaseline,
       lineHeight: this.lineHeight,
       maxWidth: this.maxWidth,
+      duration: this.duration,
       width: this.width,
       height: this.height
     });
     
-    console.log(`✅ 文本元素初始化完成:`, this.textElement ? '成功' : '失败');
+    //console.log(`✅ 文本元素初始化完成:`, this.textElement ? '成功' : '失败');
   }
 
   async readNextFrame(time, canvas) {
