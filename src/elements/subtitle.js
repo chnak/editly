@@ -18,6 +18,9 @@ export class SubtitleElement extends BaseElement {
     this.textAlign = config.textAlign || 'left';
     this.textBaseline = config.textBaseline || 'top';
     this.lineHeight = config.lineHeight || 1.2;
+    this.backgroundColor = config.backgroundColor || 'rgba(0, 0, 0, 0.3)';
+    this.position = config.position || 'bottom';
+    this.padding = config.padding || 10;
     // 解析最大宽度，支持百分比和像素单位
     this.maxWidth = config.maxWidth ? parseSizeValue(config.maxWidth, this.canvasWidth) : undefined;
     this.textElement = null;
@@ -46,7 +49,10 @@ export class SubtitleElement extends BaseElement {
       maxWidth: this.maxWidth,
       duration: this.duration,
       width: this.width,
-      height: this.height
+      height: this.height,
+      backgroundColor: this.backgroundColor,
+      position: this.position,
+      padding: this.padding
     });
     
     //console.log(`✅ 文本元素初始化完成:`, this.textElement ? '成功' : '失败');

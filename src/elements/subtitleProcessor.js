@@ -31,7 +31,9 @@ function createCenteredTextWithBackground(textContent, options = {}) {
     height: text.height + padding * 2,
     fill: backgroundColor,
     originX: 'center',
-    originY: 'center'
+    originY: 'center',
+    rx: 5,  // x轴圆角半径
+    ry: 5   // y轴圆角半径
   });
 
   // 创建组，使用指定的原点

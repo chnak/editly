@@ -27,11 +27,11 @@ async function testSubtitleSimple() {
         text: "在遥远的夜空里，住着无数闪亮的小星星。它们中最小的那颗叫闪闪，它和别的星星不一样——它还不会眨眼。",
         fontSize: 60,
         textColor: "#ffffff",
-        backgroundColor: "rgba(218, 38, 38, 0.2)",
+        backgroundColor: "rgba(211, 14, 14, 1)",
         position: "bottom",
         startTime: 0,
         duration: 10,
-        padding: 20
+        padding: 10
       }
     ]
   });
