@@ -536,6 +536,17 @@ export class BaseElement {
     const processedObjects = objects.map(obj => {
       const { type, fabricObject, originalLeft, originalTop, originalOriginX, originalOriginY } = obj;
       
+      // 如果是音频对象，直接返回，不需要 Fabric 处理
+      if (type === 'audio') {
+        return obj; // 返回原始音频对象
+      }
+      
+      // 检查 fabricObject 是否存在
+      if (!fabricObject) {
+        console.warn(`[BaseElement] 对象缺少 fabricObject 属性:`, obj);
+        return null;
+      }
+      
       // 计算对象相对于整体元素的位置
       let objectLeft = originalLeft;
       let objectTop = originalTop;
@@ -573,7 +584,7 @@ export class BaseElement {
         left: objectLeft,
         top: objectTop
       };
-    });
+    }).filter(obj => obj !== null); // 过滤掉 null 对象
     
     return {
       objects: processedObjects,

@@ -212,8 +212,26 @@ export class Timeline {
   /**
    * 获取所有音频元素
    */
-  getAudioElements() {
-    return this.elements.filter(element => element.type === 'audio');
+  async getAudioElements() {
+    const audioElements = [];
+    
+    // 获取直接的音频元素
+    const directAudioElements = this.elements.filter(element => element.type === 'audio');
+    // console.log(`[Timeline] 直接音频元素: ${directAudioElements.length} 个`);
+    audioElements.push(...directAudioElements);
+    
+    // 获取其他元素中的音频元素
+    for (const element of this.elements) {
+      // console.log(`[Timeline] 检查元素: ${element.type}, 有getAudioElements方法: ${typeof element.getAudioElements === 'function'}`);
+      if (element.getAudioElements && typeof element.getAudioElements === 'function') {
+        const elementAudioElements = await element.getAudioElements();
+        // console.log(`[Timeline] 元素 ${element.type} 返回 ${elementAudioElements.length} 个音频元素`);
+        audioElements.push(...elementAudioElements);
+      }
+    }
+    
+    // console.log(`[Timeline] 总共收集到 ${audioElements.length} 个音频元素`);
+    return audioElements;
   }
 
   /**

@@ -48,11 +48,11 @@ export class AudioElement extends BaseElement {
    */
   async processAudio() {
     try {
-      console.log(`[AudioElement] 开始处理音频文件: ${this.source}`);
+      //console.log(`[AudioElement] 开始处理音频文件: ${this.source}`);
       
       // 检查文件是否有音频流
       const streams = await readFileStreams(this.source);
-      console.log(`[AudioElement] 文件流信息:`, streams);
+      //console.log(`[AudioElement] 文件流信息:`, streams);
       
       if (!streams.some(s => s.codec_type === "audio")) {
         throw new Error(`文件 ${this.source} 不包含音频流`);
@@ -61,25 +61,25 @@ export class AudioElement extends BaseElement {
       // 获取音频时长
       const audioStream = streams.find(s => s.codec_type === "audio");
       const originalDuration = audioStream.duration || 0;
-      console.log(`[AudioElement] 原始音频时长: ${originalDuration}s`);
+      //console.log(`[AudioElement] 原始音频时长: ${originalDuration}s`);
 
       // 计算实际播放时长
       // 优先级：duration > cutTo > 原始时长
       if (this.duration) {
         this.audioDuration = this.duration;
-        console.log(`[AudioElement] 使用元素duration: ${this.audioDuration}s`);
+        //console.log(`[AudioElement] 使用元素duration: ${this.audioDuration}s`);
       } else if (this.cutTo) {
         this.audioDuration = Math.min(originalDuration, this.cutTo - this.cutFrom);
-        console.log(`[AudioElement] 使用cutTo截取: ${this.audioDuration}s`);
+        //console.log(`[AudioElement] 使用cutTo截取: ${this.audioDuration}s`);
       } else {
         this.audioDuration = originalDuration;
-        console.log(`[AudioElement] 使用原始时长: ${this.audioDuration}s`);
+        //console.log(`[AudioElement] 使用原始时长: ${this.audioDuration}s`);
       }
 
       // 处理音频文件
-      console.log(`[AudioElement] 开始创建处理后的音频文件...`);
+      //console.log(`[AudioElement] 开始创建处理后的音频文件...`);
       this.audioPath = await this.createProcessedAudio();
-      console.log(`[AudioElement] 音频处理完成，输出路径: ${this.audioPath}`);
+      //console.log(`[AudioElement] 音频处理完成，输出路径: ${this.audioPath}`);
       
     } catch (error) {
       console.error(`[AudioElement] 处理音频文件失败: ${this.source}`, error);
@@ -94,7 +94,7 @@ export class AudioElement extends BaseElement {
     const tempDir = process.env.TEMP || process.env.TMP || '/tmp';
     const audioPath = join(tempDir, `audio-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.flac`);
     
-    console.log(`[AudioElement] 创建临时音频文件: ${audioPath}`);
+    //console.log(`[AudioElement] 创建临时音频文件: ${audioPath}`);
     
     const args = [
       "-nostdin",
@@ -109,7 +109,7 @@ export class AudioElement extends BaseElement {
     // 添加截取参数
     if (this.cutFrom > 0) {
       args.splice(2, 0, "-ss", this.cutFrom.toString());
-      console.log(`[AudioElement] 添加截取参数: -ss ${this.cutFrom}`);
+      //console.log(`[AudioElement] 添加截取参数: -ss ${this.cutFrom}`);
     }
 
     // 添加速度调整
@@ -117,7 +117,7 @@ export class AudioElement extends BaseElement {
       const atempo = 1 / this.speedFactor;
       if (atempo >= 0.5 && atempo <= 100) {
         args.push("-filter:a", `atempo=${atempo}`);
-        console.log(`[AudioElement] 添加速度调整: atempo=${atempo}`);
+        //console.log(`[AudioElement] 添加速度调整: atempo=${atempo}`);
       } else {
         console.warn(`[AudioElement] 音频速度 ${atempo} 超出FFmpeg支持范围，使用原始速度`);
       }
@@ -133,7 +133,7 @@ export class AudioElement extends BaseElement {
       } else {
         args.push("-filter:a", volumeFilter);
       }
-      console.log(`[AudioElement] 添加音量调整: volume=${this.volume}`);
+      //console.log(`[AudioElement] 添加音量调整: volume=${this.volume}`);
     }
 
     // 添加淡入淡出效果
@@ -146,7 +146,7 @@ export class AudioElement extends BaseElement {
         } else {
           args.push("-filter:a", fadeFilter);
         }
-        console.log(`[AudioElement] 添加淡入淡出效果: ${fadeFilter}`);
+        //  console.log(`[AudioElement] 添加淡入淡出效果: ${fadeFilter}`);
       }
     }
 
@@ -159,17 +159,17 @@ export class AudioElement extends BaseElement {
       } else {
         args.push("-filter:a", normFilter);
       }
-      console.log(`[AudioElement] 添加音频标准化: ${normFilter}`);
+      //console.log(`[AudioElement] 添加音频标准化: ${normFilter}`);
     }
 
     args.push("-y", audioPath);
 
-    console.log(`[AudioElement] FFmpeg命令:`, args);
-    console.log(`[AudioElement] 开始执行FFmpeg...`);
+    //console.log(`[AudioElement] FFmpeg命令:`, args);
+    //console.log(`[AudioElement] 开始执行FFmpeg...`);
     
     await ffmpeg(args);
     
-    console.log(`[AudioElement] FFmpeg执行完成`);
+    //console.log(`[AudioElement] FFmpeg执行完成`);
     return audioPath;
   }
 

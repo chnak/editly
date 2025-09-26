@@ -30,12 +30,20 @@ export class VideoRenderer {
       //  console.log(`开始渲染: ${timeline.canvasWidth}x${timeline.canvasHeight} ${timeline.fps}fps → ${outputFps.toFixed(2)}fps (${this.playbackSpeed}x倍速), 总帧数: ${totalFrames}`);
       
       // 检查是否有音频元素
-      const audioElements = timeline.getAudioElements();
-      //console.log(`[Renderer] 发现 ${audioElements.length} 个音频元素`);
+      const audioElements = await timeline.getAudioElements();
+      // console.log(`[Renderer] 发现 ${audioElements.length} 个音频元素`);
       
       if (audioElements.length > 0) {
+        // console.log(`[Renderer] 音频元素详情:`, audioElements.map(el => ({
+        //   type: el.type,
+        //   source: el.source,
+        //   startTime: el.startTime,
+        //   duration: el.duration
+        // })));
         // 处理音频
         await this.processAudio(timeline, audioElements);
+      } else {
+        // console.log(`[Renderer] 没有发现音频元素`);
       }
       
       // 启动 FFmpeg 进程

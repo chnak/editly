@@ -28,7 +28,9 @@ async function testSubtitleSimple() {
         fontSize: 60,
         textColor: "#ffffff",
         backgroundColor: "rgba(211, 14, 14, 1)",
+        audio: "../assets/winxp.mp3",
         position: "bottom",
+        volume: 1,
         startTime: 0,
         duration: 10,
         padding: 10

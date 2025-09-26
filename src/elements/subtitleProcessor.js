@@ -2,6 +2,7 @@ import * as fabric from "fabric/node";
 import { BaseElement } from "./base.js";
 import { parseSubtitles } from "../utils/fabricSplitText.js";
 import { getPositionProps } from "../utils/positionUtils.js";
+import { AudioElement } from "./audio.js";
 
 function createCenteredTextWithBackground(textContent, options = {}) {
   const {
@@ -51,6 +52,12 @@ function createCenteredTextWithBackground(textContent, options = {}) {
  * 创建字幕元素
  */
 export async function createTextElement(config) {
+  // console.log(`[Subtitle] 创建字幕元素，配置:`, {
+  //   text: config.text?.substring(0, 20) + '...',
+  //   audio: config.audio,
+  //   volume: config.volume
+  // });
+  
   const {
     text = "",
     font = null,
@@ -70,7 +77,13 @@ export async function createTextElement(config) {
     originY = "center",
     duration,
     width,
-    height
+    height,
+    // 音频支持
+    audio = null, // 音频文件路径
+    audioSegments = [], // 每段字幕对应的音频配置
+    volume = 1.0, // 音量
+    fadeIn = 0, // 淡入时间
+    fadeOut = 0 // 淡出时间
   } = config;
 
   // 使用 BaseElement 的字体处理逻辑
@@ -91,7 +104,12 @@ export async function createTextElement(config) {
       index,
       startTime: 0,
       duration: item.duration,
-      endTime: 0
+      endTime: 0,
+      // 音频配置
+      audio: audioSegments[index] || null, // 每段字幕对应的音频
+      volume: volume,
+      fadeIn: fadeIn,
+      fadeOut: fadeOut
     };
     data.startTime = totalDuration;
     totalDuration += data.duration;
@@ -99,7 +117,57 @@ export async function createTextElement(config) {
     return data;
   });
 
+  // 创建音频元素（如果有全局音频）
+  let globalAudioElement = null;
+  if (audio) {
+    // console.log(`[Subtitle] 创建全局音频元素: ${audio}`);
+    globalAudioElement = new AudioElement({
+      type: 'audio',
+      source: audio,
+      volume: volume,
+      fadeIn: fadeIn,
+      fadeOut: fadeOut,
+      startTime: 0,
+      duration: duration
+    });
+    await globalAudioElement.initialize();
+    // console.log(`[Subtitle] 全局音频元素初始化完成`);
+  }
+
   return {
+    // 获取音频元素列表（用于渲染器）
+    getAudioElements() {
+      const audioElements = [];
+      
+      // 添加全局音频元素
+      if (globalAudioElement) {
+        // console.log(`[SubtitleProcessor] 添加全局音频元素: ${globalAudioElement.source}`);
+        audioElements.push(globalAudioElement);
+      } else {
+        // console.log(`[SubtitleProcessor] 没有全局音频元素`);
+      }
+      
+      // 添加分段音频元素
+      for (const segment of textSegments) {
+        if (segment.audio) {
+          // console.log(`[SubtitleProcessor] 添加分段音频元素: ${segment.audio}`);
+          const segmentAudioElement = new AudioElement({
+            type: 'audio',
+            source: segment.audio,
+            volume: segment.volume,
+            fadeIn: segment.fadeIn,
+            fadeOut: segment.fadeOut,
+            startTime: segment.startTime,
+            duration: segment.duration
+          });
+          audioElements.push(segmentAudioElement);
+        }
+      }
+      
+      // console.log(`[SubtitleProcessor] 总共返回 ${audioElements.length} 个音频元素`);
+      return audioElements;
+    },
+
     async readNextFrame(progress, canvas, time) {
       // 计算当前时间 - 修复时间计算问题
       const currentTime = time !== null && time !== undefined ? time : (progress * duration);
@@ -121,6 +189,31 @@ export async function createTextElement(config) {
           originX: originX,
           originY: originY
         });
+
+        // 处理音频
+        if (textSegment.audio) {
+          // 为当前字幕段创建音频元素
+          const segmentAudioElement = new AudioElement({
+            source: textSegment.audio,
+            volume: textSegment.volume,
+            fadeIn: textSegment.fadeIn,
+            fadeOut: textSegment.fadeOut,
+            startTime: textSegment.startTime,
+            duration: textSegment.duration
+          });
+          await segmentAudioElement.initialize();
+          
+          // 添加音频流到对象数组
+          const audioStream = segmentAudioElement.getAudioStream();
+          if (audioStream) {
+            objects.push({
+              type: 'audio',
+              audioStream: audioStream,
+              startTime: textSegment.startTime,
+              endTime: textSegment.endTime
+            });
+          }
+        }
         
         // 使用 getPositionProps 计算正确的位置
         const positionProps = getPositionProps({
@@ -153,6 +246,23 @@ export async function createTextElement(config) {
           originalOriginY: textBox.originY,
           opacity: 1
         });
+      }
+
+      // 处理全局音频（如果有）
+      if (globalAudioElement && absoluteTime >= 0 && absoluteTime <= duration) {
+        // console.log(`[Subtitle] 处理全局音频，当前时间: ${absoluteTime}`);
+        const audioStream = globalAudioElement.getAudioStream();
+        if (audioStream) {
+          // console.log(`[Subtitle] 添加音频流到对象数组`);
+          objects.push({
+            type: 'audio',
+            audioStream: audioStream,
+            startTime: 0,
+            endTime: duration
+          });
+        } else {
+          // console.log(`[Subtitle] 音频流为空`);
+        }
       } 
       // 返回对象数组
       return {
