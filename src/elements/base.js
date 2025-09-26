@@ -15,6 +15,7 @@ export class BaseElement {
   // 静态字体处理方法
   static loadedFonts = loadedFonts;
   constructor(config) {
+    this.source = config.source||config.src;
     this.type = config.type;
     this.startTime = config.startTime || 0;
     this.duration = config.duration || 4;

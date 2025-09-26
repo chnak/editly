@@ -17,7 +17,7 @@ async function testVideoAnimation() {
         // 背景
         {
           type: "image",
-          source: "../assets/img1.jpg",
+          src: "../assets/img1.jpg",
           duration: 8,
           x: '50%',
           y: '50%',

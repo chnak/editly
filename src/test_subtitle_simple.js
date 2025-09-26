@@ -14,7 +14,7 @@ async function testSubtitleSimple() {
       {
             type: "shape",
             shape: "rectangle",
-            fillColor: "#2c3e50",
+            fillColor: "blue",
             width: "100%",
             height: "100%",
             duration: 20,
@@ -27,7 +27,7 @@ async function testSubtitleSimple() {
         text: "在遥远的夜空里，住着无数闪亮的小星星。它们中最小的那颗叫闪闪，它和别的星星不一样——它还不会眨眼。",
         fontSize: 60,
         textColor: "#ffffff",
-        backgroundColor: "rgba(211, 14, 14, 1)",
+        // backgroundColor: "rgba(211, 14, 14, 1)",
         audio: "../assets/winxp.mp3",
         position: "bottom",
         volume: 1,
