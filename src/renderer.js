@@ -70,6 +70,10 @@ export class VideoRenderer {
       await this.finishFfmpegProcess();
       
       // console.log(`\n渲染完成: ${this.config.outPath}`);
+      
+      // 清理临时目录
+      await this.close();
+      
       return this.config.outPath;
       
     } catch (error) {
@@ -287,7 +291,7 @@ export class VideoRenderer {
     if (await fsExtra.pathExists(this.tmpDir)) {
       try {
         await fsExtra.remove(this.tmpDir);
-        // console.log(`✓ 临时目录已清理: ${this.tmpDir}`);
+        console.log(`✓ 临时目录已清理: ${this.tmpDir}`);
       } catch (error) {
         console.warn(`⚠️ 清理临时目录失败: ${error.message}`);
       }
